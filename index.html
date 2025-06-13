@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Taxas Workcell Tecnologia</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      transition: background-color 0.5s;
+    }
+    .main-result {
+      font-size: 1.25rem;
+      color: #6c757d;
+    }
+    .result-block {
+      background-color: #198754;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 2rem;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .card-dark {
+      background-color: #212529;
+      color: white;
+    }
+    .highlight {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .machine-icon {
+      font-size: 1.3rem;
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+    <div class="text-center mb-4">
+      <h2><i class="fas fa-calculator"></i> Calculadora de Taxas</h2>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Selecione a máquina:</label>
+        <select id="machine" class="form-select">
+          <option value="pagbank">PagBank</option>
+          <option value="infinity">InfinityPay</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Bandeira:</label>
+        <select id="brand" class="form-select">
+          <option value="visa">Mastercard / Visa</option>
+          <option value="hiper">Hipercard / Amex / Elo / Hiper</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Modo de entrada:</label>
+        <select id="entryMode" class="form-select">
+          <option value="total">Valor Total</option>
+          <option value="parcel">Valor da Parcela</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Valor (R$):</label>
+        <input type="number" id="amount" class="form-control" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Parcelas:</label>
+        <select id="installments" class="form-select"></select>
+      </div>
+      <div class="col-md-6 d-grid align-items-end">
+        <button class="btn btn-primary" onclick="calculate()">
+          <i class="fas fa-play"></i> Calcular
+        </button>
+      </div>
+    </div>
+
+    <div id="mainResult" class="text-center my-4"></div>
+    <div id="resultDetails" class="mt-4"></div>
+  </div>
+
+  <script>
+    const rates = {
+      pagbank: {
+        debito: 0.99,
+        credito: [2.99, 4.09, 4.78, 5.47, 6.14, 6.81, 7.67, 8.33, 8.98, 9.63, 10.26, 10.90, 12.32, 12.94, 13.56, 14.17, 14.77, 15.37]
+      },
+      infinity: {
+        visa: {
+          debito: 0.75,
+          credito: [2.69, 3.94, 4.46, 4.98, 5.49, 5.99, 6.51, 6.99, 7.51, 7.99, 8.49, 8.99]
+        },
+        hiper: {
+          debito: 1.88,
+          credito: [4.46, 5.81, 6.32, 6.83, 7.33, 7.83, 8.34, 8.83, 9.32, 9.81, 10.29, 10.77]
+        }
+      }
+    };
+
+    function updateInstallments() {
+      const machine = document.getElementById('machine').value;
+      const brand = document.getElementById('brand').value;
+      const installments = document.getElementById('installments');
+      installments.innerHTML = '';
+      let total = machine === 'pagbank' ? 18 : 12;
+      for (let i = 1; i <= total; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.text = `${i}x`;
+        installments.appendChild(option);
+      }
+
+      document.body.className = machine === 'pagbank' ? 'bg-warning-subtle' : 'bg-dark text-light';
+    }
+
+    function calculate() {
+      const machine = document.getElementById('machine').value;
+      const brand = document.getElementById('brand').value;
+      const entryMode = document.getElementById('entryMode').value;
+      const amountInput = parseFloat(document.getElementById('amount').value);
+      const parcelNum = parseInt(document.getElementById('installments').value);
+      let tax = 0, total = 0;
+
+      if (isNaN(amountInput) || amountInput <= 0) return;
+
+      if (parcelNum === 1) {
+        tax = machine === 'pagbank'
+          ? rates.pagbank.credito[0]
+          : rates.infinity[brand].credito[0];
+      } else {
+        tax = machine === 'pagbank'
+          ? rates.pagbank.credito[parcelNum - 1]
+          : rates.infinity[brand].credito[parcelNum - 1];
+      }
+
+      if (entryMode === 'parcel') {
+        total = amountInput * parcelNum;
+      } else {
+        total = amountInput;
+      }
+
+      const liquid = total * (1 - tax / 100);
+
+      const mainResult = document.getElementById('mainResult');
+      mainResult.innerHTML = `
+        <div class="result-block">R$ ${liquid.toFixed(2)}</div>
+        <div class="main-result">${parcelNum}x de R$${total.toFixed(2)} (${tax.toFixed(2)}%)</div>
+      `;
+
+      const resultDetails = document.getElementById('resultDetails');
+      resultDetails.innerHTML = '<h5 class="mt-4">Simulação de outras parcelas:</h5>';
+      for (let i = 1; i <= (machine === 'pagbank' ? 18 : 12); i++) {
+        let t = machine === 'pagbank' ? rates.pagbank.credito[i - 1] : rates.infinity[brand].credito[i - 1];
+        let base = entryMode === 'parcel' ? amountInput * i : amountInput;
+        let liq = base * (1 - t / 100);
+        let par = (base / i).toFixed(2);
+
+        resultDetails.innerHTML += `
+          <div class="highlight">
+            ${i}x de R$${par} - Tx. ${t.toFixed(2)}% → l R$${liq.toFixed(2)}
+          </div>
+        `;
+      }
+    }
+
+    document.getElementById('machine').addEventListener('change', updateInstallments);
+    document.getElementById('entryMode').addEventListener('change', updateInstallments);
+    window.onload = updateInstallments;
+  </script>
+</body>
+</html>
+
+
+Criado By Brendon 
+
+Para Workcell Tecnologia 
+( Ultima atualização: 13 /Jun)
+
