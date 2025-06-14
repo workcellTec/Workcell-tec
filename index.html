@@ -52,6 +52,12 @@
     select, input {
       border-radius: 15px !important;
     }
+    .single-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.95rem; /* você pode ajustar esse tamanho conforme necessário */
+}
   </style>
 </head>
 <body class="">
@@ -292,7 +298,7 @@
       else if(machine === "valorante") taxDebito = rates.valorante[brand.toLowerCase()]?.debito ?? 0.95;
 
       const totalDebito = value * (1 + taxDebito / 100);
-      result += `<div class="alert alert-dark">Débito: R$ ${totalDebito.toFixed(2)} (Taxa: ${taxDebito.toFixed(2)}%)</div>`;
+      result += `<div class="alert alert-dark single-line">Débito: R$ ${totalDebito.toFixed(2)} (${taxDebito.toFixed(2)}%)</div>`;
 
       for (let i = 1; i <= max; i++) {
         let tax = 0;
@@ -302,7 +308,7 @@
 
         const total = value * (1 + tax / 100);
         const parcel = total / i;
-        result += `<div class="alert alert-dark">${i}x de R$ ${parcel.toFixed(2)} (Total: R$ ${total.toFixed(2)} - Taxa: ${tax.toFixed(2)}%)</div>`;
+        result += `<div class="alert alert-dark single-line">${i}x de R$ ${parcel.toFixed(2)} (Total: R$ ${total.toFixed(2)} )</div>`;
       }
       document.getElementById("resultRepassarValores").innerHTML = result;
       updateTheme(machine);
@@ -315,6 +321,5 @@
   </script>
 </body>
 </html>
-
 
 Created by Brendon - Last Updated 13 Jun 2025
