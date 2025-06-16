@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calcule Taxas By Brendon</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(-45deg, #1e3c72, #2a5298, #4b0082, #000428);
+      background-size: 400% 400%;
+      animation: gradientMove 9s ease infinite;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    @keyframes gradientMove {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    body.pagbank {
+      background: #fff8dc;
+      color: #000;
+    }
+
+    body.infinity {
+      background: #000;
+      color: #fff;
+    }
+
+    body.valorante {
+      background: #2f4f4f; /* verde musgo escuro */
+      color: #fff;
+    }
+
+    .hidden {
+      display: none;
+    }
+    select, input {
+      border-radius: 15px !important;
+    }
+    .single-line {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.95rem; /* você pode ajustar esse tamanho conforme necessário */
+    }
+  </style>
+</head>
+<body class="">
+  <div class="container text-center" id="mainMenu">
+    <h2 class="mb-4">Bem vindo(a) a calculadora de taxas Workcell,<br>O que você quer fazer?</h2>
+    <div class="d-grid gap-2">
+      <button class="btn btn-primary btn-lg" onclick="openFecharVenda()">Fechar uma venda</button>
+      <button class="btn btn-dark btn-lg" onclick="openRepassarValores()">Repassar valores</button>
+    </div>
+  </div>
+
+  <div class="container hidden" id="fecharVenda">
+    <h3 class="mb-4">Taxas de Maquininha e Fechamento de Venda</h3>
+    <div class="row mb-3">
+      <div class="col">
+        <label>Maquininha</label>
+        <select class="form-select" id="machine1" onchange="updateInstallmentsOptions(); updateTheme(this.value); updateBrandVisibility(); autoCalculateFecharVenda()">
+          <option value="pagbank">PagBank</option>
+          <option value="infinity">InfinityPay</option>
+          <option value="valorante">Valorante</option>
+        </select>
+      </div>
+      <div class="col" id="brand1Container">
+        <label>Bandeira</label>
+        <select class="form-select" id="brand1" onchange="autoCalculateFecharVenda()">
+          <option value="visa">Visa / Master</option>
+          <option value="hiper">Hipercard</option>
+          <option value="elo">Elo</option>
+          <option value="amex">Amex</option>
+        </select>
+      </div>
+      <div class="col">
+        <label>Parcelas</label>
+        <select class="form-select" id="installments1" onchange="autoCalculateFecharVenda()"></select>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label><input type="radio" name="modeFechar" value="total" checked onchange="toggleFecharVendaMode()" /> Valor total da venda</label>
+      <label class="ms-3"><input type="radio" name="modeFechar" value="parcela" onchange="toggleFecharVendaMode()" /> Modo parcelas</label>
+    </div>
+
+    <div id="fecharVendaInputs"></div>
+    <div id="resultFecharVenda"></div>
+    <button class="btn btn-outline-secondary mt-4" onclick="location.reload()">Voltar</button>
+  </div>
+
+  <div class="container hidden" id="repassarValores">
+    <h3 class="mb-4">Simulação para Clientes</h3>
+    <div class="row mb-3">
+      <div class="col">
+        <label>Maquininha</label>
+        <select class="form-select" id="machine2" onchange="updateTheme(this.value); updateBrandVisibility(); calculateRepassarValores()">
+          <option value="pagbank">PagBank</option>
+          <option value="infinity">InfinityPay</option>
+          <option value="valorante">Valorante</option>
+        </select>
+      </div>
+      <div class="col" id="brand2Container">
+        <label>Bandeira</label>
+        <select class="form-select" id="brand2" onchange="calculateRepassarValores()">
+          <option value="visa">Visa / Master</option>
+          <option value="hiper">Hipercard</option>
+          <option value="elo">Elo</option>
+          <option value="amex">Amex</option>
+        </select>
+      </div>
+    </div>
+
+    <input type="number" step="0.01" min="0" id="repassarValue" class="form-control form-control-lg mb-3" placeholder="Digite o valor desejado (líquido)" oninput="calculateRepassarValores()" />
+    <div id="resultRepassarValores"></div>
+    <button class="btn btn-outline-secondary mt-4" onclick="location.reload()">Voltar</button>
+  </div>
+
+  <script>
+    const rates = {
+      pagbank: {
+        debito: 0.99,
+        credito: [2.99, 4.09, 4.78, 5.47, 6.14, 6.81, 7.67, 8.33, 8.98, 9.63, 10.26, 10.90, 12.32, 12.94, 13.56, 14.17, 14.77, 15.37]
+      },
+      infinity: {
+        visa: {
+          debito: 0.75,
+          credito: [2.69, 3.94, 4.46, 4.98, 5.49, 5.99, 6.51, 6.99, 7.51, 7.99, 8.49, 8.99]
+        },
+        hiper: { // Este é o key usado no HTML, mas as taxas são de Hipercard
+          debito: 1.88,
+          credito: [4.46, 5.81, 6.32, 6.83, 7.33, 7.83, 8.34, 8.83, 9.32, 9.81, 10.29, 10.77]
+        }
+      },
+      valorante: {
+        visa: {
+          debito: 0.95,
+          credito: [3.45, 4.73, 5.47, 6.08, 6.57, 7.45, 8.43, 9.11, 9.79, 10.47, 11.15, 11.83, 11.96, 12.64, 13.32, 14.00, 14.68, 15.36, 16.04, 16.72, 17.40]
+        },
+        mastercard: {
+          debito: 0.95,
+          credito: [3.45, 4.73, 5.47, 6.08, 6.57, 7.45, 8.43, 9.11, 9.79, 10.47, 11.15, 11.83, 11.96, 12.64, 13.32, 14.00, 14.68, 15.36, 16.04, 16.72, 17.40]
+        },
+        elo: {
+          debito: 1.69,
+          credito: [3.65, 5.43, 6.11, 6.70, 7.17, 8.15, 9.13, 9.81, 10.49, 11.17, 11.85, 12.53, 12.66, 13.39, 14.57, 15.25, 15.93, 16.61, 17.23, 17.97, 18.65]
+        },
+        hipercard: { // Mapeado de 'hiper' no HTML para 'hipercard' no JS
+          debito: 0.95, // Não fornecido na tabela, mantendo valor antigo ou ajuste necessário
+          credito: [3.95, 4.93, 5.61, 6.22, 6.71, 7.65, 8.43, 9.11, 9.79, 10.47, 11.15, 11.83, 12.51, 13.19, 13.87, 14.55, 15.23, 15.91, 16.53, 17.21, 17.95]
+        },
+        amex: {
+          debito: 0.95, // Não fornecido na tabela, mantendo valor antigo ou ajuste necessário
+          credito: [3.95, 4.93, 5.61, 6.22, 6.71, 7.65, 8.43, 9.11, 9.79, 10.47, 11.15, 11.83, 12.51, 13.19, 13.87, 14.55, 15.23, 15.91, 16.53, 17.21, 17.95]
+        }
+      }
+    };
+
+    function updateTheme(machine) {
+      document.body.className = machine;
+    }
+
+    function updateInstallmentsOptions() {
+      const machine = document.getElementById("machine1").value;
+      const installments = document.getElementById("installments1");
+      installments.innerHTML = '<option value="0">Débito</option>';
+      let max = 0;
+      if(machine === "pagbank") max = 18;
+      else if(machine === "infinity") max = 12;
+      else if(machine === "valorante") max = 21;
+
+      for (let i = 1; i <= max; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `${i}x`;
+        installments.appendChild(opt);
+      }
+    }
+
+    function updateBrandVisibility() {
+      const machine1 = document.getElementById("machine1").value;
+      const machine2 = document.getElementById("machine2").value;
+      document.getElementById("brand1Container").style.display = (machine1 === "infinity" || machine1 === "valorante") ? "block" : "none";
+      document.getElementById("brand2Container").style.display = (machine2 === "infinity" || machine2 === "valorante") ? "block" : "none";
+    }
+
+    function openFecharVenda() {
+      document.getElementById("mainMenu").classList.add("hidden");
+      document.getElementById("fecharVenda").classList.remove("hidden");
+      updateInstallmentsOptions();
+      toggleFecharVendaMode();
+      updateBrandVisibility();
+    }
+
+    function openRepassarValores() {
+      document.getElementById("mainMenu").classList.add("hidden");
+      document.getElementById("repassarValores").classList.remove("hidden");
+      updateTheme(document.getElementById("machine2").value);
+      updateBrandVisibility();
+    }
+
+    function toggleFecharVendaMode() {
+      const mode = document.querySelector('input[name="modeFechar"]:checked').value;
+      const fecharVendaInputs = document.getElementById("fecharVendaInputs");
+      fecharVendaInputs.innerHTML = "";
+      if (mode === "total") {
+        fecharVendaInputs.innerHTML = `<input type="number" step="0.01" min="0" id="fecharVendaValue" class="form-control form-control-lg mb-3" placeholder="Digite o valor total da venda" oninput="autoCalculateFecharVenda()" />`;
+      } else {
+        // No modo parcelas, só mostra o input para o valor da parcela (sem selecionar quantidade, que já vem do select principal)
+        fecharVendaInputs.innerHTML = `
+          <input type="number" step="0.01" min="0" id="fecharVendaValueParcela" class="form-control form-control-lg mb-3" placeholder="Digite o valor da parcela" oninput="autoCalculateFecharVenda()" />
+        `;
+      }
+    }
+
+    function autoCalculateFecharVenda() {
+      setTimeout(calculateFecharVenda, 100);
+    }
+
+    function calculateFecharVenda() {
+      const machine = document.getElementById("machine1").value;
+      const brand = document.getElementById("brand1").value || "visa";
+      const mode = document.querySelector('input[name="modeFechar"]:checked').value;
+      const installments = parseInt(document.getElementById("installments1").value);
+      let value;
+
+      if (mode === "total") {
+        value = parseFloat(document.getElementById("fecharVendaValue")?.value);
+      } else {
+        const parcela = parseFloat(document.getElementById("fecharVendaValueParcela")?.value);
+        if (isNaN(parcela) || parcela <= 0) {
+          document.getElementById("resultFecharVenda").innerHTML = "";
+          return;
+        }
+        value = parcela * (installments === 0 ? 1 : installments);
+      }
+
+      if (isNaN(value) || value <= 0) {
+        document.getElementById("resultFecharVenda").innerHTML = "";
+        return;
+      }
+
+      let tax = 0;
+      if (machine === "pagbank") {
+        tax = installments === 0 ? rates.pagbank.debito : rates.pagbank.credito[installments - 1];
+      } else if (machine === "infinity") {
+        tax = installments === 0 ? rates.infinity[brand].debito : rates.infinity[brand].credito[installments - 1];
+      } else if (machine === "valorante") {
+        // Ajuste para a bandeira Hipercard e Amex, pois o HTML usa 'hiper' mas o objeto rates usa 'hipercard'
+        let actualBrand = brand.toLowerCase();
+        if (actualBrand === 'hiper') {
+          actualBrand = 'hipercard';
+        } else if (actualBrand === 'amex') {
+          actualBrand = 'amex';
+        }
+        tax = installments === 0 ? rates.valorante[actualBrand]?.debito ?? 0.95 : rates.valorante[actualBrand]?.credito[installments - 1] ?? 0;
+      }
+
+      const liquid = value * (1 - tax / 100);
+      document.getElementById("resultFecharVenda").innerHTML = `
+        <div class="alert alert-success fs-5">
+          <strong>Valor Líquido: </strong>R$ ${liquid.toFixed(2)} <br/>
+          Taxa aplicada: ${tax.toFixed(2)}% (${installments === 0 ? "Débito" : `${installments}x`})
+        </div>`;
+    }
+
+    function calculateRepassarValores() {
+      const valorDesejado = parseFloat(document.getElementById("repassarValue").value);
+      if (isNaN(valorDesejado) || valorDesejado <= 0) {
+        document.getElementById("resultRepassarValores").innerHTML = "";
+        return;
+      }
+
+      const machine = document.getElementById("machine2").value;
+      const brand = document.getElementById("brand2").value || "visa"; // Default para visa se não houver seleção
+
+      let maxInstallments = 0;
+      if (machine === "pagbank") maxInstallments = 18;
+      else if (machine === "infinity") maxInstallments = 12;
+      else if (machine === "valorante") maxInstallments = 21;
+
+      let resultHtml = "";
+
+      // Ajuste para as bandeiras Hipercard e Amex da Valorante
+      let valoranteActualBrand = brand.toLowerCase();
+      if (valoranteActualBrand === 'hiper') {
+        valoranteActualBrand = 'hipercard';
+      } else if (valoranteActualBrand === 'amex') {
+        valoranteActualBrand = 'amex';
+      }
+
+      // Calcular para Débito
+      let debitTax = 0;
+      if (machine === "pagbank") {
+          debitTax = rates.pagbank.debito;
+      } else if (machine === "infinity") {
+          debitTax = rates.infinity[brand].debito;
+      } else if (machine === "valorante") {
+          debitTax = rates.valorante[valoranteActualBrand]?.debito ?? 0.95; // Usando 0.95% como fallback se a taxa de débito não for encontrada para Amex/Hipercard
+      }
+      // Aplicando a fórmula: valorBruto = valorDesejado / (1 - taxa / 100)
+      const valorBrutoDebit = valorDesejado / (1 - debitTax / 100);
+      resultHtml += `<div class="alert alert-dark single-line">Débito: R$ ${valorBrutoDebit.toFixed(2)} (${debitTax.toFixed(2)}%)</div>`;
+
+      // Calcular para Parcelas de Crédito
+      for (let i = 1; i <= maxInstallments; i++) {
+        let creditTax = 0;
+        if (machine === "pagbank") {
+            creditTax = rates.pagbank.credito[i - 1];
+        } else if (machine === "infinity") {
+            creditTax = rates.infinity[brand].credito[i - 1];
+        } else if (machine === "valorante") {
+            creditTax = rates.valorante[valoranteActualBrand]?.credito[i - 1] ?? 0;
+        }
+
+        // Aplicando a fórmula: valorBruto = valorDesejado / (1 - taxa / 100)
+        const valorBrutoCredit = valorDesejado / (1 - creditTax / 100);
+        const valorParcela = valorBrutoCredit / i;
+        resultHtml += `<div class="alert alert-dark single-line">${i}x de R$ ${valorParcela.toFixed(2)} (Total: R$ ${valorBrutoCredit.toFixed(2)} )</div>`;
+      }
+      document.getElementById("resultRepassarValores").innerHTML = resultHtml;
+      updateTheme(machine);
+    }
+
+    window.onload = () => {
+      updateInstallmentsOptions();
+      updateBrandVisibility();
+    };
+  </script>
+</body>
+</html>
+Created by Brendon - Last Updated 13 Jun 2025
+
