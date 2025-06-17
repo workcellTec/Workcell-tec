@@ -1,51 +1,101 @@
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Calcule Taxas By Brendon</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <style>
-    body {
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Calcule Taxas By Brendon</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+    /* GARANTINDO QUE HTML E BODY OCUPEM A TELA INTEIRA SEM MARGENS/PADDINGS */
+    html, body {
       margin: 0;
-      height: 100vh;
-      background: linear-gradient(-45deg, #1e3c72, #2a5298, #4b0082, #000428);
-      background-size: 400% 400%;
-      animation: gradientMove 9s ease infinite;
+      padding: 0;
+      height: 100%; /* Garante que html e body ocupem 100% da altura */
+      width: 100%;  /* Garante que html e body ocupem 100% da largura */
+      overflow-x: hidden; /* Permite rolagem vertical, mas previne horizontal */
+      box-sizing: border-box; /* Garante que padding e border sejam incluídos no cálculo de width/height */
+    }
+
+    body {
+      background-color: #1a1a1a; /* Fundo padrão do body (para outras seções/quando nenhum tema está ativo) */
       color: white;
       font-family: Arial, sans-serif;
-      padding: 20px;
+      /* O padding de 20px foi removido daqui para evitar bordas pretas */
     }
 
-    @keyframes gradientMove {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
+    /* Animação para o efeito de "fumaça" */
+    @keyframes fumaca {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
+    /* Estilos base para a classe .container (aplicados a todas as seções) */
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box; /* Importante para o controle de tamanho */
+        /* min-height, max-width, padding e margin serão definidos especificamente para #mainMenu
+           ou para os outros containers usando o seletor :not(#mainMenu) */
+    }
+
+    /* ESTILOS ESPECÍFICOS PARA A TELA INICIAL (#mainMenu) - Ocupando 100% da tela */
+    #mainMenu {
+      width: 100vw;   /* Ocupa 100% da largura da viewport */
+      height: 100vh;  /* Ocupa 100% da altura da viewport */
+      max-width: none; /* Remove qualquer limite de largura imposto pelo .container */
+      min-height: 100vh; /* Garante que ocupe pelo menos 100% da altura da viewport */
+      margin: 0;      /* Remove quaisquer margens herdadas */
+      padding: 0;     /* Remove quaisquer paddings herdados, para preencher totalmente */
+      
+      /* Gradiente e animação (conforme solicitado) */
+      background: linear-gradient(-45deg, #1abc9c, #3498db, #16a085, #2980b9);
+      background-size: 400% 400%;
+      animation: fumaca 20s ease infinite;
+
+      /* Assegura que não há bordas arredondadas ou sombras visíveis */
+      border-radius: 0;
+      box-shadow: none;
+      
+      overflow: hidden; /* Mantém o overflow hidden apenas para a tela inicial se desejar */
+    }
+
+    /* Estilos para os outros containers (TODAS AS OUTRAS ABAS, EXCETO A INICIAL) */
+    .container:not(#mainMenu) {
+        min-height: calc(100vh - 40px); /* Mantém o min-height para outras seções */
+        padding: 15px; /* Padding interno para o conteúdo das outras seções */
+        max-width: 500px; /* Limita a largura das outras seções */
+        margin: auto; /* Centraliza as outras seções */
+        margin-top: 20px; /* Margem para o topo em outras seções */
+        margin-bottom: 20px; /* Margem para a base em outras seções */
+        
+        /* Permite rolagem vertical dentro desses containers se o conteúdo for maior */
+        overflow-y: auto; 
+    }
+
+    /* Temas para as maquininhas - aplicados ao body dinamicamente */
     body.pagbank {
-      background: #fff8dc;
+      background-color: #fff8dc; /* Amarelo claro */
       color: #000;
     }
 
     body.infinity {
-      background: #000;
+      background-color: #000; /* Preto */
       color: #fff;
     }
 
     body.valorante {
-      background: #2f4f4f; /* verde musgo escuro */
+      background-color: #2f4f4f; /* Verde musgo escuro */
       color: #fff;
     }
 
+    /* Garante que elementos com 'hidden' não ocupem espaço */
     .hidden {
-      display: none;
+      display: none !important; /* Adicionado !important para forçar */
     }
     select, input {
       border-radius: 15px !important;
@@ -56,81 +106,298 @@
       text-overflow: ellipsis;
       font-size: 0.95rem; /* você pode ajustar esse tamanho conforme necessário */
     }
+    
+    .d-grid button {
+        width: 100%; /* Botões ocupam 100% da largura em telas pequenas */
+        max-width: 300px; /* Limite a largura máxima para botões em telas maiores */
+        margin-bottom: 10px; /* Espaçamento entre os botões */
+    }
+    .form-select, .form-control {
+        width: 100%;
+        max-width: 400px; /* Limite a largura máxima dos inputs e selects */
+    }
+    .alert {
+        width: 100%;
+        max-width: 400px;
+    }
+    /* Styles for the Administration section */
+    #administracao.container {
+        max-width: 900px; /* Wider for the table */
+        /* FORÇAR TEMA ESCURO PARA ADMINISTRAÇÃO */
+        background-color: #000 !important; /* Fundo preto do InfinityPay */
+        color: #fff !important; /* Texto branco do InfinityPay */
+    }
+    #administracao .table-dark th, #administracao .table-dark td {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    #administracao .table-dark tbody tr:nth-of-type(odd) {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    /* Explicitly set text color for inputs in administration tab */
+    #administracao .form-control,
+    #administracao textarea.form-control {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white !important; /* Ensure text is always white */
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    #administracao .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.7) !important; /* Ensure placeholder is visible */
+    }
+    #administracao .form-control:focus {
+        background-color: rgba(255, 255, 255, 0.3);
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    }
+    #administracao .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    #administracao .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    /* Adjusted button colors for admin section to ensure visibility on dark background */
+    #administracao .btn-secondary {
+        background-color: #6c757d; /* Darker secondary for dark background */
+        border-color: #6c757d;
+        color: #fff;
+    }
+    #administracao .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+
+    #administracao .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    #administracao .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+    #administracao .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    #administracao .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    #administracao .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    #administracao .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+
+    /* Adjust the new "Excluir todos" button */
+    .btn-danger-lg {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        font-size: 1.25rem;
+        padding: 0.8rem 1.5rem;
+        width: 100%;
+        max-width: 300px;
+        margin-top: 20px;
+    }
+    .btn-danger-lg:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+
+
+    /* Ajustes para telas menores */
+    @media (max-width: 576px) {
+        .container:not(#mainMenu) { /* Aplica-se apenas aos outros containers */
+            padding: 10px;
+        }
+        h2, h3 {
+            font-size: 1.5rem; /* Reduz o tamanho da fonte dos títulos */
+        }
+        .btn-lg {
+            font-size: 1rem; /* Reduz o tamanho da fonte dos botões */
+            padding: 0.75rem 1rem;
+        }
+        .row .col-12 {
+            margin-bottom: 10px; /* Adiciona espaçamento entre as colunas empilhadas */
+        }
+    }
   </style>
 </head>
-<body class="">
-  <div class="container text-center" id="mainMenu">
-    <h2 class="mb-4">Bem vindo(a) a calculadora de taxas Workcell,<br>O que você quer fazer?</h2>
-    <div class="d-grid gap-2">
-      <button class="btn btn-primary btn-lg" onclick="openFecharVenda()">Fechar uma venda</button>
-      <button class="btn btn-dark btn-lg" onclick="openRepassarValores()">Repassar valores</button>
-    </div>
-  </div>
+<body>
+<div class="container text-center" id="mainMenu">
+<h2 class="mb-4">Bem vindo(a) a calculadora de taxas Workcell,<br/>O que você quer fazer?</h2>
+<div class="d-grid gap-2">
+<button class="btn btn-primary btn-lg" onclick="openSection('fecharVenda')">Fechar uma venda</button>
+<button class="btn btn-dark btn-lg" onclick="openSection('repassarValores')">Repassar valores</button>
+<button class="btn btn-info btn-lg" onclick="openSection('calcularPorAparelho')">Calcular por aparelho</button>
+<button class="btn btn-secondary btn-lg" onclick="openSection('administracao')">Administração de Produtos</button> </div>
+</div>
+<div class="container hidden" id="fecharVenda">
+<h3 class="mb-4">Taxas de Maquininha e Fechamento de Venda</h3>
+<div class="row mb-3 w-100 justify-content-center"> <div class="col-12 col-md-4 mb-3"> <label>Maquininha</label>
+<select class="form-select" id="machine1" onchange="updateInstallmentsOptions(); updateTheme(this.value); autoCalculateFecharVenda()">
+<option value="pagbank">PagBank</option>
+<option value="infinity">InfinityPay</option>
+<option value="valorante">Valorante</option>
+</select>
+</div>
+<div class="col-12 col-md-4 mb-3" id="brand1Container">
+<label>Bandeira</label>
+<select class="form-select" id="brand1" onchange="autoCalculateFecharVenda()">
+<option value="visa">Visa / Master</option>
+<option value="hiper">Hipercard</option>
+<option value="elo">Elo</option>
+<option value="amex">Amex</option>
+</select>
+</div>
+<div class="col-12 col-md-4 mb-3">
+<label>Parcelas</label>
+<select class="form-select" id="installments1" onchange="autoCalculateFecharVenda()"></select>
+</div>
+</div>
+<div class="mb-3 d-flex justify-content-center flex-wrap"> <label class="me-3"><input checked="" name="modeFechar" onchange="toggleFecharVendaMode()" type="radio" value="total"/> Valor total da venda</label>
+<label><input name="modeFechar" onchange="toggleFecharVendaMode()" type="radio" value="parcela"/> Modo parcelas</label>
+</div>
+<div class="w-100 d-flex justify-content-center" id="fecharVendaInputs"></div>
+<div class="w-100 d-flex justify-content-center" id="resultFecharVenda"></div>
+<button class="btn btn-outline-secondary mt-4" onclick="openSection('mainMenu', true)">Voltar</button>
+</div>
+<div class="container hidden" id="repassarValores">
+<h3 class="mb-4">Simulação para Clientes</h3>
+<div class="row mb-3 w-100 justify-content-center">
+<div class="col-12 col-md-6 mb-3">
+<label>Maquininha</label>
+<select class="form-select" id="machine2" onchange="updateTheme(this.value); updateBrandVisibility(); calculateRepassarValores()">
+<option value="pagbank">PagBank</option>
+<option value="infinity">InfinityPay</option>
+<option value="valorante">Valorante</option>
+</select>
+</div>
+<div class="col-12 col-md-6 mb-3" id="brand2Container">
+<label>Bandeira</label>
+<select class="form-select" id="brand2" onchange="calculateRepassarValores()">
+<option value="visa">Visa / Master</option>
+<option value="hiper">Hipercard</option>
+<option value="elo">Elo</option>
+<option value="amex">Amex</option>
+</select>
+</div>
+</div>
+<input class="form-control form-control-lg mb-3 w-100" id="repassarValue" min="0" oninput="calculateRepassarValores()" placeholder="Digite o valor desejado (líquido)" step="0.01" style="max-width: 400px;" type="number"/>
+<div class="w-100 d-flex flex-column align-items-center" id="resultRepassarValores"></div>
+<button class="btn btn-outline-secondary mt-4" onclick="openSection('mainMenu', true)">Voltar</button>
+</div>
+<div class="container hidden" id="calcularPorAparelho">
+<h3 class="mb-4">Calcular por Aparelho</h3>
+<div class="mb-3 w-100" style="max-width: 400px;">
+<label class="form-label" for="aparelhoSearch">Pesquisar Aparelho</label>
+<input class="form-control" id="aparelhoSearch" oninput="filterAparelhos()" placeholder="Digite o nome do aparelho" type="text"/>
+</div>
+<div class="row mb-3 w-100 justify-content-center">
+<div class="col-12 col-md-8">
+<label>Aparelho</label>
+<select class="form-select" id="aparelhoSelect" onchange="selectAparelhoAndCalculate()">
+<option value="">Selecione um aparelho</option>
+</select>
+</div>
+</div>
+<div class="row mb-3 w-100 justify-content-center">
+<div class="col-12 col-md-6 mb-3">
+<label>Maquininha</label>
+<select class="form-select" id="machine3" onchange="updateBrandVisibilityAparelho(); calculateAparelho()">
+<option value="pagbank">PagBank</option>
+<option value="infinity">InfinityPay</option>
+<option value="valorante">Valorante</option>
+</select>
+</div>
+<div class="col-12 col-md-6 mb-3" id="brand3Container">
+<label>Bandeira</label>
+<select class="form-select" id="brand3" onchange="calculateAparelho()">
+<option value="visa">Visa / Master</option>
+<option value="hiper">Hipercard</option>
+<option value="elo">Elo</option>
+<option value="amex">Amex</option>
+</select>
+</div>
+</div>
+<div class="w-100 d-flex flex-column align-items-center" id="resultCalcularPorAparelho"></div>
+<button class="btn btn-outline-secondary mt-4" onclick="openSection('mainMenu', true)">Voltar</button>
+</div>
+<div class="container hidden" id="administracao">
+<h3 class="mb-4">Administração de Produtos</h3>
+<div class="mb-4 text-start">
+<h4 class="text-white mb-3">Importar Produtos</h4>
+<div class="mb-3">
+<label class="form-label" for="pasteInput">Colar Lista (Ex: iPhone 14 - 3999.00):</label>
+<textarea class="form-control" id="pasteInput" placeholder="Cole sua lista de produtos aqui, um por linha." rows="5"></textarea>
+</div>
+<button class="btn btn-primary mb-3 me-2" onclick="importFromPaste()">Importar Colados</button>
+<button class="btn btn-secondary mb-3" onclick="document.getElementById('fileInput').click()">Upload de Arquivo (.txt/.csv)</button>
+<input accept=".txt,.csv" class="d-none" id="fileInput" onchange="importFromFile()" type="file"/>
+<div class="mt-2" id="importStatus"></div>
+</div>
+<div class="mb-4 text-start">
+<h4 class="text-white mb-3">Pesquisar Produtos</h4>
+<div class="mb-3">
+<input class="form-control" id="adminSearchInput" oninput="filterAdminProducts()" placeholder="Digite o nome do produto para pesquisar..." type="text"/>
+</div>
+</div>
+<div class="mb-4 text-start">
+<h4 class="text-white mb-3">Comando Rápido (IA*)</h4>
+<div class="input-group">
+<input class="form-control" id="naturalCommandInput" placeholder="Ex: baixar valor iPhone 13 para 3399" type="text">
+<button class="btn btn-primary" onclick="processNaturalLanguageCommand()">Aplicar Comando</button>
+</input></div>
+<div class="mt-2" id="commandStatus"></div>
+</div>
+<div class="mb-4 text-start">
+<h4 class="text-white mb-3">Produtos Cadastrados</h4>
+<div class="table-responsive">
+<table class="table table-dark table-striped table-hover">
+<thead>
+<tr>
+<th>Nome do Produto</th>
+<th>Valor</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody id="productsTableBody">
+</tbody>
+</table>
+</div>
+<button class="btn btn-success mt-3" onclick="addNewProductRow()">Adicionar Novo Produto</button>
+</div>
+<div class="mb-4 text-start">
+<h4 class="text-white mb-3">Exportar Produtos</h4>
+<button class="btn btn-info me-2" onclick="exportProducts('txt')">Exportar como TXT</button>
+<button class="btn btn-info" onclick="exportProducts('json')">Exportar como JSON</button>
+</div>
+<div class="mb-4 text-start">
+<button class="btn btn-danger-lg" onclick="deleteAllProductsWithPrompt()">Excluir todos os produtos</button>
+</div>
+<button class="btn btn-outline-secondary mt-4" onclick="openSection('mainMenu', true)">Voltar</button>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // A chave do localStorage para os produtos salvos
+    // REMOVIDA: const STORAGE_KEY = 'produtosSalvos';
+    
+    // Declaração global para 'products' e 'db', que serão populadas pelo script Firebase
+    // É importante que essas variáveis sejam acessíveis globalmente.
+    let products = []; // Array para armazenar os produtos da administração e da calculadora
+    let db; // Variável para a instância do Realtime Database
 
-  <div class="container hidden" id="fecharVenda">
-    <h3 class="mb-4">Taxas de Maquininha e Fechamento de Venda</h3>
-    <div class="row mb-3">
-      <div class="col">
-        <label>Maquininha</label>
-        <select class="form-select" id="machine1" onchange="updateInstallmentsOptions(); updateTheme(this.value); updateBrandVisibility(); autoCalculateFecharVenda()">
-          <option value="pagbank">PagBank</option>
-          <option value="infinity">InfinityPay</option>
-          <option value="valorante">Valorante</option>
-        </select>
-      </div>
-      <div class="col" id="brand1Container">
-        <label>Bandeira</label>
-        <select class="form-select" id="brand1" onchange="autoCalculateFecharVenda()">
-          <option value="visa">Visa / Master</option>
-          <option value="hiper">Hipercard</option>
-          <option value="elo">Elo</option>
-          <option value="amex">Amex</option>
-        </select>
-      </div>
-      <div class="col">
-        <label>Parcelas</label>
-        <select class="form-select" id="installments1" onchange="autoCalculateFecharVenda()"></select>
-      </div>
-    </div>
+    // Armazena o valor do aparelho selecionado para cálculo.
+    // É importante que este valor seja atualizado sempre que um aparelho for selecionado
+    // ou quando a lista de produtos for carregada/filtrada.
+    let selectedAparelhoValue = 0; 
 
-    <div class="mb-3">
-      <label><input type="radio" name="modeFechar" value="total" checked onchange="toggleFecharVendaMode()" /> Valor total da venda</label>
-      <label class="ms-3"><input type="radio" name="modeFechar" value="parcela" onchange="toggleFecharVendaMode()" /> Modo parcelas</label>
-    </div>
-
-    <div id="fecharVendaInputs"></div>
-    <div id="resultFecharVenda"></div>
-    <button class="btn btn-outline-secondary mt-4" onclick="location.reload()">Voltar</button>
-  </div>
-
-  <div class="container hidden" id="repassarValores">
-    <h3 class="mb-4">Simulação para Clientes</h3>
-    <div class="row mb-3">
-      <div class="col">
-        <label>Maquininha</label>
-        <select class="form-select" id="machine2" onchange="updateTheme(this.value); updateBrandVisibility(); calculateRepassarValores()">
-          <option value="pagbank">PagBank</option>
-          <option value="infinity">InfinityPay</option>
-          <option value="valorante">Valorante</option>
-        </select>
-      </div>
-      <div class="col" id="brand2Container">
-        <label>Bandeira</label>
-        <select class="form-select" id="brand2" onchange="calculateRepassarValores()">
-          <option value="visa">Visa / Master</option>
-          <option value="hiper">Hipercard</option>
-          <option value="elo">Elo</option>
-          <option value="amex">Amex</option>
-        </select>
-      </div>
-    </div>
-
-    <input type="number" step="0.01" min="0" id="repassarValue" class="form-control form-control-lg mb-3" placeholder="Digite o valor desejado (líquido)" oninput="calculateRepassarValores()" />
-    <div id="resultRepassarValores"></div>
-    <button class="btn btn-outline-secondary mt-4" onclick="location.reload()">Voltar</button>
-  </div>
-
-  <script>
     const rates = {
       pagbank: {
         debito: 0.99,
@@ -141,7 +408,7 @@
           debito: 0.75,
           credito: [2.69, 3.94, 4.46, 4.98, 5.49, 5.99, 6.51, 6.99, 7.51, 7.99, 8.49, 8.99]
         },
-        hiper: { // Este é o key usado no HTML, mas as taxas são de Hipercard
+        hiper: { // Este conjunto de taxas será usado para Hipercard, Amex, Elo, Hiper
           debito: 1.88,
           credito: [4.46, 5.81, 6.32, 6.83, 7.33, 7.83, 8.34, 8.83, 9.32, 9.81, 10.29, 10.77]
         }
@@ -157,19 +424,89 @@
         },
         elo: {
           debito: 1.69,
-          credito: [3.65, 5.43, 6.11, 6.70, 7.17, 8.15, 9.13, 9.81, 10.49, 11.17, 11.85, 12.53, 12.66, 13.39, 14.57, 15.25, 15.93, 16.61, 17.23, 17.97, 18.65]
+          credito: [3.65, 5.43, 6.11, 6.70, 7.17, 8.15, 9.13, 9.81, 11.17, 11.85, 12.53, 12.66, 13.39, 14.57, 15.25, 15.93, 16.61, 17.23, 17.97, 18.65] // CORRIGIDO: 10x de 11.15 para 11.17
         },
-        hipercard: { // Mapeado de 'hiper' no HTML para 'hipercard' no JS
-          debito: 0.95, // Não fornecido na tabela, mantendo valor antigo ou ajuste necessário
+        hipercard: {
+          debito: 0.95, // Manter este padrão já que não foi fornecida taxa específica de débito na tabela.
           credito: [3.95, 4.93, 5.61, 6.22, 6.71, 7.65, 8.43, 9.11, 9.79, 10.47, 11.15, 11.83, 12.51, 13.19, 13.87, 14.55, 15.23, 15.91, 16.53, 17.21, 17.95]
         },
         amex: {
-          debito: 0.95, // Não fornecido na tabela, mantendo valor antigo ou ajuste necessário
+          debito: 0.95, // Manter este padrão já que não foi fornecida taxa específica de débito na tabela.
           credito: [3.95, 4.93, 5.61, 6.22, 6.71, 7.65, 8.43, 9.11, 9.79, 10.47, 11.15, 11.83, 12.51, 13.19, 13.87, 14.55, 15.23, 15.91, 16.53, 17.21, 17.95]
         }
       }
     };
 
+    let currentSectionId = 'mainMenu'; // Track the currently active section
+
+    /**
+     * Utility function to normalize strings (convert to lowercase, remove accents, and remove symbols).
+     * @param {string} str - The string to be normalized.
+     * @returns {string} The normalized string.
+     */
+    const normalizeString = str => str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .replace(/[^a-z0-9\s]/gi, "");   // remove símbolos
+
+    /**
+     * Main function to switch between sections.
+     * @param {string} sectionId - The ID of the section to open.
+     * @param {boolean} [fromHistory=false] - True if called from browser history API.
+     */
+    function openSection(sectionId, fromHistory = false) {
+        // Obter todas as seções e escondê-las
+        const sections = document.querySelectorAll('.container');
+        sections.forEach(section => section.classList.add('hidden'));
+
+        // Mostrar a seção desejada
+        document.getElementById(sectionId).classList.remove("hidden");
+        currentSectionId = sectionId; // Atualizar a seção atual
+
+        // Gerenciar a classe do body para os temas
+        if (sectionId === 'mainMenu') {
+            document.body.className = ''; // Limpa a classe do body para o menu principal (para o gradiente do mainMenu aparecer)
+        } else if (sectionId === 'administracao') {
+            document.body.className = 'infinity'; // Força o tema escuro para a administração
+        } else {
+            // Para as outras seções, aplica o tema da maquininha selecionada na respectiva seção
+            let machineSelectId = '';
+            if (sectionId === 'fecharVenda') machineSelectId = 'machine1';
+            else if (sectionId === 'repassarValores') machineSelectId = 'machine2';
+            else if (sectionId === 'calcularPorAparelho') machineSelectId = 'machine3';
+            
+            if (machineSelectId) {
+                updateTheme(document.getElementById(machineSelectId).value);
+            }
+        }
+
+        // Se não for uma navegação do histórico (botão voltar/avançar), adicionar ao histórico
+        if (!fromHistory) {
+            history.pushState({ sectionId: sectionId }, '', `#${sectionId}`);
+        }
+        
+        // Executa funções de inicialização específicas para cada seção
+        if (sectionId === 'fecharVenda') {
+            updateInstallmentsOptions();
+            updateBrandVisibility();
+            toggleFecharVendaMode();
+            autoCalculateFecharVenda();
+        } else if (sectionId === 'repassarValores') {
+            updateBrandVisibility();
+            calculateRepassarValores();
+        } else if (sectionId === 'calcularPorAparelho') {
+            document.getElementById('aparelhoSearch').value = '';
+            populateAparelhoSelect(); // Chamar sem parâmetros para usar a lista global 'products'
+            updateBrandVisibilityAparelho();
+        } else if (sectionId === 'administracao') {
+            document.getElementById('adminSearchInput').value = '';
+            document.getElementById('naturalCommandInput').value = '';
+            renderAdminTable(); // Renderizar a tabela com os dados mais recentes do Firebase
+        }
+    }
+
+    // A função updateTheme agora só é chamada para aplicar os temas das maquininhas
     function updateTheme(machine) {
       document.body.className = machine;
     }
@@ -177,7 +514,7 @@
     function updateInstallmentsOptions() {
       const machine = document.getElementById("machine1").value;
       const installments = document.getElementById("installments1");
-      installments.innerHTML = '<option value="0">Débito</option>';
+      installments.innerHTML = '<option value="0">Débito</option>'; // Always add debit option
       let max = 0;
       if(machine === "pagbank") max = 18;
       else if(machine === "infinity") max = 12;
@@ -194,23 +531,21 @@
     function updateBrandVisibility() {
       const machine1 = document.getElementById("machine1").value;
       const machine2 = document.getElementById("machine2").value;
-      document.getElementById("brand1Container").style.display = (machine1 === "infinity" || machine1 === "valorante") ? "block" : "none";
-      document.getElementById("brand2Container").style.display = (machine2 === "infinity" || machine2 === "valorante") ? "block" : "none";
+      
+      // Controla a visibilidade da bandeira para a seção "Fechar uma venda"
+      document.getElementById("brand1Container").style.display = 
+          (machine1 === "infinity" || machine1 === "valorante") ? "block" : "none";
+      
+      // Controla a visibilidade da bandeira para a seção "Repassar valores"
+      document.getElementById("brand2Container").style.display = 
+          (machine2 === "infinity" || machine2 === "valorante") ? "block" : "none";
     }
 
-    function openFecharVenda() {
-      document.getElementById("mainMenu").classList.add("hidden");
-      document.getElementById("fecharVenda").classList.remove("hidden");
-      updateInstallmentsOptions();
-      toggleFecharVendaMode();
-      updateBrandVisibility();
-    }
-
-    function openRepassarValores() {
-      document.getElementById("mainMenu").classList.add("hidden");
-      document.getElementById("repassarValores").classList.remove("hidden");
-      updateTheme(document.getElementById("machine2").value);
-      updateBrandVisibility();
+    function updateBrandVisibilityAparelho() {
+        const machine3 = document.getElementById("machine3").value;
+        document.getElementById("brand3Container").style.display = 
+            (machine3 === "infinity" || machine3 === "valorante") ? "block" : "none";
+        calculateAparelho(); // Recalcula quando a máquina muda
     }
 
     function toggleFecharVendaMode() {
@@ -218,17 +553,18 @@
       const fecharVendaInputs = document.getElementById("fecharVendaInputs");
       fecharVendaInputs.innerHTML = "";
       if (mode === "total") {
-        fecharVendaInputs.innerHTML = `<input type="number" step="0.01" min="0" id="fecharVendaValue" class="form-control form-control-lg mb-3" placeholder="Digite o valor total da venda" oninput="autoCalculateFecharVenda()" />`;
+        fecharVendaInputs.innerHTML = `<input type="number" step="0.01" min="0" id="fecharVendaValue" class="form-control form-control-lg mb-3" placeholder="Digite o valor total da venda" oninput="autoCalculateFecharVenda()" style="max-width: 400px;"/>`;
       } else {
-        // No modo parcelas, só mostra o input para o valor da parcela (sem selecionar quantidade, que já vem do select principal)
         fecharVendaInputs.innerHTML = `
-          <input type="number" step="0.01" min="0" id="fecharVendaValueParcela" class="form-control form-control-lg mb-3" placeholder="Digite o valor da parcela" oninput="autoCalculateFecharVenda()" />
+          <input type="number" step="0.01" min="0" id="fecharVendaValueParcela" class="form-control form-control-lg mb-3" placeholder="Digite o valor da parcela" oninput="autoCalculateFecharVenda()" style="max-width: 400px;"/>
         `;
       }
+      autoCalculateFecharVenda(); // Dispara o cálculo após mudar o modo
     }
 
     function autoCalculateFecharVenda() {
-      setTimeout(calculateFecharVenda, 100);
+      // Pequeno atraso para garantir que o DOM esteja atualizado após oninput
+      setTimeout(calculateFecharVenda, 50); 
     }
 
     function calculateFecharVenda() {
@@ -258,21 +594,29 @@
       if (machine === "pagbank") {
         tax = installments === 0 ? rates.pagbank.debito : rates.pagbank.credito[installments - 1];
       } else if (machine === "infinity") {
-        tax = installments === 0 ? rates.infinity[brand].debito : rates.infinity[brand].credito[installments - 1];
+        // CORRIGIDO: Lógica para InfinityPay para agrupar bandeiras corretamente
+        let infinityBrandActual = brand;
+        if (infinityBrandActual === 'hiper' || infinityBrandActual === 'elo' || infinityBrandActual === 'amex') {
+          infinityBrandActual = 'hiper'; // Agrupa essas bandeiras sob as taxas 'hiper'
+        } else {
+          infinityBrandActual = 'visa'; // Assume outras como visa/master
+        }
+        tax = installments === 0 ? rates.infinity[infinityBrandActual].debito : rates.infinity[infinityBrandActual].credito[installments - 1];
       } else if (machine === "valorante") {
-        // Ajuste para a bandeira Hipercard e Amex, pois o HTML usa 'hiper' mas o objeto rates usa 'hipercard'
         let actualBrand = brand.toLowerCase();
+        // Mapeamento de bandeiras para Valorante se necessário (já estava ok)
         if (actualBrand === 'hiper') {
           actualBrand = 'hipercard';
-        } else if (actualBrand === 'amex') {
-          actualBrand = 'amex';
+        } else if (actualBrand === 'master') { 
+          actualBrand = 'mastercard';
         }
-        tax = installments === 0 ? rates.valorante[actualBrand]?.debito ?? 0.95 : rates.valorante[actualBrand]?.credito[installments - 1] ?? 0;
+        // Fallback para Visa se a bandeira não for encontrada nas taxas da Valorante (mantido para robustez)
+        tax = installments === 0 ? (rates.valorante[actualBrand]?.debito ?? rates.valorante.visa.debito) : (rates.valorante[actualBrand]?.credito[installments - 1] ?? rates.valorante.visa.credito[installments - 1]);
       }
 
       const liquid = value * (1 - tax / 100);
       document.getElementById("resultFecharVenda").innerHTML = `
-        <div class="alert alert-success fs-5">
+        <div class="alert alert-success fs-5 w-100" style="max-width: 400px;">
           <strong>Valor Líquido: </strong>R$ ${liquid.toFixed(2)} <br/>
           Taxa aplicada: ${tax.toFixed(2)}% (${installments === 0 ? "Débito" : `${installments}x`})
         </div>`;
@@ -286,7 +630,7 @@
       }
 
       const machine = document.getElementById("machine2").value;
-      const brand = document.getElementById("brand2").value || "visa"; // Default para visa se não houver seleção
+      const brand = document.getElementById("brand2").value || "visa";
 
       let maxInstallments = 0;
       if (machine === "pagbank") maxInstallments = 18;
@@ -295,26 +639,34 @@
 
       let resultHtml = "";
 
-      // Ajuste para as bandeiras Hipercard e Amex da Valorante
-      let valoranteActualBrand = brand.toLowerCase();
-      if (valoranteActualBrand === 'hiper') {
-        valoranteActualBrand = 'hipercard';
-      } else if (valoranteActualBrand === 'amex') {
-        valoranteActualBrand = 'amex';
+      let actualBrandForRates = brand.toLowerCase();
+      if (machine === 'valorante') {
+        if (actualBrandForRates === 'hiper') {
+          actualBrandForRates = 'hipercard';
+        } else if (actualBrandForRates === 'master') {
+            actualBrandForRates = 'mastercard';
+        }
+      } else if (machine === 'infinity') {
+          // CORRIGIDO: Lógica para InfinityPay para agrupar bandeiras corretamente
+          if (actualBrandForRates === 'hiper' || actualBrandForRates === 'elo' || actualBrandForRates === 'amex') {
+            actualBrandForRates = 'hiper';
+          } else {
+            actualBrandForRates = 'visa'; // Default para outras é visa (Mastercard, Visa)
+          }
       }
+
 
       // Calcular para Débito
       let debitTax = 0;
       if (machine === "pagbank") {
           debitTax = rates.pagbank.debito;
       } else if (machine === "infinity") {
-          debitTax = rates.infinity[brand].debito;
+          debitTax = rates.infinity[actualBrandForRates]?.debito;
       } else if (machine === "valorante") {
-          debitTax = rates.valorante[valoranteActualBrand]?.debito ?? 0.95; // Usando 0.95% como fallback se a taxa de débito não for encontrada para Amex/Hipercard
+          debitTax = rates.valorante[actualBrandForRates]?.debito ?? rates.valorante.visa.debito;
       }
-      // Aplicando a fórmula: valorBruto = valorDesejado / (1 - taxa / 100)
       const valorBrutoDebit = valorDesejado / (1 - debitTax / 100);
-      resultHtml += `<div class="alert alert-dark single-line">Débito: R$ ${valorBrutoDebit.toFixed(2)} (${debitTax.toFixed(2)}%)</div>`;
+      resultHtml += `<div class="alert alert-dark single-line w-100" style="max-width: 400px;">Débito: R$ ${valorBrutoDebit.toFixed(2)} (${debitTax.toFixed(2)}%)</div>`;
 
       // Calcular para Parcelas de Crédito
       for (let i = 1; i <= maxInstallments; i++) {
@@ -322,26 +674,622 @@
         if (machine === "pagbank") {
             creditTax = rates.pagbank.credito[i - 1];
         } else if (machine === "infinity") {
-            creditTax = rates.infinity[brand].credito[i - 1];
+            creditTax = rates.infinity[actualBrandForRates]?.credito[i - 1];
         } else if (machine === "valorante") {
-            creditTax = rates.valorante[valoranteActualBrand]?.credito[i - 1] ?? 0;
+            creditTax = rates.valorante[actualBrandForRates]?.credito[i - 1] ?? rates.valorante.visa.credito[i - 1];
         }
 
-        // Aplicando a fórmula: valorBruto = valorDesejado / (1 - taxa / 100)
         const valorBrutoCredit = valorDesejado / (1 - creditTax / 100);
         const valorParcela = valorBrutoCredit / i;
-        resultHtml += `<div class="alert alert-dark single-line">${i}x de R$ ${valorParcela.toFixed(2)} (Total: R$ ${valorBrutoCredit.toFixed(2)} )</div>`;
+        resultHtml += `<div class="alert alert-dark single-line w-100" style="max-width: 400px;">${i}x de R$ ${valorParcela.toFixed(2)} (Total: R$ ${valorBrutoCredit.toFixed(2)} )</div>`;
       }
       document.getElementById("resultRepassarValores").innerHTML = resultHtml;
       updateTheme(machine);
     }
 
-    window.onload = () => {
-      updateInstallmentsOptions();
-      updateBrandVisibility();
-    };
+    // --- Renderização da Tabela de Administração ---
+    // Added an optional 'filteredList' parameter to allow rendering filtered products
+    // Função global acessível para o script Firebase também
+    function renderAdminTable(filteredList = products) {
+        const tableBody = document.getElementById('productsTableBody');
+        tableBody.innerHTML = ''; // Limpa a tabela existente
+
+        if (filteredList.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Nenhum produto cadastrado ou encontrado.</td></tr>';
+            return;
+        }
+
+        filteredList.forEach((product) => { // Removido 'index', usando product.id do Firebase
+            const row = tableBody.insertRow();
+            row.innerHTML = `
+                <td><input type="text" class="form-control" value="${escapeHtml(product.nome)}" onchange="editProductFirebase('${product.id}', 'nome', this.value)"></td>
+                <td><input type="text" class="form-control" value="${product.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}" onchange="editProductFirebase('${product.id}', 'valor', this.value)"></td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteProductFirebase('${product.id}')">Delete</button></td>
+            `;
+        });
+    }
+
+    // Helper function to escape HTML for input values
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+    }
+
+    // --- Manipulação de Produtos na Tabela de Administração (AGORA USANDO FIREBASE) ---
+    // Funções de CRUD agora chamam as funções do Firebase
+    function addNewProductRow() {
+        if (!db) {
+            console.error("Firebase DB not initialized.");
+            displayStatusAdmin('Erro: Banco de dados não inicializado.', 'danger');
+            return;
+        }
+        // Usa `saveProductFirebase` para adicionar um novo produto ao Firebase
+        saveProductFirebase(null, { nome: 'Novo Produto', valor: 0.00 });
+        // A tabela será renderizada automaticamente pela escuta do onValue no Firebase
+        // Scroll to the new row (this might need to be in the onValue callback or delayed)
+        // setTimeout(() => {
+        //     const table = document.getElementById('productsTableBody');
+        //     table.scrollTop = table.scrollHeight;
+        // }, 100);
+    }
+
+    // A função `deleteProduct` foi renomeada para `deleteProductFirebase` para evitar conflito com a global do Firebase
+    // e deve ser chamada no onclick da tabela.
+    // O deleteProduct (original) no código do usuário não era chamada em nenhum lugar, mas o nome é similar ao do Firebase.
+    // A função deleteProductFirebase será definida no script `type="module"`.
+
+    /**
+     * Parses a Brazilian currency string into a float.
+     * Handles various formats like "R$ 3.399,00", "3399,00", "3.399", "3399".
+     * A comma or dot is treated as a decimal separator ONLY if it's the last separator
+     * and is followed by exactly two digits (cents). Otherwise, it's removed (thousands separator).
+     * @param {string} valueString - The string representing the currency value.
+     * @returns {number} The parsed float value.
+     */
+    function parseBrazilianCurrencyToFloat(valueString) {
+        if (typeof valueString !== 'string') {
+            valueString = String(valueString);
+        }
+        // Remove currency symbols, spaces
+        let cleaned = valueString.replace(/R\$?|RS?|\$|\s/g, '').trim();
+
+        // Check if the string ends with a comma or dot followed by exactly two digits (cents)
+        // This regex ensures we only consider the LAST group of .XX or ,XX as potential cents
+        const potentialDecimalMatch = cleaned.match(/([.,])(\d{2})$/);
+
+        if (potentialDecimalMatch) {
+            // A clear decimal part (cents) is found.
+            // Remove all other thousands separators from the integer part
+            let integerPart = cleaned.substring(0, cleaned.length - 3); // Get string before .XX or ,XX
+            integerPart = integerPart.replace(/[,.]/g, ''); // Remove all thousands separators
+            
+            let decimalSeparator = potentialDecimalMatch[1]; // Get the actual decimal separator (comma or dot)
+            let centsPart = potentialDecimalMatch[2];       // Get the two cents digits
+
+            // Reconstruct the number with a standard decimal point
+            cleaned = integerPart + '.' + centsPart;
+        } else {
+            // If no clear cents part, then all commas and dots are thousands separators, so remove them
+            // This handles cases like "3,399" (user means 3399) or "1.234" (user means 1234).
+            cleaned = cleaned.replace(/[,.]/g, '');
+        }
+        
+        let parsed = parseFloat(cleaned);
+        return isNaN(parsed) ? 0 : parsed; // Return 0 or handle error if parsing fails
+    }
+
+
+    // Função editProduct agora interage com o Firebase
+    function editProductFirebase(productId, field, newValue) {
+        const productIndex = products.findIndex(p => p.id === productId);
+        if (productIndex === -1) {
+            console.error('Product not found for ID:', productId);
+            displayStatusAdmin('Erro: Produto não encontrado.', 'danger');
+            return;
+        }
+
+        const updatedProduct = { ...products[productIndex] }; // Cria uma cópia do produto para modificar
+
+        if (field === 'valor') {
+            const parsedValue = parseBrazilianCurrencyToFloat(newValue);
+            if (!isNaN(parsedValue)) {
+                updatedProduct[field] = parsedValue;
+            } else {
+                console.error('Invalid value entered for the price field:', newValue);
+                displayStatusAdmin('Erro: Valor inválido para o produto. Por favor, insira um número válido (ex: 399,00 ou 1.749,50).', 'danger');
+                return; 
+            }
+        } else {
+            updatedProduct[field] = newValue;
+        }
+        
+        // Chama a função saveProduct (do escopo do Firebase) para atualizar no DB
+        saveProductFirebase(productId, { nome: updatedProduct.nome, valor: updatedProduct.valor });
+        // A renderização da tabela e a atualização do select de aparelhos são tratadas pelo onValue do Firebase
+    }
+
+    /**
+     * Filters products in the admin table based on keywords (case and accent insensitive).
+     */
+    function filterAdminProducts() {
+        const searchTerm = document.getElementById('adminSearchInput').value;
+        const normalizedSearchTerm = normalizeString(searchTerm);
+        // Split by space and filter out empty strings in case of multiple spaces
+        const keywords = normalizedSearchTerm.split(' ').filter(word => word.length > 0);
+
+        const filtered = products.filter(product => {
+            const normalizedProductName = normalizeString(product.nome);
+            return keywords.every(keyword => normalizedProductName.includes(keyword));
+        });
+        renderAdminTable(filtered); // Render the filtered list
+    }
+
+    // --- Import Functions in Administration ---
+    function importFromPaste() {
+        const pasteInput = document.getElementById('pasteInput');
+        const lines = pasteInput.value.split('\n').filter(line => line.trim() !== '');
+        let importedCount = 0;
+        const newProductsBatch = [];
+
+        lines.forEach(line => {
+            const regex = /^(.*?)\s*[- ]*(?:R\$|RS|\$)?\s*(\d+(?:[.,]\d{1,2})?)$/i;
+            const match = line.match(regex);
+
+            if (match) {
+                const name = match[1].trim();
+                const value = parseBrazilianCurrencyToFloat(match[2]);
+
+                if (name && !isNaN(value) && value >= 0) {
+                    newProductsBatch.push({ nome: name, valor: value });
+                    importedCount++;
+                } else {
+                    console.warn('Invalid product on line (empty name or invalid value):', line);
+                }
+            } else {
+                console.warn('Could not parse line (invalid format or no recognizable value):', line);
+            }
+        });
+
+        if (newProductsBatch.length > 0) {
+            // Usa push para adicionar múltiplos produtos ao Firebase
+            newProductsBatch.forEach(p => saveProductFirebase(null, p));
+            // O onValue irá recarregar e renderizar
+        }
+        
+        pasteInput.value = ''; // Clear the text area
+        displayStatusAdmin(`Importado ${importedCount} produtos do texto colado.`, 'info');
+    }
+
+    function importFromFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) {
+            displayStatusAdmin('Nenhum arquivo selecionado.', 'warning');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const content = e.target.result;
+            const lines = content.split('\n').filter(line => line.trim() !== '');
+            let importedCount = 0;
+            const newProductsBatch = [];
+
+            lines.forEach(line => {
+                const regex = /^(.*?)\s*[- ]*(?:R\$|RS|\$)?\s*(\d+(?:[.,]\d{1,2})?)$/i;
+                const match = line.match(regex);
+
+                if (match) {
+                    const name = match[1].trim();
+                    const value = parseBrazilianCurrencyToFloat(match[2]);
+
+                    if (name && !isNaN(value) && value >= 0) {
+                        newProductsBatch.push({ nome: name, valor: value });
+                        importedCount++;
+                    } else {
+                        console.warn('Invalid product in file:', line);
+                    }
+                } else {
+                    console.warn('Could not parse line from file (invalid format or no recognizable value):', line);
+                }
+            });
+
+            if (newProductsBatch.length > 0) {
+                newProductsBatch.forEach(p => saveProductFirebase(null, p));
+                // O onValue irá recarregar e renderizar
+            }
+            
+            displayStatusAdmin(`Importado ${importedCount} produtos do arquivo "${file.name}".`, 'info');
+            fileInput.value = ''; // Clear file input
+        };
+        reader.onerror = (e) => {
+            console.error('Error reading file:', e);
+            displayStatusAdmin('Erro lendo o arquivo.', 'danger');
+        };
+        reader.readAsText(file);
+    }
+
+    // --- Export Functions in Administration ---
+    function exportProducts(format) {
+        let dataStr;
+        let filename;
+        let mimeType;
+
+        if (format === 'txt') {
+            dataStr = products.map(p => `${p.nome} - R$ ${p.valor.toFixed(2).replace('.', ',')}`).join('\n');
+            filename = 'products.txt';
+            mimeType = 'text/plain';
+        } else if (format === 'json') {
+            dataStr = JSON.stringify(products.map(({ id, ...rest }) => rest), null, 2); // Remove Firebase 'id'
+            filename = 'products.json';
+            mimeType = 'application/json';
+        } else {
+            console.error('Invalid export format.');
+            return;
+        }
+
+        const blob = new Blob([dataStr], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a); // Required for Firefox
+        a.click();
+        document.body.removeChild(a); // Clean up
+        URL.revokeObjectURL(url);
+        displayStatusAdmin(`Products exported as ${format.toUpperCase()}.`, 'success');
+    }
+
+    // --- Status/Message Functions for Administration ---
+    function displayStatusAdmin(message, type) {
+        const statusDiv = document.getElementById('importStatus');
+        statusDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000); // Remove message after 5 seconds
+    }
+
+    // --- NEW FUNCTION: Display status for natural language command input
+    function displayCommandStatus(message, type) {
+        const statusDiv = document.getElementById('commandStatus');
+        statusDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000); // Remove message after 5 seconds
+    }
+
+    // --- Function to process natural language command
+    function processNaturalLanguageCommand() {
+        const commandInput = document.getElementById('naturalCommandInput');
+        const commandText = commandInput.value.trim();
+        if (!commandText) {
+            displayCommandStatus('Por favor, digite um comando.', 'warning');
+            return;
+        }
+
+        // Regex para capturar o nome do produto e o valor.
+        // Captura tudo antes do último número que se parece com uma moeda.
+        const commandRegex = /^(.*?)(?:\s*(?:para|de|-)?\s*(?:R\$?|RS?|\$)?\s*)?([\d.,]+)$/i;
+        const match = commandText.match(commandRegex);
+
+        let productNamePart = '';
+        let valueString = '';
+
+        if (match) {
+            productNamePart = match[1].trim();
+            valueString = match[2]; // valueString is the raw matched value like "3.399,00"
+        } else {
+            displayCommandStatus('Formato de comando inválido. Tente "Nome do Produto para Valor" ou "Ação Nome do Produto Valor".', 'danger');
+            return;
+        }
+
+        // Utiliza a função parseBrazilianCurrencyToFloat aprimorada
+        const newValue = parseBrazilianCurrencyToFloat(valueString);
+        
+        if (isNaN(newValue) || newValue < 0) {
+            displayCommandStatus('Valor inválido encontrado no comando.', 'danger');
+            return;
+        }
+
+        // Clean up product name part by removing potential command verbs and noise words
+        const ignoreWords = ['baixar', 'valor', 'preco', 'preço', 'atualizar', 'mudar', 'trocar', 'para', 'de', 'novo', 'usado', 'do'];
+        
+        // Normaliza a parte do nome do produto do comando e filtra as palavras irrelevantes
+        let termosNome = normalizeString(productNamePart)
+          .split(/\s+/) // Divide por um ou mais espaços
+          .filter(word => word.length > 0 && !ignoreWords.includes(word)); // Remove vazios e palavras irrelevantes
+
+        if (termosNome.length === 0) {
+            displayCommandStatus('Não foi possível identificar o nome do produto no comando. Tente ser mais específico e use termos que descrevam o produto.', 'danger');
+            return;
+        }
+
+        // Encontra produtos que contêm TODAS as palavras-chave normalizadas
+        const matchingProducts = products.filter(p => {
+            const nomeNormalizado = normalizeString(p.nome);
+            return termosNome.every(palavra => nomeNormalizado.includes(palavra));
+        });
+
+        if (matchingProducts.length === 0) {
+            displayCommandStatus(`Nenhum produto encontrado com os termos "${productNamePart}".`, 'warning');
+            return;
+        }
+
+        // Para simplificar, se houver várias correspondências, pegue a primeira.
+        // Um sistema mais avançado poderia pedir ao usuário para escolher.
+        const targetProduct = matchingProducts[0];
+
+        // Confirmação
+        const oldPriceFormatted = targetProduct.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const newPriceFormatted = newValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        if (confirm(`Deseja atualizar o valor de "${targetProduct.nome}" de ${oldPriceFormatted} para ${newPriceFormatted}?`)) {
+            // targetProduct.valor = newValue; // Não altera diretamente, mas chama a função Firebase
+            editProductFirebase(targetProduct.id, 'valor', newValue); // Chama a função que atualiza no Firebase
+            
+            // filterAdminProducts(); // Re-render da tabela é automático via onValue
+            // populateAparelhoSelect(products); // Atualização do select é automático via onValue
+            displayCommandStatus(`Valor de "${targetProduct.nome}" atualizado para ${newPriceFormatted}.`, 'success');
+            commandInput.value = ''; // Clear input after successful command
+        } else {
+            displayCommandStatus('Atualização cancelada.', 'info');
+        }
+    }
+
+    // NEW FUNCTION: Delete all products with master password, now using Firebase call
+    function deleteAllProductsWithPrompt() {
+        const masterPassword = "excluir"; // Master password
+        const enteredPassword = prompt("ATENÇÃO: Para excluir TODOS os produtos, digite a senha mestre:");
+
+        if (enteredPassword === masterPassword) {
+            if (window.deleteAllProductsFirebase) { // Garante que a função do módulo Firebase exista
+                window.deleteAllProductsFirebase();
+                alert("Todos os produtos foram excluídos com sucesso!");
+            } else {
+                alert("Erro: Função de exclusão do Firebase não disponível.");
+            }
+        } else if (enteredPassword !== null) { // User clicked cancel, prompt returns null
+            alert("Senha incorreta. Os produtos não foram excluídos.");
+        }
+    }
+
+    /**
+     * Populates the device dropdown (in the "Calcular por Aparelho" tab) with the product list.
+     * @param {Array<Object>} filteredProducts - The list of products to display (can be filtered).
+     * Esta função é agora global para ser chamada pelo onValue do Firebase.
+     */
+    function populateAparelhoSelect(filteredProducts = products) { // Agora usa `products` global
+        const aparelhoSelect = document.getElementById('aparelhoSelect');
+        aparelhoSelect.innerHTML = '<option value="">Selecione um aparelho</option>'; // Clear previous options
+
+        if (filteredProducts.length === 0) {
+            const noProductsOption = document.createElement('option');
+            noProductsOption.value = "";
+            noProductsOption.textContent = "Nenhum produto cadastrado. Adicione na aba 'Administração'.";
+            aparelhoSelect.appendChild(noProductsOption);
+            selectedAparelhoValue = 0;
+            document.getElementById('resultCalcularPorAparelho').innerHTML = '<div class="alert alert-warning mt-3 w-100" style="max-width: 400px;">Nenhum produto cadastrado. Acesse a aba "Administração" para adicionar.</div>';
+            return;
+        }
+
+        filteredProducts.forEach(p => {
+            const option = document.createElement('option');
+            // Armazena o ID do Firebase no value para poder recuperar o produto original se necessário
+            option.value = p.valor; // O valor é o que interessa para o cálculo, mas o ID é útil
+            option.dataset.productId = p.id; // Adiciona o ID como um data attribute
+            option.textContent = `${p.nome} - R$ ${p.valor.toFixed(2)}`;
+            aparelhoSelect.appendChild(option);
+        });
+
+        // Tenta pré-selecionar o primeiro aparelho se a lista filtrada tiver elementos
+        if (filteredProducts.length > 0) {
+            // Se já houver um valor selecionado e ele ainda estiver na lista filtrada, mantenha-o
+            // Caso contrário, selecione o primeiro
+            const currentSelectedValue = aparelhoSelect.value;
+            const currentSelectedProduct = filteredProducts.find(p => p.valor === parseFloat(currentSelectedValue));
+            
+            if (currentSelectedProduct) {
+                aparelhoSelect.value = currentSelectedValue;
+                selectedAparelhoValue = parseFloat(currentSelectedValue);
+            } else {
+                aparelhoSelect.value = filteredProducts[0].valor;
+                selectedAparelhoValue = parseFloat(filteredProducts[0].valor);
+            }
+            calculateAparelho();
+        } else {
+            selectedAparelhoValue = 0;
+            document.getElementById('resultCalcularPorAparelho').innerHTML = '<div class="alert alert-warning mt-3 w-100" style="max-width: 400px;">Nenhum produto encontrado com o termo de busca.</div>';
+        }
+    }
+
+    /**
+     * Filters products in the "Calcular por Aparelho" tab based on keywords (case and accent insensitive).
+     */
+    function filterAparelhos() {
+        const searchTerm = document.getElementById('aparelhoSearch').value;
+        const normalizedSearchTerm = normalizeString(searchTerm);
+        const keywords = normalizedSearchTerm.split(' ').filter(word => word.length > 0);
+
+        const filtered = products.filter(product => { // Filtra a lista global `products`
+            const normalizedProductName = normalizeString(product.nome);
+            return keywords.every(keyword => normalizedProductName.includes(keyword));
+        });
+        populateAparelhoSelect(filtered); // Repopulate the select with filtered results
+    }
+
+    function selectAparelhoAndCalculate() {
+        const aparelhoSelect = document.getElementById('aparelhoSelect');
+        selectedAparelhoValue = parseFloat(aparelhoSelect.value);
+        calculateAparelho();
+    }
+
+    function calculateAparelho() {
+        const machine = document.getElementById("machine3").value;
+        const brand = document.getElementById("brand3").value || "visa";
+        const resultDiv = document.getElementById('resultCalcularPorAparelho');
+
+        if (isNaN(selectedAparelhoValue) || selectedAparelhoValue <= 0) {
+            resultDiv.innerHTML = '<div class="alert alert-warning mt-3 w-100" style="max-width: 400px;">Selecione um aparelho para calcular.</div>';
+            return;
+        }
+
+        let maxInstallments = 0;
+        if (machine === "pagbank") maxInstallments = 18;
+        else if (machine === "infinity") maxInstallments = 12;
+        else if (machine === "valorante") maxInstallments = 21;
+
+        let resultHtml = `<h4 class="mt-4">Resultados para R$ ${selectedAparelhoValue.toFixed(2)}</h4>`;
+
+        let actualBrandForRates = brand.toLowerCase();
+        if (machine === 'valorante') {
+          if (actualBrandForRates === 'hiper') {
+            actualBrandForRates = 'hipercard';
+          } else if (actualBrandForRates === 'master') {
+              actualBrandForRates = 'mastercard';
+          }
+        } else if (machine === 'infinity') {
+            // CORRIGIDO: Lógica para InfinityPay para agrupar bandeiras corretamente
+            if (actualBrandForRates === 'hiper' || actualBrandForRates === 'elo' || actualBrandForRates === 'amex') {
+              actualBrandForRates = 'hiper';
+            } else {
+              actualBrandForRates = 'visa'; // Default para outras é visa (Mastercard, Visa)
+            }
+        }
+
+
+        // Calcular para Débito
+        let debitTax = 0;
+        if (machine === "pagbank") {
+            debitTax = rates.pagbank.debito;
+        } else if (machine === "infinity") {
+            debitTax = rates.infinity[actualBrandForRates]?.debito;
+        } else if (machine === "valorante") {
+            debitTax = rates.valorante[actualBrandForRates]?.debito ?? rates.valorante.visa.debito;
+        }
+        const valorBrutoDebit = selectedAparelhoValue / (1 - debitTax / 100);
+        resultHtml += `<div class="alert alert-dark single-line w-100" style="max-width: 400px;">Débito: R$ ${valorBrutoDebit.toFixed(2)} (${debitTax.toFixed(2)}%)</div>`;
+
+        // Calcular para Parcelas de Crédito
+        for (let i = 1; i <= maxInstallments; i++) {
+            let creditTax = 0;
+            if (machine === "pagbank") {
+                creditTax = rates.pagbank.credito[i - 1];
+            } else if (machine === "infinity") {
+                creditTax = rates.infinity[actualBrandForRates]?.credito[i - 1];
+            } else if (machine === "valorante") {
+                creditTax = rates.valorante[actualBrandForRates]?.credito[i - 1] ?? rates.valorante.visa.credito[i - 1];
+            }
+
+            const valorBrutoCredit = selectedAparelhoValue / (1 - creditTax / 100);
+            const valorParcela = valorBrutoCredit / i;
+            resultHtml += `<div class="alert alert-dark single-line w-100" style="max-width: 400px;">${i}x de R$ ${valorParcela.toFixed(2)} (Total: R$ ${valorBrutoCredit.toFixed(2)} )</div>`;
+        }
+        resultDiv.innerHTML = resultHtml;
+    }
+
+    // Inicializa a visibilidade e o tema quando a página carrega
+    document.addEventListener('DOMContentLoaded', () => {
+        // Assegura que o menu principal esteja visível e as outras seções ocultas ao carregar
+        document.getElementById("mainMenu").classList.remove("hidden");
+        document.getElementById("fecharVenda").classList.add("hidden");
+        document.getElementById("repassarValores").classList.add("hidden");
+        document.getElementById("calcularPorAparelho").classList.add("hidden");
+        document.getElementById("administracao").classList.add("hidden"); // Ensure admin is hidden on load
+
+        // No carregamento inicial, limpe a classe do body para que o gradiente do mainMenu apareça
+        document.body.className = '';
+
+        // Push initial state for main menu so back button can return to it
+        // Check if history state already exists to avoid pushing on browser reload
+        if (history.state === null || history.state.sectionId !== 'mainMenu') {
+            history.replaceState({ sectionId: 'mainMenu' }, '', '#mainMenu');
+        }
+
+        // Inicializa as opções da máquina e bandeira para as seções que as utilizam.
+        updateInstallmentsOptions();
+        updateBrandVisibility();
+        updateBrandVisibilityAparelho();
+        toggleFecharVendaMode();
+    });
+
+    // Handle browser back/forward buttons (Android back button uses this)
+    window.addEventListener('popstate', (event) => {
+        const targetSectionId = event.state ? event.state.sectionId : 'mainMenu';
+        openSection(targetSectionId, true); // Pass true to indicate navigation from history
+    });
+
   </script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+  import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBt0LbXsXZEKlctfuCPM0G5rd8MqnzYNRw",
+    authDomain: "calculadora-de-taxas-b3f1f.firebaseapp.com",
+    databaseURL: "https://calculadora-de-taxas-b3f1f-default-rtdb.firebaseio.com",
+    projectId: "calculadora-de-taxas-b3f1f",
+    storageBucket: "calculadora-de-taxas-b3f1f.firebasestorage.app",
+    messagingSenderId: "149501336928",
+    appId: "1:149501336928:web:05ff020a37756c6bd9d205"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  window.db = getDatabase(app); // Torna 'db' acessível globalmente
+  const produtosRef = ref(window.db, 'produtos');
+
+  // Sincronizar produtos em tempo real
+  onValue(produtosRef, snapshot => {
+    const data = snapshot.val();
+    window.products = data ? Object.entries(data).map(([id, p]) => ({ id, ...p })) : [];
+    // Atualiza a interface sempre que os dados mudam
+    if (typeof renderAdminTable === 'function') {
+        renderAdminTable(); // Renderiza a tabela de administração
+    }
+    if (typeof populateAparelhoSelect === 'function') {
+        populateAparelhoSelect(); // Popula o select de aparelhos
+    }
+  });
+
+  // Funções CRUD do Firebase, tornadas globais para serem chamadas pelo script principal
+  window.saveProductFirebase = function(id, produto) {
+    if (id) {
+        update(ref(window.db, `produtos/${id}`), produto)
+            .then(() => console.log(`Produto ${id} atualizado.`))
+            .catch(error => console.error("Erro ao atualizar produto:", error));
+    } else {
+        push(produtosRef, produto)
+            .then(() => console.log("Novo produto adicionado."))
+            .catch(error => console.error("Erro ao adicionar produto:", error));
+    }
+  }
+
+  window.deleteProductFirebase = function(id) {
+    if (confirm('Deseja excluir este produto?')) {
+      remove(ref(window.db, `produtos/${id}`))
+        .then(() => console.log(`Produto ${id} excluído.`))
+        .catch(error => console.error("Erro ao excluir produto:", error));
+    }
+  }
+
+  window.deleteAllProductsFirebase = function() {
+    // A senha é checada na função `deleteAllProductsWithPrompt` no script principal
+    remove(produtosRef)
+        .then(() => console.log("Todos os produtos foram excluídos."))
+        .catch(error => console.error("Erro ao excluir todos os produtos:", error));
+  }
+
+  // As funções 'editProductFirebase' e 'deleteAllProductsWithPrompt'
+  // já estão chamando as novas funções Firebase definidas aqui.
+  // Garanta que os onclicks no HTML usem os nomes atualizados:
+  // - editProduct no HTML -> editProductFirebase
+  // - deleteProduct no HTML -> deleteProductFirebase
+  // - deleteAllProducts no HTML -> deleteAllProductsWithPrompt (que chama deleteAllProductsFirebase)
+</script>
 </body>
 </html>
-Created by Brendon - Last Updated 16 Jun 2025
-
