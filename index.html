@@ -1,10 +1,11 @@
-<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <title>Calcule Taxas By Brendon</title>
     
+    <!-- PWA Meta Tags (Adicionado) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#185a9d"/>
@@ -364,9 +365,11 @@
     <div class="content-card w-100">
         <div class="row mb-3 w-100 justify-content-center">
             <div class="col-12 col-md-4 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine1"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante">Valorante</option></select></div>
+            <!-- Botão de bandeira substitui o select antigo -->
             <div class="col-12 col-md-4 mb-3" id="flagDisplayContainer1" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton1"></button></div>
             <div class="col-12 col-md-4 mb-3"><label class="form-label">Parcelas</label><select class="form-select" id="installments1"></select></div>
         </div>
+        <!-- Select de bandeira antigo agora está permanentemente oculto -->
         <div id="brand1Container" class="hidden"><select id="brand1"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
 
         <div class="toggle-switch">
@@ -390,7 +393,7 @@
         <div class="w-100 d-flex justify-content-center" id="fecharVendaInputs">
             <div class="mb-3" style="width: 100%; max-width: 400px;"><label class="form-label" for="fecharVendaValue" id="fecharVendaValueLabel"><i class="bi bi-currency-dollar"></i> Valor Total da Venda (R$)</label><input class="form-control form-control-lg" id="fecharVendaValue" min="0" placeholder="Digite o valor" step="0.01" type="number"/></div>
         </div>
-        <div class="w-100 d-flex justify-content-center mt-3" id="resultFecharVenda"></div>
+        <div class="w-100 d-flex flex-column justify-content-center mt-3" id="resultFecharVenda"></div>
     </div>
 </div>
 
@@ -404,7 +407,8 @@
             <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine2"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante">Valorante</option></select></div>
             <div class="col-12 col-md-6 mb-3" id="flagDisplayContainer2" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton2"></button></div>
         </div>
-         <div id="brand2Container" class="hidden"><select id="brand2"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
+         <!-- Select de bandeira antigo agora está permanentemente oculto -->
+        <div id="brand2Container" class="hidden"><select id="brand2"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
 
         <div class="mb-3" style="max-width: 400px; margin: 0 auto 1rem;">
             <label class="form-label" for="repassarValue"><i class="bi bi-calculator"></i> Valor Desejado (líquido)</label>
@@ -429,6 +433,7 @@
             <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine3"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante">Valorante</option></select></div>
             <div class="col-12 col-md-6 mb-3" id="flagDisplayContainer3" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton3"></button></div>
         </div>
+        <!-- Select de bandeira antigo agora está permanentemente oculto -->
         <div id="brand3Container" class="hidden"><select id="brand3"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
 
         <div class="w-100 d-flex flex-column align-items-center" id="resultCalcularPorAparelho"></div>
@@ -514,6 +519,7 @@
     </div>
 </div>
 
+<!-- MODAL DE SELEÇÃO DE BANDEIRA (ADICIONADO) -->
 <div class="custom-modal-overlay" id="flagSelectorModalOverlay">
     <div class="custom-modal-content" id="flagSelectorModalContent">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -521,10 +527,12 @@
             <button aria-label="Fechar" class="btn-back" id="closeFlagModalBtn"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="d-grid gap-2" id="flagSelectorButtons">
-            </div>
+            <!-- Bandeiras serão injetadas aqui via JS -->
+        </div>
     </div>
 </div>
 
+<!-- Scripts PWA embutidos (Adicionado) -->
 <script type="application/json" id="manifest-data">
 {
   "name": "Calcule Taxas By Brendon",
@@ -876,17 +884,12 @@ self.addEventListener('activate', event => {
     // --- FUNÇÕES UTILITÁRIAS E DE UI ---
     function escapeHtml(text) { const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}; return text ? text.replace(/[&<>"']/g, m => map[m]) : ''; }
     
-    // ✅ FUNÇÃO CORRIGIDA ✅
     function parseBrazilianCurrencyToFloat(valueString) { 
         let cleaned = String(valueString).replace(/R\$?\s?|💰|\$\s?/g, '').trim();
 
-        // Se o número usa vírgula como decimal (formato brasileiro, ex: 1.234,56), 
-        // removemos os pontos de milhar e trocamos a vírgula por ponto.
         if (cleaned.includes(',')) {
             cleaned = cleaned.replace(/\./g, '').replace(',', '.');
         } 
-        // Se não houver vírgula, assumimos que o formato já é "1234.56" e
-        // não fazemos nenhuma substituição para evitar o erro de remover o ponto decimal.
 
         return parseFloat(cleaned); 
     }
@@ -959,19 +962,22 @@ self.addEventListener('activate', event => {
         calculateAparelho();
     }
     
-    // --- FUNÇÕES DE CÁLCULO (sem alterações) ---
+    // --- FUNÇÃO DE CÁLCULO ---
     function getRate(machine, brand, installments) { if (!areRatesLoaded || !rates[machine]) return undefined; if (machine === 'pagbank') return installments === 0 ? rates.pagbank.debito : rates.pagbank.credito[installments - 1]; const rateSet = (machine === 'infinity' && brand === 'hiper') ? rates.infinity.hiper : rates[machine][brand === 'hiper' ? 'hipercard' : brand]; return rateSet ? (installments === 0 ? rateSet.debito : rateSet.credito[installments - 1]) : undefined; }
     
     function calculateFecharVenda() { 
-        if (!areRatesLoaded) return; 
+        if (!areRatesLoaded) return;
+
+        const foneDescontado = document.getElementById('descontarFoneCheckbox')?.checked || false;
         const isProdutoMode = document.getElementById('vendaModeToggle').checked;
         const vendaMode = isProdutoMode ? 'produto' : 'manual';
         const manualMode = document.querySelector('input[name="manualMode"]:checked').value; 
         const installments = parseInt(document.getElementById("installments1").value, 10); 
         const inputValue = parseFloat(document.getElementById("fecharVendaValue").value); 
+        const resultDiv = document.getElementById("resultFecharVenda");
         
         if (isNaN(inputValue) || inputValue <= 0) { 
-            document.getElementById("resultFecharVenda").innerHTML = ""; 
+            resultDiv.innerHTML = ""; 
             return; 
         } 
         
@@ -979,20 +985,55 @@ self.addEventListener('activate', event => {
         const tax = getRate(document.getElementById("machine1").value, document.getElementById("brand1").value, installments); 
         
         if (tax === undefined || tax === null) { 
-            document.getElementById("resultFecharVenda").innerHTML = `<div class="alert alert-warning">Taxa não disponível para esta combinação.</div>`; 
+            resultDiv.innerHTML = `<div class="alert alert-warning">Taxa não disponível para esta combinação.</div>`; 
             return; 
         } 
         
         const liquid = totalValue * (1 - tax / 100); 
+        let liquidExibido = liquid;
         let lucroExtraHtml = ''; 
-        
-        if (vendaMode === 'produto' && fecharVendaPrecoBase > 0) { 
-            const lucroExtra = liquid - fecharVendaPrecoBase; 
+        let checkboxHtml = '';
+        const valorDesconto = 15;
+
+        if (vendaMode === 'produto' && fecharVendaPrecoBase > 0) {
+            const lucroExtra = liquid - fecharVendaPrecoBase;
             const lucroClass = lucroExtra >= 0 ? 'text-success' : 'text-danger'; 
-            lucroExtraHtml = `<hr class="my-2" style="border-color: rgba(255,255,255,0.2);"><strong class="small">Lucro Extra:</strong> <span class="${lucroClass} small">${lucroExtra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>`; 
+            
+            checkboxHtml = `
+                <div class="form-check mt-3 w-100" style="max-width: 400px; margin: 0 auto; text-align: left; padding-left: 2.5em;">
+                    <input class="form-check-input" type="checkbox" id="descontarFoneCheckbox" ${foneDescontado ? 'checked' : ''}>
+                    <label class="form-check-label" for="descontarFoneCheckbox">
+                        Descontar fone Bluetooth (${valorDesconto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+                    </label>
+                </div>`;
+            
+            if (foneDescontado) {
+                liquidExibido -= valorDesconto;
+                const lucroReal = lucroExtra - valorDesconto;
+                const lucroRealClass = lucroReal >= 0 ? 'text-success' : 'text-danger';
+                lucroExtraHtml = `
+                    <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
+                    <strong class="small">Lucro Extra:</strong> <span class="${lucroClass} small">${lucroExtra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span><br>
+                    <strong class="small">Lucro Extra Real (com fone):</strong> <span class="${lucroRealClass} small">${lucroReal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                `;
+            } else {
+                 lucroExtraHtml = `
+                    <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
+                    <strong class="small">Lucro Extra:</strong> <span class="${lucroClass} small">${lucroExtra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                `;
+            }
         } 
         
-        document.getElementById("resultFecharVenda").innerHTML = `<div class="alert alert-success fs-5 w-100 text-start" style="max-width: 400px; margin: 0 auto;"><strong>Valor Líquido: ${liquid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> <br/><small class="text-secondary">Taxa: ${tax.toFixed(2)}% (${installments === 0 ? "Débito" : `${installments}x`})</small>${lucroExtraHtml}</div>`; 
+        const resultCardHtml = `
+            <div class="alert alert-success fs-5 w-100 text-start" style="max-width: 400px; margin: 0 auto;">
+                <strong>Valor Líquido: ${liquidExibido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> 
+                <br/>
+                <small class="text-secondary">Taxa: ${tax.toFixed(2)}% (${installments === 0 ? "Débito" : `${installments}x`})</small>
+                ${lucroExtraHtml}
+            </div>
+        `;
+
+        resultDiv.innerHTML = resultCardHtml + checkboxHtml;
     }
 
     function calculateRepassarValores() { if (!areRatesLoaded) return; const valorDesejado = parseFloat(document.getElementById("repassarValue").value); if (isNaN(valorDesejado) || valorDesejado <= 0) { document.getElementById("resultRepassarValores").innerHTML = ""; return; } const machine = document.getElementById("machine2").value; const brand = document.getElementById("brand2").value; let maxInstallments = 0; if (rates[machine]) { switch(machine) { case "pagbank": maxInstallments = 18; break; case "infinity": maxInstallments = 12; break; case "valorante": maxInstallments = 21; break; } } let resultHtml = ""; const debitTax = getRate(machine, brand, 0); if(debitTax !== null && debitTax !== undefined) { const valorBrutoDebito = valorDesejado / (1 - debitTax / 100); resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">Débito: ${valorBrutoDebito.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`; } for (let i = 1; i <= maxInstallments; i++) { const creditTax = getRate(machine, brand, i); if (creditTax !== undefined) { const valorBrutoCredit = valorDesejado / (1 - creditTax / 100); const valorParcela = valorBrutoCredit / i; resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">${i}x de ${valorParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (Total: ${valorBrutoCredit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</div>`; } } document.getElementById("resultRepassarValores").innerHTML = resultHtml; }
@@ -1046,9 +1087,8 @@ self.addEventListener('activate', event => {
             app = initializeApp(firebaseConfig); auth = getAuth(app); db = getDatabase(app);
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    userId = user.uid; isAuthReady = true;
-                    document.getElementById('userIdDisplay').textContent = `ID: ${userId.substring(0,8)}...`;
-                    document.getElementById('userIdDisplay').style.display = 'block';
+                    userId = user.uid; 
+                    isAuthReady = true;
                     loadRatesFromDB();
                     loadProductsFromDB();
                     openSection(location.hash.substring(1) || 'mainMenu', true);
@@ -1071,6 +1111,12 @@ self.addEventListener('activate', event => {
         document.querySelectorAll('input[name="manualMode"]').forEach(radio => radio.addEventListener('change', updateFecharVendaUI));
         document.getElementById('vendaProdutoSearch').addEventListener('input', () => displayDynamicSearchResults(document.getElementById('vendaProdutoSearch').value, 'vendaSearchResultsContainer', handleProductSelectionForVenda));
         document.getElementById('fecharVendaValue').addEventListener('input', calculateFecharVenda);
+        // Adiciona listener para o checkbox de desconto do fone
+        document.getElementById('resultFecharVenda').addEventListener('change', e => {
+            if (e.target && e.target.id === 'descontarFoneCheckbox') {
+                calculateFecharVenda();
+            }
+        });
         
         // --- SECÇÃO CALCULAR POR APARELHO ---
         document.getElementById('aparelhoSearch').addEventListener('input', () => displayDynamicSearchResults(document.getElementById('aparelhoSearch').value, 'aparelhoResultsContainer', handleProductSelectionForAparelho));
@@ -1128,3 +1174,4 @@ self.addEventListener('activate', event => {
 
 </body>
 </html>
+By Brendon Jun 3.0
