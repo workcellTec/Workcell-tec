@@ -5,7 +5,7 @@
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <title>Calcule Taxas By Brendon</title>
     
-    <!-- PWA Meta Tags (Adicionado) -->
+    <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#185a9d"/>
@@ -20,18 +20,18 @@
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
     <style>
         /* ============================================== */
-        /* DESIGN & UX (V5.3) - LOCALSTORAGE SEGURO     */
+        /* DESIGN & UX (V5.13) - FAVORITOS APARELHO       */
         /* ============================================== */
 
         /* 1. VARIÁVEIS DE COR E TEMA */
         :root {
-            /* TEMA ESCURO (DEFAULT) - NOVA PALETA VERDE/AZUL */
-            --primary-color: #185a9d; /* Azul escuro do degradê */
-            --primary-color-rgb: 24, 90, 157; /* RGB do azul escuro */
+            --primary-color: #185a9d;
+            --primary-color-rgb: 24, 90, 157;
             --secondary-color: #29292e;
             --tertiary-color: #18181b;
             --text-color: #e1e1e6;
             --text-secondary: #a8a8b3;
+            --text-success: #43cea2;
             --glass-bg: rgba(30, 30, 30, 0.75);
             --glass-border: rgba(255, 255, 255, 0.1);
             --shadow-color: rgba(0, 0, 0, 0.25);
@@ -44,16 +44,16 @@
         }
 
         [data-theme="light"] {
-            /* TEMA CLARO - NOVA PALETA VERDE/AZUL */
-            --primary-color: #185a9d; /* Azul escuro do degradê */
-            --primary-color-rgb: 24, 90, 157; /* RGB do azul escuro */
-            --secondary-color: #f4f4f5; /* Light Gray */
-            --tertiary-color: #ffffff; /* White */
-            --text-color: #18181b; /* Near Black */
-            --text-secondary: #52525b; /* Dark Gray */
+            --primary-color: #185a9d;
+            --primary-color-rgb: 24, 90, 157;
+            --secondary-color: #f4f4f5;
+            --tertiary-color: #ffffff;
+            --text-color: #18181b;
+            --text-secondary: #52525b;
+            --text-success: #185a9d;
             --glass-bg: rgba(255, 255, 255, 0.85);
             --glass-border: rgba(0, 0, 0, 0.1);
-            --shadow-color: rgba(24, 90, 157, 0.15); /* Sombra com a nova cor */
+            --shadow-color: rgba(24, 90, 157, 0.15);
             --input-bg: #f4f4f5;
             --input-border: #d4d4d8;
         }
@@ -62,40 +62,36 @@
         html { box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
 
+        html, body {
+            height: auto !important;
+            min-height: 100% !important;
+            overflow-y: auto !important;
+            overscroll-behavior-y: contain;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            display: block;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--tertiary-color);
             color: var(--text-color);
-            margin: 0; padding: 0; height: 100%; width: 100%; overflow-x: hidden;
+            margin: 0; padding: 0; 
+            width: 100%; overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             transition: background-color var(--transition-duration), color var(--transition-duration);
         }
         
         #theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            cursor: pointer;
-            background-color: var(--glass-bg);
-            backdrop-filter: blur(5px);
-            border: 1px solid var(--glass-border);
-            color: var(--text-color);
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: all var(--transition-duration);
-            box-shadow: 0 2px 8px var(--shadow-color);
+            position: fixed; top: 20px; right: 20px; z-index: 9999; cursor: pointer;
+            background-color: var(--glass-bg); backdrop-filter: blur(5px);
+            border: 1px solid var(--glass-border); color: var(--text-color);
+            width: 45px; height: 45px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 1.2rem;
+            transition: all var(--transition-duration); box-shadow: 0 2px 8px var(--shadow-color);
         }
-        #theme-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
+        #theme-toggle:hover { transform: scale(1.1); box-shadow: 0 4px 12px var(--shadow-color); }
 
         .container {
             width: 100%; max-width: 550px; margin: 0 auto; padding: 20px 15px;
@@ -122,8 +118,7 @@
             display: flex; align-items: center; justify-content: center; gap: 10px;
             font-weight: 500; border-radius: var(--border-radius); padding: 14px 24px;
             margin-bottom: 15px !important; border: none;
-            background-color: var(--glass-bg); color: #FFF;
-            backdrop-filter: blur(10px);
+            background-color: var(--glass-bg); color: #FFF; backdrop-filter: blur(10px);
             transition: background-color var(--transition-duration) ease, transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
             width: 100%; max-width: 320px; box-shadow: 0 4px 12px var(--shadow-color);
         }
@@ -142,8 +137,7 @@
         }
         .container:not(#mainMenu) { 
             background-color: var(--tertiary-color) !important; 
-            padding-top: 20px;
-            align-items: stretch;
+            padding-top: 20px; align-items: stretch;
         }
 
         /* 5. FORMULÁRIOS E BOTÕES */
@@ -188,159 +182,232 @@
         
         /* 7. COMPONENTE TOGGLE SWITCH */
         .toggle-switch {
-            background-color: var(--input-bg);
-            border-radius: var(--border-radius);
-            padding: 5px;
-            display: flex;
-            justify-content: center;
-            border: 1px solid var(--input-border);
-            max-width: 400px;
-            margin: 0 auto 1.5rem auto; /* Aumenta a margem inferior */
+            background-color: var(--input-bg); border-radius: var(--border-radius);
+            padding: 5px; display: flex; justify-content: center;
+            border: 1px solid var(--input-border); max-width: 400px;
+            margin: 0 auto 1.5rem auto;
         }
         .toggle-switch input[type="checkbox"] { display: none; }
         .toggle-switch label {
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            text-align: center;
-            position: relative;
-            cursor: pointer;
-            margin: 0;
+            width: 100%; display: grid; grid-template-columns: 1fr 1fr;
+            text-align: center; position: relative; cursor: pointer; margin: 0;
             color: var(--text-secondary);
         }
         .toggle-switch label span {
-            padding: 8px 15px;
-            border-radius: calc(var(--border-radius) - 5px);
-            transition: color var(--transition-duration);
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px; /* Espaço entre ícone e texto */
-            font-size: 0.9rem;
+            padding: 8px 15px; border-radius: calc(var(--border-radius) - 5px);
+            transition: color var(--transition-duration); z-index: 2;
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; font-size: 0.9rem;
         }
         .toggle-switch label::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 50%;
-            height: 100%;
-            background: var(--gradient-primary);
-            border-radius: calc(var(--border-radius) - 5px);
-            transition: transform var(--transition-duration) ease;
-            z-index: 1;
+            content: ''; position: absolute; top: 0; left: 0; width: 50%; height: 100%;
+            background: var(--gradient-primary); border-radius: calc(var(--border-radius) - 5px);
+            transition: transform var(--transition-duration) ease; z-index: 1;
         }
         .toggle-switch input:checked + label::before { transform: translateX(100%); }
         .toggle-switch input:not(:checked) + label span:first-of-type,
         .toggle-switch input:checked + label span:last-of-type { color: white; font-weight: 600; }
-
         
         #adminRatesContent .accordion, #adminRatesContent .accordion-item { background-color: transparent; border: none; }
         #adminRatesContent .accordion-item {
-            background-color: var(--secondary-color);
-            border: 1px solid var(--glass-border);
-            color: var(--text-color);
-            margin-bottom: 10px;
-            border-radius: 15px;
-            overflow: hidden;
+            background-color: var(--secondary-color); border: 1px solid var(--glass-border);
+            color: var(--text-color); margin-bottom: 10px; border-radius: 15px; overflow: hidden;
         }
         #adminRatesContent .accordion-header button {
-            background-color: transparent;
-            color: var(--text-color);
-            font-weight: 500;
+            background-color: transparent; color: var(--text-color); font-weight: 500;
         }
         #adminRatesContent .accordion-header button:not(.collapsed) {
              box-shadow: inset 0 -1px 0 var(--glass-border);
-             background-image: var(--gradient-primary);
-             color: #FFF;
+             background-image: var(--gradient-primary); color: #FFF;
         }
         #adminRatesContent .accordion-button:focus { box-shadow: none; }
         #adminRatesContent .accordion-body { padding: 1rem; background-color: var(--secondary-color); }
         #adminRatesContent .nav-tabs { border-bottom-color: var(--glass-border); }
         #adminRatesContent .nav-link { 
-            color: var(--text-secondary); 
-            background-color: transparent; 
+            color: var(--text-secondary); background-color: transparent; 
             border-color: transparent transparent var(--glass-border) transparent;
         }
         #adminRatesContent .nav-tabs .nav-link.active {
-            color: var(--primary-color);
-            font-weight: 600;
+            color: var(--primary-color); font-weight: 600;
             background-color: var(--secondary-color);
             border-color: var(--glass-border) var(--glass-border) var(--secondary-color);
         }
         #adminRatesContent .input-group-text {
-            background-color: var(--input-bg);
-            border-color: var(--input-border);
-            color: var(--text-secondary);
+            background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-secondary);
         }
 
-        /* 8. MODAL DE BANDEIRAS (ADICIONADO) */
-        #flagSelectorModalContent {
-             max-width: 350px;
-             text-align: left;
-        }
-        #flagSelectorModalContent .btn-back {
-            font-size: 1.5rem;
-        }
+        /* 8. MODAL DE BANDEIRAS */
+        #flagSelectorModalContent { max-width: 350px; text-align: left; }
+        #flagSelectorModalContent .btn-back { font-size: 1.5rem; }
         .btn-flag {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 15px;
-            font-weight: 500;
-            font-size: 1.1rem;
-            border-radius: 10px;
-            padding: 15px 20px;
-            border: 1px solid var(--glass-border);
-            background-color: var(--input-bg);
-            color: var(--text-color);
+            display: flex; align-items: center; justify-content: flex-start;
+            gap: 15px; font-weight: 500; font-size: 1.1rem; border-radius: 10px;
+            padding: 15px 20px; border: 1px solid var(--glass-border);
+            background-color: var(--input-bg); color: var(--text-color);
             transition: background-color var(--transition-duration) ease, transform var(--transition-duration) ease, border-color var(--transition-duration) ease;
             width: 100%;
         }
         .btn-flag:hover {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            color: #FFF;
-            transform: translateY(-2px);
+            background-color: var(--primary-color); border-color: var(--primary-color);
+            color: #FFF; transform: translateY(-2px);
         }
-        .btn-flag i {
-            font-size: 1.5rem;
-            width: 30px; /* Largura fixa para alinhamento do texto */
-        }
+        .btn-flag i { font-size: 1.5rem; width: 30px; }
         
-        /* 9. BOTÃO DE EXIBIÇÃO DA BANDEIRA (ADICIONADO) */
+        /* 9. BOTÃO DE EXIBIÇÃO DA BANDEIRA */
         .btn-flag-display {
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            border: 1px solid var(--input-border);
-            border-radius: 10px !important;
-            padding: 12px 15px;
-            width: 100%;
-            text-align: left;
+            background-color: var(--input-bg); color: var(--text-color);
+            border: 1px solid var(--input-border); border-radius: 10px !important;
+            padding: 12px 15px; width: 100%; text-align: left; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-flag-display:hover { border-color: var(--primary-color); }
+        .btn-flag-display i { font-size: 1.2rem; }
+        
+        /* 10. ESTILOS PARA LUCRO EXTRA */
+        .lucro-extra-valor {
+         color: #0d6efd; font-weight: bold; text-shadow: 0 0 4px rgba(0, 217, 255, 0.7);
+        }
+        [data-theme="light"] .lucro-extra-valor { color: #0056b3; text-shadow: none; }
+
+        /* 11. NOVA LÓGICA DO MENU DE AÇÕES DE PRODUTO (DIVISOR) */
+        .product-data-row.is-active {
+            background-color: rgba(var(--primary-color-rgb), 0.1);
+        }
+        .product-separator-row td {
+            padding: 0 !important;
+            border: none;
+            text-align: center;
+        }
+        .btn-toggle-menu {
+            background: transparent;
+            border: none;
+            border-top: 1px dashed var(--glass-border);
+            color: var(--text-secondary);
             cursor: pointer;
+            padding: 4px;
+            width: 100%;
+            line-height: 1;
+        }
+        .btn-toggle-menu i {
+            transition: transform 0.3s ease;
+        }
+        .product-separator-row.is-active .btn-toggle-menu i {
+            transform: rotate(180deg);
+        }
+        .acoes-produto {
+            display: none; /* Oculto por padrão */
+        }
+        .acoes-produto.is-active {
+            display: table-row; /* Exibido quando ativo */
+        }
+        .acoes-produto td {
+            padding: 0 1rem 1rem 1rem !important;
+            border: none !important;
+            background-color: transparent;
+        }
+        .acoes-produto .action-menu-content {
             display: flex;
-            align-items: center;
-            gap: 8px;
+            justify-content: flex-end;
         }
-        .btn-flag-display:hover {
-            border-color: var(--primary-color);
-        }
-        .btn-flag-display i {
-            font-size: 1.2rem;
+        #productsTableBody .form-control {
+             background-color: var(--input-bg) !important;
+             border: 1px solid var(--input-border) !important;
         }
         
-        /* 10. ESTILOS PARA LUCRO EXTRA (ADICIONADO) */
-        .lucro-extra-valor {
-         color: #0d6efd;
-            font-weight: bold;
-            text-shadow: 0 0 4px rgba(0, 217, 255, 0.7);
+        /* 12. ESTILOS PARA ABA EMPRÉSTIMO */
+        .lucro-display {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-success);
+            margin-bottom: 0;
         }
-        [data-theme="light"] .lucro-extra-valor {
-            color: #0056b3;
-            text-shadow: none;
+        .lucro-display span {
+            font-weight: 700;
+        }
+        
+        /* 13. ESTILOS PARA VALOR EXTRA EM APARELHO (ADICIONADO) */
+        .extra-value-toggle {
+            text-align: center;
+            padding: 8px 0;
+            margin: 8px auto;
+            max-width: 400px;
+        }
+        .btn-toggle-extra {
+            background: none;
+            border: none;
+            border-top: 1px dashed rgba(var(--primary-color-rgb), 0.3);
+            border-bottom: 1px dashed rgba(var(--primary-color-rgb), 0.3);
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: 100%;
+            padding: 6px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+        .btn-toggle-extra:hover {
+            opacity: 1;
+        }
+        .btn-toggle-extra i {
+            transition: transform 0.3s ease;
+        }
+        .btn-toggle-extra.is-active i {
+            transform: rotate(180deg);
+        }
+        .extra-value-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease-in-out, margin-top 0.35s ease-in-out;
+            margin-top: 0;
+        }
+        .extra-value-container.is-active {
+            max-height: 100px; /* Altura suficiente para o input */
+            margin-top: 1rem;
         }
 
+        /* 14. ESTILOS PARA FAVORITOS */
+        .favoritos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .favorito {
+            display: flex;
+            align-items: center;
+            background-color: var(--input-bg);
+            border-radius: 20px;
+            border: 1px solid var(--input-border);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .favorito:hover {
+            box-shadow: 0 0 8px rgba(var(--primary-color-rgb), 0.3);
+        }
+        .favorito-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+        }
+        .favorito-btn:hover {
+            background-color: rgba(var(--primary-color-rgb), 0.2);
+        }
+        .remove-favorito-btn {
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 6px 10px;
+            font-size: 0.9rem;
+            border-left: 1px solid var(--input-border);
+            transition: all 0.2s ease;
+        }
+        .remove-favorito-btn:hover {
+            color: #fff;
+            background-color: rgba(220, 53, 69, 0.7);
+        }
 
         /* OUTROS ESTILOS... */
         .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 1056; opacity: 0; visibility: hidden; transition: opacity var(--transition-duration) ease, visibility var(--transition-duration) ease; }
@@ -349,9 +416,7 @@
         .custom-modal-overlay.active .custom-modal-content { transform: scale(1); }
         .hidden { display: none !important; }
         .user-id-display { position: fixed; bottom: 15px; left: 15px; background-color: var(--glass-bg); color: var(--text-secondary); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; z-index: 1000; backdrop-filter: blur(5px); border: 1px solid var(--glass-border); }
-        .spinner-border.text-primary {
-             color: var(--primary-color) !important;
-        }
+        .spinner-border.text-primary { color: var(--primary-color) !important; }
     </style>
 </head>
 <body>
@@ -364,6 +429,7 @@
     <div class="d-grid gap-2">
         <button class="btn-menu" id="openFecharVenda"><i class="bi bi-cash-coin"></i> Fechar uma venda</button>
         <button class="btn-menu" id="openRepassarValores"><i class="bi bi-arrow-left-right"></i> Repassar valores</button>
+        <button class="btn-menu" id="openCalcularEmprestimo"><i class="bi bi-bank"></i> Calcular Empréstimo</button>
         <button class="btn-menu" id="openCalcularPorAparelho"><i class="bi bi-phone"></i> Calcular por aparelho</button>
         <button class="btn-menu" id="openAdministracao"><i class="bi bi-gear"></i> Administração</button>
     </div>
@@ -376,16 +442,14 @@
     </div>
     <div class="content-card w-100">
         <div class="row mb-3 w-100 justify-content-center">
-            <div class="col-12 col-md-4 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine1"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante">Valorante</option></select></div>
-            <!-- Botão de bandeira substitui o select antigo -->
+            <div class="col-12 col-md-4 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine1"><option value="pagbank">PagBank</option><option value="infinity" selected>InfinityPay</option><option value="valorante">Valorante</option></select></div>
             <div class="col-12 col-md-4 mb-3" id="flagDisplayContainer1" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton1"></button></div>
             <div class="col-12 col-md-4 mb-3"><label class="form-label">Parcelas</label><select class="form-select" id="installments1"></select></div>
         </div>
-        <!-- Select de bandeira antigo agora está permanentemente oculto -->
         <div id="brand1Container" class="hidden"><select id="brand1"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
 
         <div class="toggle-switch">
-            <input type="checkbox" id="vendaModeToggle">
+            <input type="checkbox" id="vendaModeToggle" checked>
             <label for="vendaModeToggle">
                 <span><i class="bi bi-pencil-alt"></i> Entrada Manual</span>
                 <span><i class="bi bi-box-seam"></i> Venda por Produto</span>
@@ -398,7 +462,11 @@
         </div>
 
         <div class="w-100 hidden" id="vendaPorProdutoContainer" style="max-width: 400px; margin: 0 auto;">
-            <div class="mb-3 search-wrapper"><label class="form-label" for="vendaProdutoSearch"><i class="bi bi-search"></i> Pesquisar Produto</label><input autocomplete="off" class="form-control" id="vendaProdutoSearch" placeholder="Carregando..." type="text"/><div class="search-results-container list-group" id="vendaSearchResultsContainer"></div></div>
+            <div class="mb-3 search-wrapper">
+                <label class="form-label" for="vendaProdutoSearch"><i class="bi bi-search"></i> Pesquisar Produto</label>
+                <input autocomplete="off" class="form-control" id="vendaProdutoSearch" placeholder="Carregando..." type="text"/>
+                <div class="search-results-container list-group" id="vendaSearchResultsContainer"></div>
+            </div>
             <div class="mb-3"><label class="form-label" for="fecharVendaPrecoBase"><i class="bi bi-tag"></i> Preço Base (R$)</label><input class="form-control" id="fecharVendaPrecoBase" readonly="" type="text"/></div>
             
             <div class="form-check form-switch my-3 hidden" id="entradaAVistaToggleContainer">
@@ -435,7 +503,6 @@
             <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine2"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante">Valorante</option></select></div>
             <div class="col-12 col-md-6 mb-3" id="flagDisplayContainer2" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton2"></button></div>
         </div>
-         <!-- Select de bandeira antigo agora está permanentemente oculto -->
         <div id="brand2Container" class="hidden"><select id="brand2"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
 
         <div class="mb-3" style="max-width: 400px; margin: 0 auto 1rem;">
@@ -446,22 +513,65 @@
     </div>
 </div>
 
+<div class="container" id="calcularEmprestimo" style="display: none;">
+    <div class="section-header">
+        <h3>Calcular Empréstimo</h3>
+        <button aria-label="Voltar" class="btn-back" id="backFromCalcularEmprestimo"><i class="bi bi-arrow-left"></i></button>
+    </div>
+    <div class="content-card w-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="lucro-display" id="emprestimoLucroDisplay"></div>
+            <button id="openLucroModalBtn" class="btn btn-sm btn-back" aria-label="Configurar Lucro" style="font-size: 1.4rem;"><i class="bi bi-gear-fill"></i></button>
+        </div>
+        <div id="valorLiquidoDisplay" class="mb-3"></div>
+        <div class="mb-3" style="max-width: 400px; margin: 0 auto 1rem;">
+            <label class="form-label" for="emprestimoValue"><i class="bi bi-cash-coin"></i> Valor Base do Empréstimo</label>
+            <input class="form-control form-control-lg" id="emprestimoValue" min="0" placeholder="Ex: 10000" step="0.01" type="number"/>
+        </div>
+        <div class="row mb-3 w-100 justify-content-center">
+            <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine4"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante" selected>Valorante</option></select></div>
+            <div class="col-12 col-md-6 mb-3" id="flagDisplayContainer4" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton4"></button></div>
+        </div>
+        <div id="brand4Container" class="hidden"><select id="brand4"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
+        <div class="w-100 d-flex flex-column align-items-center" id="resultCalcularEmprestimo"></div>
+    </div>
+</div>
+
 <div class="container" id="calcularPorAparelho" style="display: none;">
     <div class="section-header">
         <h3>Calcular por Aparelho</h3>
         <button aria-label="Voltar" class="btn-back" id="backFromCalcularPorAparelho"><i class="bi bi-arrow-left"></i></button>
     </div>
     <div class="content-card w-100">
+        <div class="favoritos" id="aparelhoFavoritosContainer"></div>
         <div class="mb-3 search-wrapper mx-auto"><label class="form-label" for="aparelhoSearch"><i class="bi bi-search"></i> Pesquisar Aparelho</label><input autocomplete="off" class="form-control" id="aparelhoSearch" placeholder="Carregando..." type="text"/><div class="search-results-container list-group" id="aparelhoResultsContainer"></div></div>
         <div class="mb-3 mx-auto" style="max-width: 400px;">
             <label class="form-label" for="entradaAparelho"><i class="bi bi-wallet2"></i> Valor de entrada (opcional)</label>
             <input class="form-control" id="entradaAparelho" min="0" placeholder="Digite o valor da entrada" step="0.01" type="number"/>
         </div>
+
+        <div class="extra-value-toggle mx-auto">
+            <button class="btn-toggle-extra" id="toggleValorExtraBtn" aria-label="Adicionar valor extra">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+        <div class="extra-value-container mx-auto" id="valorExtraContainer" style="max-width: 400px;">
+            <div class="mb-3">
+                <label class="form-label" for="valorExtraAparelho"><i class="bi bi-plus-circle"></i> Valor adicional</label>
+                <input class="form-control" id="valorExtraAparelho" min="0" placeholder="Ex: 40,00" step="0.01" type="number"/>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <button class="btn btn-sm hidden" id="saveAparelhoFavoriteBtn" style="background-color: rgba(var(--primary-color-rgb), 0.15); color: var(--primary-color);">
+                <i class="bi bi-star-fill"></i> Salvar como favorito
+            </button>
+        </div>
+
         <div class="row my-3 w-100 justify-content-center">
             <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine3"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante">Valorante</option></select></div>
             <div class="col-12 col-md-6 mb-3" id="flagDisplayContainer3" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton3"></button></div>
         </div>
-        <!-- Select de bandeira antigo agora está permanentemente oculto -->
         <div id="brand3Container" class="hidden"><select id="brand3"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
 
         <div class="w-100 d-flex flex-column align-items-center" id="resultCalcularPorAparelho"></div>
@@ -506,7 +616,7 @@
                 <h4 class="mb-0"><i class="bi bi-list-ul"></i> Produtos</h4>
                 <input class="form-control" id="adminSearchInput" placeholder="Filtrar..." style="width: 200px;" type="text">
             </div>
-            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Nome do Produto</th><th>Valor</th><th class="text-end">Ações</th></tr></thead><tbody id="productsTableBody"></tbody></table></div>
+            <div class="table-responsive"><table class="table align-middle"><thead><tr><th style="width: 65%;">Nome do Produto</th><th style="width: 35%;">Valor</th></tr></thead><tbody id="productsTableBody"></tbody></table></div>
             <button class="btn btn-success mt-3" id="addNewProduct"><i class="bi bi-plus-lg"></i> Adicionar Novo</button>
         </div>
         <div class="admin-section text-center w-100 pt-3">
@@ -547,20 +657,39 @@
     </div>
 </div>
 
-<!-- MODAL DE SELEÇÃO DE BANDEIRA (ADICIONADO) -->
+<div class="custom-modal-overlay" id="lucroModalOverlay">
+    <div class="custom-modal-content">
+        <h4>Alterar Lucro (%)</h4>
+        <input class="form-control mt-3" id="lucroPercentInput" type="number" step="1" min="0" placeholder="Ex: 15"/>
+        <div class="mt-3">
+            <button class="btn btn-primary" id="saveLucroBtn">Salvar</button>
+            <button class="btn btn-secondary" id="cancelLucroBtn">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div class="custom-modal-overlay" id="favoriteNameModalOverlay">
+    <div class="custom-modal-content">
+        <h4>Salvar Favorito</h4>
+        <p class="text-secondary small mb-3">Digite um nome para esta configuração.</p>
+        <input class="form-control" id="favoriteNameInput" placeholder="Ex: iPhone com entrada" type="text"/>
+        <div class="mt-3">
+            <button class="btn btn-primary" id="confirmSaveFavoriteBtn">Salvar</button>
+            <button class="btn btn-secondary" id="cancelSaveFavoriteBtn">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <div class="custom-modal-overlay" id="flagSelectorModalOverlay">
     <div class="custom-modal-content" id="flagSelectorModalContent">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 id="flagSelectorTitle" class="mb-0">Selecione a Bandeira</h4>
             <button aria-label="Fechar" class="btn-back" id="closeFlagModalBtn"><i class="bi bi-x-lg"></i></button>
         </div>
-        <div class="d-grid gap-2" id="flagSelectorButtons">
-            <!-- Bandeiras serão injetadas aqui via JS -->
-        </div>
+        <div class="d-grid gap-2" id="flagSelectorButtons"></div>
     </div>
 </div>
 
-<!-- Scripts PWA embutidos (Adicionado) -->
 <script type="application/json" id="manifest-data">
 {
   "name": "Calcule Taxas By Brendon",
@@ -572,85 +701,19 @@
   "theme_color": "#185a9d",
   "orientation": "portrait-primary",
   "icons": [
-    {
-      "src": "https://placehold.co/192x192/185a9d/ffffff?text=CTW",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "https://placehold.co/512x512/185a9d/ffffff?text=CTW",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
+    { "src": "https://placehold.co/192x192/185a9d/ffffff?text=CTW", "type": "image/png", "sizes": "192x192" },
+    { "src": "https://placehold.co/512x512/185a9d/ffffff?text=CTW", "type": "image/png", "sizes": "512x512" }
   ]
 }
 </script>
 
 <script type="text/javascript" id="sw-script">
 const CACHE_NAME = 'calcule-taxas-cache-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap',
-  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
-  'https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
-  'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js',
-  'https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js'
-];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Cache aberto');
-        return cache.addAll(urlsToCache);
-      })
-  );
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).then(
-          response => {
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-            return response;
-          }
-        );
-      })
-    );
-});
-
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-});
+const urlsToCache = [ '/', '/index.html', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css', 'https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js', 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js', 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js', 'https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js' ];
+self.addEventListener('install', event => { event.waitUntil( caches.open(CACHE_NAME).then(cache => { console.log('Cache aberto'); return cache.addAll(urlsToCache); }) ); });
+self.addEventListener('fetch', event => { event.respondWith( caches.match(event.request).then(response => { if (response) { return response; } return fetch(event.request).then( response => { if(!response || response.status !== 200 || response.type !== 'basic') { return response; } const responseToCache = response.clone(); caches.open(CACHE_NAME).then(cache => { cache.put(event.request, responseToCache); }); return response; } ); }) ); });
+self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]; event.waitUntil( caches.keys().then(cacheNames => { return Promise.all( cacheNames.map(cacheName => { if (cacheWhitelist.indexOf(cacheName) === -1) { return caches.delete(cacheName); } }) ); }) ); });
 </script>
-
 
 <script type="module">
     // --- IMPORTAÇÕES DO FIREBASE ---
@@ -670,576 +733,567 @@ self.addEventListener('activate', event => {
     };
 
     // --- VARIÁVEIS GLOBAIS ---
-    let app, db, auth;
-    let userId = null;
-    let isAuthReady = false;
-    let areRatesLoaded = false;
-    let products = [];
-    let fuse;
-    let selectedAparelhoValue = 0;
-    let fecharVendaPrecoBase = 0;
-    let currentSectionId = 'mainMenu';
-    let productsListener = null;
-    let rates = {};
+    let app, db, auth, userId = null, isAuthReady = false, areRatesLoaded = false;
+    let products = [], fuse, selectedAparelhoValue = 0, fecharVendaPrecoBase = 0;
+    let currentSectionId = 'mainMenu', productsListener = null, rates = {};
+    let emprestimoLucroPercentual = 15;
+    const APARELHO_FAVORITES_KEY = 'ctwAparelhoFavoritos';
+    const MAX_FAVORITES = 5;
     
     // --- UTILITÁRIO DE ARMAZENAMENTO SEGURO ---
     const safeStorage = {
-        getItem(key) {
-            try {
-                return localStorage.getItem(key);
-            } catch (e) {
-                console.warn("Acesso ao localStorage negado. O salvamento do tema será desativado.", e);
-                return null;
-            }
-        },
-        setItem(key, value) {
-            try {
-                localStorage.setItem(key, value);
-            } catch (e) {
-                console.warn("Acesso ao localStorage negado. Não foi possível salvar o tema.", e);
-            }
-        }
+        getItem(key) { try { return localStorage.getItem(key); } catch (e) { console.warn("Acesso ao localStorage negado.", e); return null; } },
+        setItem(key, value) { try { localStorage.setItem(key, value); } catch (e) { console.warn("Acesso ao localStorage negado.", e); } }
     };
 
     // --- FUNÇÕES DE TEMA (MODO NOTURNO/CLARO) ---
     const themeToggle = document.getElementById('theme-toggle');
-    const sunIcon = 'bi-sun-fill';
-    const moonIcon = 'bi-moon-fill';
-
-    function applyTheme(theme) {
-        document.body.dataset.theme = theme;
-        themeToggle.querySelector('i').className = theme === 'light' ? moonIcon : sunIcon;
-        safeStorage.setItem('theme', theme);
-    }
-
-    function toggleTheme() {
-        const currentTheme = document.body.dataset.theme || 'dark';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        applyTheme(newTheme);
-    }
+    const sunIcon = 'bi-sun-fill', moonIcon = 'bi-moon-fill';
+    function applyTheme(theme) { document.body.dataset.theme = theme; themeToggle.querySelector('i').className = theme === 'light' ? moonIcon : sunIcon; safeStorage.setItem('theme', theme); }
+    function toggleTheme() { const currentTheme = document.body.dataset.theme || 'dark'; applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
 
     // --- FUNÇÕES DE ADMINISTRAÇÃO (TAXAS) ---
     function renderRatesEditor() {
         const accordionContainer = document.getElementById('ratesAccordion');
-        if (!areRatesLoaded || Object.keys(rates).length === 0) {
-            accordionContainer.innerHTML = '<p class="text-center text-secondary">Aguardando carregamento das taxas...</p>';
-            return;
-        }
-
-        accordionContainer.innerHTML = ''; // Limpa antes de renderizar
-
+        if (!areRatesLoaded || Object.keys(rates).length === 0) { accordionContainer.innerHTML = '<p class="text-center text-secondary">Aguardando carregamento das taxas...</p>'; return; }
+        accordionContainer.innerHTML = '';
         Object.keys(rates).forEach((machine, index) => {
-            const machineData = rates[machine];
-            const isPagBank = machine === 'pagbank';
+            const machineData = rates[machine], isPagBank = machine === 'pagbank';
             let machineContent = '';
-
             if (isPagBank) {
-                let creditInputs = (machineData.credito || []).map((rate, i) => `
-                    <div class="col-md-4 col-6">
-                        <label class="form-label small">${i + 1}x</label>
-                        <div class="input-group mb-2">
-                            <input type="number" step="0.01" class="form-control form-control-sm" value="${rate}" 
-                                data-machine="${machine}" data-type="credito" data-installments="${i + 1}">
-                            <span class="input-group-text">%</span>
-                        </div>
-                    </div>
-                `).join('');
-                machineContent = `
-                    <div class="row">
-                        <div class="col-md-4 col-6">
-                            <label class="form-label fw-bold">Débito</label>
-                            <div class="input-group mb-3">
-                                <input type="number" step="0.01" class="form-control" value="${machineData.debito || 0}"
-                                    data-machine="${machine}" data-type="debito">
-                                <span class="input-group-text">%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <h5>Crédito</h5>
-                    <div class="row">${creditInputs}</div>`;
+                let creditInputs = (machineData.credito || []).map((rate, i) => `<div class="col-md-4 col-6"><label class="form-label small">${i + 1}x</label><div class="input-group mb-2"><input type="number" step="0.01" class="form-control form-control-sm" value="${rate}" data-machine="${machine}" data-type="credito" data-installments="${i + 1}"><span class="input-group-text">%</span></div></div>`).join('');
+                machineContent = `<div class="row"><div class="col-md-4 col-6"><label class="form-label fw-bold">Débito</label><div class="input-group mb-3"><input type="number" step="0.01" class="form-control" value="${machineData.debito || 0}" data-machine="${machine}" data-type="debito"><span class="input-group-text">%</span></div></div></div><h5>Crédito</h5><div class="row">${creditInputs}</div>`;
             } else {
                 const brands = Object.keys(machineData);
-                const navTabs = brands.map((brand, i) => `
-                    <li class="nav-item">
-                        <a class="nav-link ${i === 0 ? 'active' : ''}" id="tab-${machine}-${brand}" data-bs-toggle="tab" href="#content-${machine}-${brand}" role="tab">${brand.charAt(0).toUpperCase() + brand.slice(1)}</a>
-                    </li>`).join('');
-                
+                const navTabs = brands.map((brand, i) => `<li class="nav-item"><a class="nav-link ${i === 0 ? 'active' : ''}" id="tab-${machine}-${brand}" data-bs-toggle="tab" href="#content-${machine}-${brand}" role="tab">${brand.charAt(0).toUpperCase() + brand.slice(1)}</a></li>`).join('');
                 const tabContent = brands.map((brand, i) => {
                     const brandData = machineData[brand];
-                    const creditInputs = (brandData.credito || []).map((rate, idx) => `
-                        <div class="col-md-4 col-6">
-                            <label class="form-label small">${idx + 1}x</label>
-                            <div class="input-group mb-2">
-                                <input type="number" step="0.01" class="form-control form-control-sm" value="${rate}"
-                                    data-machine="${machine}" data-brand="${brand}" data-type="credito" data-installments="${idx + 1}">
-                                <span class="input-group-text">%</span>
-                            </div>
-                        </div>`).join('');
-                    return `
-                        <div class="tab-pane fade ${i === 0 ? 'show active' : ''}" id="content-${machine}-${brand}" role="tabpanel">
-                            <div class="row mt-3">
-                                <div class="col-md-4 col-6">
-                                    <label class="form-label fw-bold">Débito</label>
-                                    <div class="input-group mb-3">
-                                        <input type="number" step="0.01" class="form-control" value="${brandData.debito || 0}"
-                                            data-machine="${machine}" data-brand="${brand}" data-type="debito">
-                                        <span class="input-group-text">%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <h5>Crédito</h5>
-                            <div class="row">${creditInputs}</div>
-                        </div>`;
+                    const creditInputs = (brandData.credito || []).map((rate, idx) => `<div class="col-md-4 col-6"><label class="form-label small">${idx + 1}x</label><div class="input-group mb-2"><input type="number" step="0.01" class="form-control form-control-sm" value="${rate}" data-machine="${machine}" data-brand="${brand}" data-type="credito" data-installments="${idx + 1}"><span class="input-group-text">%</span></div></div>`).join('');
+                    return `<div class="tab-pane fade ${i === 0 ? 'show active' : ''}" id="content-${machine}-${brand}" role="tabpanel"><div class="row mt-3"><div class="col-md-4 col-6"><label class="form-label fw-bold">Débito</label><div class="input-group mb-3"><input type="number" step="0.01" class="form-control" value="${brandData.debito || 0}" data-machine="${machine}" data-brand="${brand}" data-type="debito"><span class="input-group-text">%</span></div></div></div><h5>Crédito</h5><div class="row">${creditInputs}</div></div>`;
                 }).join('');
                 machineContent = `<ul class="nav nav-tabs" role="tablist">${navTabs}</ul><div class="tab-content">${tabContent}</div>`;
             }
-            const accordionItemHTML = `
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${machine}">
-                            ${machine.charAt(0).toUpperCase() + machine.slice(1)}
-                        </button>
-                    </h2>
-                    <div id="collapse-${machine}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#ratesAccordion">
-                        <div class="accordion-body">${machineContent}</div>
-                    </div>
-                </div>`;
-            accordionContainer.insertAdjacentHTML('beforeend', accordionItemHTML);
+            accordionContainer.insertAdjacentHTML('beforeend', `<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${machine}">${machine.charAt(0).toUpperCase() + machine.slice(1)}</button></h2><div id="collapse-${machine}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#ratesAccordion"><div class="accordion-body">${machineContent}</div></div></div>`);
         });
-        
-        const tabTriggers = accordionContainer.querySelectorAll('[data-bs-toggle="tab"]');
-        tabTriggers.forEach(triggerEl => {
-            if (!bootstrap.Tab.getInstance(triggerEl)) {
-                new bootstrap.Tab(triggerEl);
-            }
-        });
+        accordionContainer.querySelectorAll('[data-bs-toggle="tab"]').forEach(triggerEl => { if (!bootstrap.Tab.getInstance(triggerEl)) new bootstrap.Tab(triggerEl); });
     }
-    
     async function saveRates() {
         const updatedRates = JSON.parse(JSON.stringify(rates));
-        const inputs = document.querySelectorAll('#adminRatesContent input[type="number"]');
         let hasError = false;
-
-        inputs.forEach(input => {
+        document.querySelectorAll('#adminRatesContent input[type="number"]').forEach(input => {
             const { machine, brand, type, installments } = input.dataset;
             const value = parseFloat(input.value);
-            if (isNaN(value)) {
-                console.warn(`Valor inválido para ${machine}/${brand || ''}.`);
-                hasError = true;
-                return;
-            }
-            if (brand) {
-                if (type === 'debito') updatedRates[machine][brand].debito = value;
-                else if (type === 'credito') updatedRates[machine][brand].credito[parseInt(installments) - 1] = value;
-            } else {
-                if (type === 'debito') updatedRates[machine].debito = value;
-                else if (type === 'credito') updatedRates[machine].credito[parseInt(installments) - 1] = value;
-            }
+            if (isNaN(value)) { hasError = true; return; }
+            if (brand) { if (type === 'debito') updatedRates[machine][brand].debito = value; else if (type === 'credito') updatedRates[machine][brand].credito[parseInt(installments) - 1] = value; } 
+            else { if (type === 'debito') updatedRates[machine].debito = value; else if (type === 'credito') updatedRates[machine].credito[parseInt(installments) - 1] = value; }
         });
-
-        if (hasError) {
-            showCustomModal({ message: "Corrija campos inválidos e tente novamente.", onConfirm: ()=>{}, confirmText: 'OK' });
-            return;
-        }
-        try {
-            await update(ref(db, 'rates'), updatedRates);
-            showCustomModal({ message: "Taxas atualizadas com sucesso!", onConfirm: ()=>{}, confirmText: 'OK' });
-        } catch (error) {
-            console.error("Erro ao salvar taxas:", error);
-            showCustomModal({ message: `Erro ao salvar: ${error.message}`, onConfirm: ()=>{}, confirmText: 'OK' });
-        }
+        if (hasError) { showCustomModal({ message: "Corrija campos inválidos." }); return; }
+        try { await update(ref(db, 'rates'), updatedRates); showCustomModal({ message: "Taxas atualizadas!" }); } 
+        catch (error) { console.error("Erro ao salvar taxas:", error); showCustomModal({ message: `Erro ao salvar: ${error.message}` }); }
     }
 
     // --- FUNÇÕES DO MODAL DE BANDEIRAS ---
     let activeBrandSelect = null;
-    const flagData = {
-        visa: { name: 'Visa', icon: 'bi-credit-card' },
-        mastercard: { name: 'Mastercard', icon: 'bi-credit-card-2-front-fill' },
-        hiper: { name: 'Hiper', icon: 'bi-card-heading' },
-        hipercard: { name: 'Hipercard', icon: 'bi-card-heading' },
-        elo: { name: 'Elo', icon: 'bi-credit-card-fill' },
-        amex: { name: 'Amex', icon: 'bi-person-badge' }
-    };
-
+    const flagData = { visa: { name: 'Visa', icon: 'bi-credit-card' }, mastercard: { name: 'Mastercard', icon: 'bi-credit-card-2-front-fill' }, hiper: { name: 'Hiper', icon: 'bi-card-heading' }, hipercard: { name: 'Hipercard', icon: 'bi-card-heading' }, elo: { name: 'Elo', icon: 'bi-credit-card-fill' }, amex: { name: 'Amex', icon: 'bi-person-badge' } };
     function openFlagModal(machineSelectElement) {
-        const flagModalOverlay = document.getElementById('flagSelectorModalOverlay');
-        const flagModalButtons = document.getElementById('flagSelectorButtons');
-        const machineValue = machineSelectElement.value;
-        const sectionNumber = machineSelectElement.id.replace('machine', '');
+        const flagModalOverlay = document.getElementById('flagSelectorModalOverlay'), flagModalButtons = document.getElementById('flagSelectorButtons');
+        const machineValue = machineSelectElement.value, sectionNumber = machineSelectElement.id.replace('machine', '');
         activeBrandSelect = document.getElementById(`brand${sectionNumber}`);
-
-        if (machineValue === 'pagbank' || !activeBrandSelect) {
-            if (flagModalOverlay.classList.contains('active')) closeFlagModal();
-            return;
-        }
-
+        if (machineValue === 'pagbank' || !activeBrandSelect) { if (flagModalOverlay.classList.contains('active')) closeFlagModal(); return; }
         flagModalButtons.innerHTML = ''; 
-
-        const options = Array.from(activeBrandSelect.options);
-        options.forEach(option => {
-            const brand = option.value;
-            const data = flagData[brand] || { name: brand.charAt(0).toUpperCase() + brand.slice(1), icon: 'bi-question-circle' };
+        Array.from(activeBrandSelect.options).forEach(option => {
+            const brand = option.value, data = flagData[brand] || { name: brand.charAt(0).toUpperCase() + brand.slice(1), icon: 'bi-question-circle' };
             const button = document.createElement('button');
-            button.className = 'btn-flag';
-            button.dataset.value = brand;
-            button.innerHTML = `<i class="bi ${data.icon}"></i> ${data.name}`;
-            button.onclick = () => {
-                activeBrandSelect.value = brand;
-                const event = new Event('change', { bubbles: true });
-                activeBrandSelect.dispatchEvent(event);
-                closeFlagModal();
-            };
+            button.className = 'btn-flag'; button.dataset.value = brand; button.innerHTML = `<i class="bi ${data.icon}"></i> ${data.name}`;
+            button.onclick = () => { activeBrandSelect.value = brand; activeBrandSelect.dispatchEvent(new Event('change', { bubbles: true })); closeFlagModal(); };
             flagModalButtons.appendChild(button);
         });
-        
         flagModalOverlay.classList.add('active');
     }
-
-    function closeFlagModal() {
-        document.getElementById('flagSelectorModalOverlay').classList.remove('active');
-    }
-    
+    function closeFlagModal() { document.getElementById('flagSelectorModalOverlay').classList.remove('active'); }
     function updateFlagDisplay(sectionNumber) {
-        const brandSelect = document.getElementById(`brand${sectionNumber}`);
-        const displayButton = document.getElementById(`flagDisplayButton${sectionNumber}`);
+        const brandSelect = document.getElementById(`brand${sectionNumber}`), displayButton = document.getElementById(`flagDisplayButton${sectionNumber}`);
         if (!brandSelect || !displayButton) return;
-        
-        const selectedBrand = brandSelect.value;
-        const data = flagData[selectedBrand] || { name: 'Select', icon: 'bi-question-circle'};
+        const selectedBrand = brandSelect.value, data = flagData[selectedBrand] || { name: 'Select', icon: 'bi-question-circle'};
         displayButton.innerHTML = `<i class="bi ${data.icon}"></i> ${data.name}`;
     }
 
     // --- FUNÇÕES UTILITÁRIAS E DE UI ---
     function escapeHtml(text) { const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}; return text ? text.replace(/[&<>"']/g, m => map[m]) : ''; }
-    
-    function parseBrazilianCurrencyToFloat(valueString) { 
-        let cleaned = String(valueString).replace(/R\$?\s?|💰|\$\s?/g, '').trim();
-
-        if (cleaned.includes(',')) {
-            cleaned = cleaned.replace(/\./g, '').replace(',', '.');
-        } 
-
-        return parseFloat(cleaned); 
-    }
-    
+    function parseBrazilianCurrencyToFloat(valueString) { let cleaned = String(valueString).replace(/R\$?\s?|💰|\$\s?/g, '').trim(); if (cleaned.includes(',')) { cleaned = cleaned.replace(/\./g, '').replace(',', '.'); } return parseFloat(cleaned); }
     function openSection(sectionId, fromHistory = false) { 
         if (!sectionId || !document.getElementById(sectionId)) sectionId = 'mainMenu'; 
-        ['mainMenu', 'fecharVenda', 'repassarValores', 'calcularPorAparelho', 'administracao'].forEach(id => { document.getElementById(id).style.display = 'none'; }); 
+        
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        themeToggleBtn.style.display = (sectionId === 'mainMenu') ? 'flex' : 'none';
+
+        ['mainMenu', 'fecharVenda', 'repassarValores', 'calcularEmprestimo', 'calcularPorAparelho', 'administracao'].forEach(id => { document.getElementById(id).style.display = 'none'; }); 
         document.getElementById(sectionId).style.display = 'flex'; 
         currentSectionId = sectionId; 
         if (!fromHistory) history.pushState({ sectionId }, '', `#${sectionId}`); 
         const sectionInitializers = { 
             fecharVenda: () => { updateInstallmentsOptions(); updateFecharVendaUI(); }, 
             repassarValores: () => { updateRepassarValoresUI(); }, 
+            calcularEmprestimo: () => { updateCalcularEmprestimoUI(); },
             calcularPorAparelho: () => { updateCalcularPorAparelhoUI(); },
             administracao: () => { filterAdminProducts(); }
         }; 
         if (sectionInitializers[sectionId]) sectionInitializers[sectionId](); 
     }
-
     function updateInstallmentsOptions() { const installments = document.getElementById("installments1"); const machine = document.getElementById("machine1").value; if (!areRatesLoaded) { installments.innerHTML = '<option>Carregando...</option>'; return; } installments.innerHTML = '<option value="0">Débito</option>'; let max = 0; if (rates[machine]) { switch(machine) { case "pagbank": max = 18; break; case "infinity": max = 12; break; case "valorante": max = 21; break; } } for (let i = 1; i <= max; i++) installments.innerHTML += `<option value="${i}">${i}x</option>`; }
-    
     function toggleEntradaAVistaUI() {
-        const isProdutoMode = document.getElementById('vendaModeToggle').checked;
-        const isEntradaChecked = document.getElementById('entradaAVistaCheckbox').checked;
-        const entradaContainer = document.getElementById('entradaAVistaContainer');
-        const finalValueContainer = document.getElementById('fecharVendaInputs');
-        const entradaToggleContainer = document.getElementById('entradaAVistaToggleContainer');
-
-        // Mostra o toggle apenas no modo produto e se um produto for selecionado
+        const isProdutoMode = document.getElementById('vendaModeToggle').checked, isEntradaChecked = document.getElementById('entradaAVistaCheckbox').checked;
+        const entradaContainer = document.getElementById('entradaAVistaContainer'), finalValueContainer = document.getElementById('fecharVendaInputs'), entradaToggleContainer = document.getElementById('entradaAVistaToggleContainer');
         entradaToggleContainer.classList.toggle('hidden', !isProdutoMode || fecharVendaPrecoBase <= 0);
-        
-        if (isProdutoMode && isEntradaChecked) {
-            entradaContainer.classList.remove('hidden');
-            finalValueContainer.classList.add('hidden');
-            document.getElementById('fecharVendaValue').value = ''; // Limpa valor antigo
-        } else {
-            entradaContainer.classList.add('hidden');
-            finalValueContainer.classList.remove('hidden');
-            document.getElementById('valorEntradaAVista').value = ''; // Limpa novos inputs
-            document.getElementById('valorPassadoNoCartao').value = '';
-        }
+        if (isProdutoMode && isEntradaChecked) { entradaContainer.classList.remove('hidden'); finalValueContainer.classList.add('hidden'); document.getElementById('fecharVendaValue').value = ''; } 
+        else { entradaContainer.classList.add('hidden'); finalValueContainer.classList.remove('hidden'); document.getElementById('valorEntradaAVista').value = ''; document.getElementById('valorPassadoNoCartao').value = ''; }
         calculateFecharVenda();
     }
-
     function updateFecharVendaUI() {
-        const produtoContainer = document.getElementById('vendaPorProdutoContainer');
-        const manualContainer = document.getElementById('manualModeContainer');
-        const flagDisplayContainer = document.getElementById("flagDisplayContainer1");
-        const valueLabel = document.getElementById('fecharVendaValueLabel');
-        const valueInput = document.getElementById('fecharVendaValue');
-        const isProdutoMode = document.getElementById('vendaModeToggle').checked;
-        const installments = parseInt(document.getElementById('installments1').value, 10);
-        const manualMode = document.querySelector('input[name="manualMode"]:checked').value;
-        const machine = document.getElementById("machine1").value;
-
-        if (isProdutoMode) {
-            manualContainer.classList.add('hidden');
-            produtoContainer.classList.remove('hidden');
-        } else {
-            manualContainer.classList.remove('hidden');
-            produtoContainer.classList.add('hidden');
-            document.getElementById('vendaProdutoSearch').value = '';
-            document.getElementById('vendaSearchResultsContainer').innerHTML = '';
-            document.getElementById('fecharVendaPrecoBase').value = '';
-            fecharVendaPrecoBase = 0;
-            document.getElementById('entradaAVistaCheckbox').checked = false; // Garante que o checkbox seja desmarcado
+        const produtoContainer = document.getElementById('vendaPorProdutoContainer'), manualContainer = document.getElementById('manualModeContainer'), flagDisplayContainer = document.getElementById("flagDisplayContainer1");
+        const valueLabel = document.getElementById('fecharVendaValueLabel'), valueInput = document.getElementById('fecharVendaValue');
+        const isProdutoMode = document.getElementById('vendaModeToggle').checked, installments = parseInt(document.getElementById('installments1').value, 10), manualMode = document.querySelector('input[name="manualMode"]:checked').value, machine = document.getElementById("machine1").value;
+        if (isProdutoMode) { 
+            manualContainer.classList.add('hidden'); 
+            produtoContainer.classList.remove('hidden'); 
+        } 
+        else { 
+            manualContainer.classList.remove('hidden'); 
+            produtoContainer.classList.add('hidden'); 
+            document.getElementById('vendaProdutoSearch').value = ''; 
+            document.getElementById('vendaSearchResultsContainer').innerHTML = ''; 
+            document.getElementById('fecharVendaPrecoBase').value = ''; 
+            fecharVendaPrecoBase = 0; 
+            document.getElementById('entradaAVistaCheckbox').checked = false; 
         }
-        
         toggleEntradaAVistaUI();
-        
-        if (!isProdutoMode) {
-            if (installments > 0 && manualMode === 'parcela') {
-                valueLabel.innerHTML = '<i class="bi bi-currency-dollar"></i> Valor da Parcela (R$)';
-                valueInput.placeholder = "Digite o valor da parcela";
-            } else {
-                valueLabel.innerHTML = '<i class="bi bi-currency-dollar"></i> Valor Total da Venda (R$)';
-                valueInput.placeholder = "Digite o valor total";
-            }
-        }
-        
+        if (!isProdutoMode) { valueLabel.innerHTML = (installments > 0 && manualMode === 'parcela') ? '<i class="bi bi-currency-dollar"></i> Valor da Parcela (R$)' : '<i class="bi bi-currency-dollar"></i> Valor Total da Venda (R$)'; valueInput.placeholder = (installments > 0 && manualMode === 'parcela') ? "Digite o valor da parcela" : "Digite o valor total"; }
         flagDisplayContainer.style.display = (machine !== "pagbank") ? 'block' : 'none';
-        updateFlagDisplay('1');
-        calculateFecharVenda();
+        updateFlagDisplay('1'); calculateFecharVenda();
+    }
+    function updateRepassarValoresUI() { const machine = document.getElementById("machine2").value; document.getElementById("flagDisplayContainer2").style.display = (machine !== "pagbank") ? 'block' : 'none'; updateFlagDisplay('2'); calculateRepassarValores(); }
+    function updateCalcularEmprestimoUI() { const machine = document.getElementById("machine4").value; document.getElementById("flagDisplayContainer4").style.display = (machine !== "pagbank") ? 'block' : 'none'; updateFlagDisplay('4'); calculateEmprestimo(); }
+    function updateCalcularPorAparelhoUI() { 
+        const machine = document.getElementById("machine3").value; 
+        document.getElementById("flagDisplayContainer3").style.display = (machine !== "pagbank") ? 'block' : 'none'; 
+        updateFlagDisplay('3'); 
+        renderAparelhoFavorites();
+        calculateAparelho(); 
     }
     
-    function updateRepassarValoresUI() {
-        const machine = document.getElementById("machine2").value;
-        document.getElementById("flagDisplayContainer2").style.display = (machine !== "pagbank") ? 'block' : 'none';
-        updateFlagDisplay('2');
-        calculateRepassarValores();
-    }
-
-    function updateCalcularPorAparelhoUI() {
-        const machine = document.getElementById("machine3").value;
-        document.getElementById("flagDisplayContainer3").style.display = (machine !== "pagbank") ? 'block' : 'none';
-        updateFlagDisplay('3');
-        calculateAparelho();
-    }
-    
-    // --- FUNÇÃO DE CÁLCULO ---
+    // --- FUNÇÕES DE CÁLCULO ---
     function getRate(machine, brand, installments) { if (!areRatesLoaded || !rates[machine]) return undefined; if (machine === 'pagbank') return installments === 0 ? rates.pagbank.debito : rates.pagbank.credito[installments - 1]; const rateSet = (machine === 'infinity' && brand === 'hiper') ? rates.infinity.hiper : rates[machine][brand === 'hiper' ? 'hipercard' : brand]; return rateSet ? (installments === 0 ? rateSet.debito : rateSet.credito[installments - 1]) : undefined; }
-    
-    // INÍCIO DA ALTERAÇÃO: LÓGICA DE CÁLCULO FINAL
     function calculateFecharVenda() { 
         if (!areRatesLoaded) return;
-
-        const resultDiv = document.getElementById("resultFecharVenda");
-        const isProdutoMode = document.getElementById('vendaModeToggle').checked;
-        const isEntradaAVista = document.getElementById('entradaAVistaCheckbox').checked;
-        const installments = parseInt(document.getElementById("installments1").value, 10); 
-        const tax = getRate(document.getElementById("machine1").value, document.getElementById("brand1").value, installments); 
-        const foneDescontado = document.getElementById('descontarFoneCheckbox')?.checked || false;
-        const valorDesconto = 15;
+        const resultDiv = document.getElementById("resultFecharVenda"), isProdutoMode = document.getElementById('vendaModeToggle').checked, isEntradaAVista = document.getElementById('entradaAVistaCheckbox').checked;
+        const installments = parseInt(document.getElementById("installments1").value, 10), tax = getRate(document.getElementById("machine1").value, document.getElementById("brand1").value, installments); 
+        const foneDescontado = document.getElementById('descontarFoneCheckbox')?.checked || false, valorDesconto = 15;
         let checkboxHtml = '';
-        
-        if (tax === undefined || tax === null) { 
-            resultDiv.innerHTML = `<div class="alert alert-warning">Taxa não disponível para esta combinação.</div>`; 
-            return; 
-        } 
-        
-        if (isProdutoMode && fecharVendaPrecoBase > 0) {
-            checkboxHtml = `
-                <div class="form-check form-check-inline mt-3 w-100" style="max-width: 400px; margin-left: auto; margin-right: auto; text-align: left; padding-left: 2.5em;">
-                    <input class="form-check-input" type="checkbox" id="descontarFoneCheckbox" ${foneDescontado ? 'checked' : ''}>
-                    <label class="form-check-label" for="descontarFoneCheckbox">
-                        Descontar fone Bluetooth (${valorDesconto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
-                    </label>
-                </div>`;
-        }
-
-        // CENÁRIO: VENDA POR PRODUTO COM ENTRADA À VISTA
+        if (tax === undefined || tax === null) { resultDiv.innerHTML = `<div class="alert alert-warning">Taxa não disponível.</div>`; return; } 
+        if (isProdutoMode && fecharVendaPrecoBase > 0) checkboxHtml = `<div class="form-check form-check-inline mt-3 w-100" style="max-width: 400px; margin-left: auto; margin-right: auto; text-align: left; padding-left: 2.5em;"><input class="form-check-input" type="checkbox" id="descontarFoneCheckbox" ${foneDescontado ? 'checked' : ''}><label class="form-check-label" for="descontarFoneCheckbox">Descontar fone Bluetooth (${valorDesconto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</label></div>`;
         if (isProdutoMode && isEntradaAVista) {
-            const valorEntrada = parseFloat(document.getElementById('valorEntradaAVista').value) || 0;
-            const valorCartao = parseFloat(document.getElementById('valorPassadoNoCartao').value) || 0;
-            
-            if (fecharVendaPrecoBase <= 0) {
-                 resultDiv.innerHTML = `<div class="alert alert-info">Selecione um produto para calcular.</div>`; 
-                 return;
-            }
-             if (valorCartao <= 0) {
-                 resultDiv.innerHTML = "";
-                 if(checkboxHtml) resultDiv.innerHTML += checkboxHtml;
-                 return;
-            }
-
+            const valorEntrada = parseFloat(document.getElementById('valorEntradaAVista').value) || 0, valorCartao = parseFloat(document.getElementById('valorPassadoNoCartao').value) || 0;
+            if (fecharVendaPrecoBase <= 0) { resultDiv.innerHTML = `<div class="alert alert-info">Selecione um produto.</div>`; return; }
+            if (valorCartao <= 0) { resultDiv.innerHTML = checkboxHtml || ""; return; }
             const liquidCartao = valorCartao * (1 - tax / 100);
             let totalRecebido = valorEntrada + liquidCartao;
-            
-            if (foneDescontado) {
-                totalRecebido -= valorDesconto;
-            }
-
+            if (foneDescontado) totalRecebido -= valorDesconto;
             const lucroExtra = totalRecebido - fecharVendaPrecoBase;
-            
-            const resultCardHtml = `
-            <div class="alert alert-success fs-5 w-100 text-start" style="max-width: 400px; margin: 0 auto;">
-                <strong>Valor Total Recebido: ${totalRecebido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> 
-                <br/>
-                <small class="text-secondary">sendo ${valorEntrada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} à vista + ${valorCartao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (tax. ${tax.toFixed(2)}%)</small>
-                <br/>
-                <strong>Lucro Extra: <span class="lucro-extra-valor">${lucroExtra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></strong>
-            </div>
-            `;
-            resultDiv.innerHTML = resultCardHtml + checkboxHtml;
+            resultDiv.innerHTML = `<div class="alert alert-success fs-5 w-100 text-start" style="max-width: 400px; margin: 0 auto;"><strong>Valor Total Recebido: ${totalRecebido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong><br/><small class="text-secondary">sendo ${valorEntrada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} à vista + ${valorCartao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (tax. ${tax.toFixed(2)}%)</small><br/><strong>Lucro Extra: <span class="lucro-extra-valor">${lucroExtra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></strong></div>` + checkboxHtml;
             return;
         }
-
-        // LÓGICA ORIGINAL (ENTRADA MANUAL OU VENDA POR PRODUTO SEM ENTRADA À VISTA)
         const inputValue = parseFloat(document.getElementById("fecharVendaValue").value);
-        if (isNaN(inputValue) || inputValue <= 0) { 
-            resultDiv.innerHTML = ""; 
-            if(checkboxHtml) resultDiv.innerHTML += checkboxHtml;
-            return; 
-        } 
-        
+        if (isNaN(inputValue) || inputValue <= 0) { resultDiv.innerHTML = checkboxHtml || ""; return; } 
         const manualMode = document.querySelector('input[name="manualMode"]:checked').value;
         let totalValue = (!isProdutoMode && manualMode === 'parcela' && installments > 0) ? inputValue * installments : inputValue; 
         const liquid = totalValue * (1 - tax / 100); 
-        
-        let liquidExibido = liquid;
-        let lucroExtraHtml = ''; 
-
+        let liquidExibido = liquid, lucroExtraHtml = ''; 
         if (isProdutoMode && fecharVendaPrecoBase > 0) {
-             if (foneDescontado) {
-                liquidExibido -= valorDesconto;
-            }
+            if (foneDescontado) liquidExibido -= valorDesconto;
             const lucroExtra = liquidExibido - fecharVendaPrecoBase;
-            const lucroClass = lucroExtra >= 0 ? 'text-success' : 'text-danger';
-
-            lucroExtraHtml = `
-                <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
-                <strong>Lucro Extra: <span class="${lucroClass}">${lucroExtra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></strong>
-            `;
+            lucroExtraHtml = `<hr class="my-2" style="border-color: rgba(255,255,255,0.2);"><strong>Lucro Extra: <span class="${lucroExtra >= 0 ? 'text-success' : 'text-danger'}">${lucroExtra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></strong>`;
         } 
-        
-        const resultCardHtml = `
-            <div class="alert alert-success fs-5 w-100 text-start" style="max-width: 400px; margin: 0 auto;">
-                <strong>Valor Líquido: ${liquidExibido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> 
-                <br/>
-                <small class="text-secondary">Taxa: ${tax.toFixed(2)}% (${installments === 0 ? "Débito" : `${installments}x`})</small>
-                ${lucroExtraHtml}
-            </div>
-        `;
-
-        resultDiv.innerHTML = resultCardHtml + checkboxHtml;
+        resultDiv.innerHTML = `<div class="alert alert-success fs-5 w-100 text-start" style="max-width: 400px; margin: 0 auto;"><strong>Valor Líquido: ${liquidExibido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong><br/><small class="text-secondary">Taxa: ${tax.toFixed(2)}% (${installments === 0 ? "Débito" : `${installments}x`})</small>${lucroExtraHtml}</div>` + checkboxHtml;
     }
-    // FIM DA ALTERAÇÃO
+    function calculateRepassarValores() { if (!areRatesLoaded) return; const valorDesejado = parseFloat(document.getElementById("repassarValue").value); if (isNaN(valorDesejado) || valorDesejado <= 0) { document.getElementById("resultRepassarValores").innerHTML = ""; return; } const machine = document.getElementById("machine2").value, brand = document.getElementById("brand2").value; let maxInstallments = 0; if (rates[machine]) { switch(machine) { case "pagbank": maxInstallments = 18; break; case "infinity": maxInstallments = 12; break; case "valorante": maxInstallments = 21; break; } } let resultHtml = ""; const debitTax = getRate(machine, brand, 0); if(debitTax !== null && debitTax !== undefined) { const valorBrutoDebito = valorDesejado / (1 - debitTax / 100); resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">Débito: ${valorBrutoDebito.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`; } for (let i = 1; i <= maxInstallments; i++) { const creditTax = getRate(machine, brand, i); if (creditTax !== undefined) { const valorBrutoCredit = valorDesejado / (1 - creditTax / 100), valorParcela = valorBrutoCredit / i; resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">${i}x de ${valorParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (Total: ${valorBrutoCredit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</div>`; } } document.getElementById("resultRepassarValores").innerHTML = resultHtml; }
+    function calculateEmprestimo() {
+        if (!areRatesLoaded) return;
+        const valorBase = parseFloat(document.getElementById("emprestimoValue").value) || 0;
+        const lucro = valorBase * (emprestimoLucroPercentual / 100);
+        const valorDesejado = valorBase + lucro;
+        
+        const lucroDisplay = document.getElementById("emprestimoLucroDisplay");
+        const valorLiquidoDisplay = document.getElementById("valorLiquidoDisplay");
 
-    function calculateRepassarValores() { if (!areRatesLoaded) return; const valorDesejado = parseFloat(document.getElementById("repassarValue").value); if (isNaN(valorDesejado) || valorDesejado <= 0) { document.getElementById("resultRepassarValores").innerHTML = ""; return; } const machine = document.getElementById("machine2").value; const brand = document.getElementById("brand2").value; let maxInstallments = 0; if (rates[machine]) { switch(machine) { case "pagbank": maxInstallments = 18; break; case "infinity": maxInstallments = 12; break; case "valorante": maxInstallments = 21; break; } } let resultHtml = ""; const debitTax = getRate(machine, brand, 0); if(debitTax !== null && debitTax !== undefined) { const valorBrutoDebito = valorDesejado / (1 - debitTax / 100); resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">Débito: ${valorBrutoDebito.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`; } for (let i = 1; i <= maxInstallments; i++) { const creditTax = getRate(machine, brand, i); if (creditTax !== undefined) { const valorBrutoCredit = valorDesejado / (1 - creditTax / 100); const valorParcela = valorBrutoCredit / i; resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">${i}x de ${valorParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (Total: ${valorBrutoCredit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</div>`; } } document.getElementById("resultRepassarValores").innerHTML = resultHtml; }
-    function calculateAparelho() { if (!areRatesLoaded) return; const resultDiv = document.getElementById('resultCalcularPorAparelho'); const entradaValue = parseFloat(document.getElementById('entradaAparelho').value) || 0; if (isNaN(selectedAparelhoValue) || selectedAparelhoValue <= 0) { resultDiv.innerHTML = '<div class="alert alert-warning mt-3 w-100" style="max-width: 400px;">Selecione um aparelho.</div>'; return; } const valorBaseParaCalculo = selectedAparelhoValue - entradaValue; if (valorBaseParaCalculo < 0) { resultDiv.innerHTML = '<div class="alert alert-danger mt-3 w-100" style="max-width: 400px;">O valor da entrada não pode ser maior que o valor do aparelho.</div>'; return; } const machine = document.getElementById("machine3").value; const brand = document.getElementById("brand3").value; let maxInstallments = 0; if (rates[machine]) { switch(machine) { case "pagbank": maxInstallments = 18; break; case "infinity": maxInstallments = 12; break; case "valorante": maxInstallments = 21; break; } } let resultHtml = `<h4 class="mt-4">Preço do Aparelho: ${selectedAparelhoValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</h4>`; if (entradaValue > 0) { resultHtml += `<div class="alert alert-info w-100" style="max-width: 400px;"><strong>Entrada:</strong> ${entradaValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}<br><strong>Valor a Parcelar:</strong> ${valorBaseParaCalculo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`; } if (valorBaseParaCalculo <= 0) { resultDiv.innerHTML = resultHtml + '<div class="alert alert-success mt-3 w-100" style="max-width: 400px;">Aparelho quitado com a entrada.</div>'; return; } const debitTax = getRate(machine, brand, 0); if (debitTax !== null && debitTax !== undefined) { const valorBrutoDebito = valorBaseParaCalculo / (1 - debitTax / 100); resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">Débito: ${valorBrutoDebito.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`; } for (let i = 1; i <= maxInstallments; i++) { const creditTax = getRate(machine, brand, i); if (creditTax !== undefined) { const valorBrutoCredit = valorBaseParaCalculo / (1 - creditTax / 100); const valorParcela = valorBrutoCredit / i; resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">${i}x de ${valorParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (Total: ${valorBrutoCredit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</div>`; } } resultDiv.innerHTML = resultHtml; }
-    function handleProductSelectionForAparelho(product) { selectedAparelhoValue = parseFloat(product.valor); document.getElementById('aparelhoSearch').value = `${product.nome} - ${selectedAparelhoValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`; document.getElementById('aparelhoResultsContainer').innerHTML = ''; document.getElementById('entradaAparelho').value = ''; calculateAparelho(); }
-    
+        lucroDisplay.innerHTML = `🟢 Lucro ${emprestimoLucroPercentual}% = <span>${lucro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>`;
+
+        if (valorBase <= 0) { 
+            valorLiquidoDisplay.innerHTML = "";
+            document.getElementById("resultCalcularEmprestimo").innerHTML = ""; 
+            return; 
+        }
+        
+        valorLiquidoDisplay.innerHTML = `<div class="alert alert-info w-100" style="max-width: 400px; margin: 0 auto;">Valor líquido a receber: <strong>${valorDesejado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></div>`;
+        
+        const machine = document.getElementById("machine4").value;
+        const brand = document.getElementById("brand4").value;
+        let maxInstallments = 0;
+        if (rates[machine]) { switch (machine) { case "pagbank": maxInstallments = 18; break; case "infinity": maxInstallments = 12; break; case "valorante": maxInstallments = 21; break; } }
+        
+        let resultHtml = "";
+        const debitTax = getRate(machine, brand, 0);
+        if (debitTax !== null && debitTax !== undefined) { 
+            const valorBrutoDebito = valorDesejado / (1 - debitTax / 100); 
+            resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">Débito: ${valorBrutoDebito.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`; 
+        }
+        for (let i = 1; i <= maxInstallments; i++) { 
+            const creditTax = getRate(machine, brand, i); 
+            if (creditTax !== undefined) { 
+                const valorBrutoCredit = valorDesejado / (1 - creditTax / 100); 
+                const valorParcela = valorBrutoCredit / i; 
+                resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">${i}x de ${valorParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (Total: ${valorBrutoCredit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</div>`; 
+            } 
+        }
+        document.getElementById("resultCalcularEmprestimo").innerHTML = resultHtml;
+    }
+    function calculateAparelho() {
+        if (!areRatesLoaded) return;
+        const resultDiv = document.getElementById('resultCalcularPorAparelho');
+        const entradaValue = parseFloat(document.getElementById('entradaAparelho').value) || 0;
+        const extraValue = parseFloat(document.getElementById('valorExtraAparelho').value) || 0;
+        
+        if (isNaN(selectedAparelhoValue) || selectedAparelhoValue <= 0) {
+            resultDiv.innerHTML = '<div class="alert alert-warning mt-3 w-100" style="max-width: 400px;">Selecione um aparelho.</div>';
+            return;
+        }
+
+        const valorTotalAparelho = selectedAparelhoValue + extraValue;
+        const valorBaseParaCalculo = valorTotalAparelho - entradaValue;
+
+        if (valorBaseParaCalculo < 0) {
+            resultDiv.innerHTML = '<div class="alert alert-danger mt-3 w-100" style="max-width: 400px;">O valor da entrada não pode ser maior que o valor do aparelho.</div>';
+            return;
+        }
+
+        const machine = document.getElementById("machine3").value;
+        const brand = document.getElementById("brand3").value;
+        let maxInstallments = 0;
+        if (rates[machine]) { switch(machine) { case "pagbank": maxInstallments = 18; break; case "infinity": maxInstallments = 12; break; case "valorante": maxInstallments = 21; break; } }
+        
+        let resultHtml = `<h4 class="mt-4">Preço Total: ${valorTotalAparelho.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</h4>`;
+        if (entradaValue > 0) { resultHtml += `<div class="alert alert-info w-100" style="max-width: 400px;"><strong>Entrada:</strong> ${entradaValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}<br><strong>Valor a Parcelar:</strong> ${valorBaseParaCalculo.toLocaleString('pt-BR', { style: 'currency', 'currency': 'BRL' })}</div>`; }
+        if (valorBaseParaCalculo <= 0) { resultDiv.innerHTML = resultHtml + '<div class="alert alert-success mt-3 w-100" style="max-width: 400px;">Aparelho quitado com a entrada.</div>'; return; }
+        
+        const debitTax = getRate(machine, brand, 0);
+        if (debitTax !== null && debitTax !== undefined) { const valorBrutoDebito = valorBaseParaCalculo / (1 - debitTax / 100); resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">Débito: ${valorBrutoDebito.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>`; }
+        for (let i = 1; i <= maxInstallments; i++) { const creditTax = getRate(machine, brand, i); if (creditTax !== undefined) { const valorBrutoCredit = valorBaseParaCalculo / (1 - creditTax / 100), valorParcela = valorBrutoCredit / i; resultHtml += `<div class="alert alert-secondary w-100" style="max-width: 400px;">${i}x de ${valorParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (Total: ${valorBrutoCredit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</div>`; } }
+        resultDiv.innerHTML = resultHtml;
+    }
+    function handleProductSelectionForAparelho(product) { 
+        document.getElementById('saveAparelhoFavoriteBtn').classList.remove('hidden');
+        selectedAparelhoValue = parseFloat(product.valor); 
+        document.getElementById('aparelhoSearch').value = `${product.nome}`; 
+        document.getElementById('aparelhoResultsContainer').innerHTML = ''; 
+        document.getElementById('entradaAparelho').value = ''; 
+        document.getElementById('valorExtraAparelho').value = ''; 
+        calculateAparelho(); 
+    }
     function handleProductSelectionForVenda(product) { 
         fecharVendaPrecoBase = parseFloat(product.valor); 
         document.getElementById('fecharVendaPrecoBase').value = fecharVendaPrecoBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); 
         document.getElementById('vendaProdutoSearch').value = product.nome; 
         document.getElementById('vendaSearchResultsContainer').innerHTML = ''; 
-        
-        const isEntradaAVista = document.getElementById('entradaAVistaCheckbox').checked;
-        if (!isEntradaAVista) {
+        if (!document.getElementById('entradaAVistaCheckbox').checked) { 
             const tax = getRate(document.getElementById("machine1").value, document.getElementById("brand1").value, parseInt(document.getElementById("installments1").value, 10)); 
             document.getElementById('fecharVendaValue').value = (tax !== undefined) ? (fecharVendaPrecoBase / (1 - tax / 100)).toFixed(2) : fecharVendaPrecoBase.toFixed(2); 
-        }
-        
-        // Atualiza a UI e recalcula
-        updateFecharVendaUI();
+        } 
+        updateFecharVendaUI(); 
     }
     
     // --- LÓGICA DO FIREBASE ---
-    function loadRatesFromDB() { const ratesRef = ref(db, 'rates'); onValue(ratesRef, (snapshot) => { if (snapshot.exists()) { rates = snapshot.val(); areRatesLoaded = true; updateInstallmentsOptions(); console.log("Taxas carregadas com sucesso!"); if (currentSectionId === 'administracao' && document.getElementById('adminModeToggle').checked) { renderRatesEditor(); } } else { console.error("ERRO: As taxas não foram encontradas no banco de dados."); showCustomModal({ message: "Erro crítico: Não foi possível carregar as taxas do sistema. A aplicação não pode funcionar.", onConfirm: ()=>{} }); } }, (error) => { console.error("Erro ao carregar taxas:", error); showCustomModal({ message: `Erro ao carregar taxas: ${error.message}`, onConfirm: ()=>{} }); }); }
+    function loadRatesFromDB() { const ratesRef = ref(db, 'rates'); onValue(ratesRef, (snapshot) => { if (snapshot.exists()) { rates = snapshot.val(); areRatesLoaded = true; updateInstallmentsOptions(); console.log("Taxas carregadas."); if (currentSectionId === 'administracao' && document.getElementById('adminModeToggle').checked) renderRatesEditor(); } else { console.error("ERRO: As taxas não foram encontradas."); showCustomModal({ message: "Erro crítico: Não foi possível carregar as taxas." }); } }, (error) => { console.error("Erro ao carregar taxas:", error); showCustomModal({ message: `Erro ao carregar taxas: ${error.message}` }); }); }
     const getProductsRef = () => ref(db, 'products');
     function loadProductsFromDB() { if (!db || !isAuthReady) return; if (productsListener) off(getProductsRef(), 'value', productsListener); productsListener = onValue(getProductsRef(), (snapshot) => { const data = snapshot.val(); products = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : []; setupFuse(); const placeholderText = products.length > 0 ? `Pesquisar entre ${products.length} produtos...` : 'Nenhum produto cadastrado'; document.getElementById('vendaProdutoSearch').placeholder = placeholderText; document.getElementById('aparelhoSearch').placeholder = placeholderText; if(document.getElementById('adminSearchInput')) document.getElementById('adminSearchInput').placeholder = `Filtrar ${products.length} produtos...`; if (currentSectionId === 'administracao') filterAdminProducts(); }, (error) => console.error("Firebase Read Error:", error)); }
     async function updateProductInDB(id, data) { try { await update(ref(db, `products/${id}`), data); } catch (error) { console.error(`Erro ao atualizar: ${error.message}`); } }
     
     // --- FUNÇÕES DE ADMINISTRAÇÃO (PRODUTOS) ---
-    function renderAdminTable(filteredList = products) { const tableBody = document.getElementById('productsTableBody'); tableBody.innerHTML = filteredList.length === 0 ? '<tr><td colspan="3" class="text-center p-4 text-secondary">Nenhum produto cadastrado.</td></tr>' : filteredList.map(product => ` <tr data-id="${product.id}"> <td><input type="text" class="form-control form-control-sm" value="${escapeHtml(product.nome)}" data-field="nome"></td> <td><input type="text" class="form-control form-control-sm" value="${(product.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}" data-field="valor"></td> <td class="text-end"><button class="btn btn-danger btn-sm delete-product-btn"><i class="bi bi-trash"></i></button></td> </tr> `).join(''); }
+    function renderAdminTable(filteredList = products) {
+        const tableBody = document.getElementById('productsTableBody');
+        if (!tableBody) return;
+        tableBody.innerHTML = filteredList.length === 0 ? '<tr><td colspan="2" class="text-center p-4 text-secondary">Nenhum produto cadastrado.</td></tr>' :
+            filteredList.flatMap(product => [
+                `<tr class="product-data-row" data-id="${product.id}">
+                    <td><input type="text" class="form-control form-control-sm w-100" value="${escapeHtml(product.nome)}" data-field="nome"></td>
+                    <td><input type="text" class="form-control form-control-sm w-100" value="${(product.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}" data-field="valor"></td>
+                </tr>`,
+                `<tr class="product-separator-row" data-id="${product.id}">
+                    <td colspan="2">
+                         <button class="btn-toggle-menu" data-id="${product.id}" aria-label="Abrir menu de ações">
+                            <i class="bi bi-chevron-down"></i>
+                         </button>
+                    </td>
+                </tr>`,
+                `<tr class="acoes-produto" data-id="${product.id}">
+                    <td colspan="2">
+                        <div class="action-menu-content">
+                            <button class="btn btn-sm btn-danger delete-product-btn" data-id="${product.id}">
+                                <i class="bi bi-trash me-2"></i>Apagar produto
+                            </button>
+                        </div>
+                    </td>
+                </tr>`
+            ]).join('');
+    }
     function filterAdminProducts() { const searchTerm = document.getElementById('adminSearchInput').value; renderAdminTable(!fuse || !searchTerm ? products : fuse.search(searchTerm).map(r => r.item)); }
-    async function importFromPasteOrFile(content) { const lines = content.split('\n').filter(line => line.trim()); const productsToImport = lines.map(line => { const match = line.match(/^(.*?)\s*[- ]*(?:R\$?\s*)?([\d.,]+)$/i); if (match) { const nome = match[1].trim(); const valor = parseBrazilianCurrencyToFloat(match[2]); if (nome && !isNaN(valor)) return { nome, valor }; } return null; }).filter(Boolean); if (productsToImport.length > 0) { try { const updates = {}; productsToImport.forEach(p => { const newKey = push(getProductsRef()).key; updates[newKey] = p; }); await update(getProductsRef(), updates); showCustomModal({ message: `${productsToImport.length} produtos importados!`, onConfirm: ()=>{}, confirmText: 'OK' }); } catch (error) { showCustomModal({ message: `Erro ao importar: ${error.message}`, onConfirm: ()=>{}, confirmText: 'OK' }); } } else { showCustomModal({ message: 'Nenhum produto válido encontrado.', onConfirm: ()=>{}, confirmText: 'OK' }); } }
+    async function importFromPasteOrFile(content) { const lines = content.split('\n').filter(line => line.trim()); const productsToImport = lines.map(line => { const match = line.match(/^(.*?)\s*[- ]*(?:R\$?\s*)?([\d.,]+)$/i); if (match) { const nome = match[1].trim(); const valor = parseBrazilianCurrencyToFloat(match[2]); if (nome && !isNaN(valor)) return { nome, valor }; } return null; }).filter(Boolean); if (productsToImport.length > 0) { try { const updates = {}; productsToImport.forEach(p => { const newKey = push(getProductsRef()).key; updates[newKey] = p; }); await update(getProductsRef(), updates); showCustomModal({ message: `${productsToImport.length} produtos importados!` }); } catch (error) { showCustomModal({ message: `Erro ao importar: ${error.message}` }); } } else { showCustomModal({ message: 'Nenhum produto válido encontrado.' }); } }
     function exportProducts(format) { const dataStr = format === 'txt' ? products.map(p => `${p.nome} - ${(p.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`).join('\n') : JSON.stringify(products.map(({id, ...rest}) => rest), null, 2); const blob = new Blob([dataStr], { type: `text/${format === 'txt' ? 'plain' : 'json'}` }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `products.${format}`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href); }
-    function showCustomModal({ message, onConfirm, onCancel, showPassword = false, confirmText = 'OK', cancelText = 'Cancelar' }) { const overlay = document.getElementById('customModalOverlay'); document.getElementById('customModalMessage').textContent = message; const passInput = document.getElementById('customModalPasswordInput'); passInput.value = ''; passInput.classList.toggle('hidden', !showPassword); const okBtn = overlay.querySelector('.btn-ok'); okBtn.textContent = confirmText; okBtn.style.display = onConfirm ? 'inline-flex' : 'none'; if(onConfirm) okBtn.onclick = () => { overlay.classList.remove('active'); onConfirm(passInput.value); }; const cancelBtn = overlay.querySelector('.btn-cancel'); cancelBtn.textContent = cancelText; cancelBtn.style.display = onCancel ? 'inline-flex' : 'none'; if (onCancel) cancelBtn.onclick = () => { overlay.classList.remove('active'); onCancel(); }; overlay.classList.add('active'); if (showPassword) passInput.focus(); }
-    async function deleteAllProducts() { showCustomModal({ message: "Para excluir TODOS os produtos, digite 'excluir'.", showPassword: true, confirmText: "Excluir", onConfirm: async (password) => { if (password === "excluir") { showCustomModal({ message: "Ação IRREVERSÍVEL. Apagar TUDO?", confirmText: 'SIM, EXCLUIR', onConfirm: async () => { try { await remove(getProductsRef()); showCustomModal({message: 'Todos os produtos foram excluídos.'}); } catch (error) { alert(`Erro: ${error.message}`); } }, onCancel: () => {} }); } else showCustomModal({ message: "Senha incorreta.", onConfirm: ()=>{}, confirmText: 'OK' }); }, onCancel: () => {} }); }
+    
+    function showCustomModal({ message, onConfirm, onCancel, showPassword = false, confirmText = 'OK', cancelText = 'Cancelar' }) {
+        const overlay = document.getElementById('customModalOverlay');
+        const messageEl = document.getElementById('customModalMessage');
+        const passInput = document.getElementById('customModalPasswordInput');
+        const okBtn = overlay.querySelector('.btn-ok');
+        const cancelBtn = overlay.querySelector('.btn-cancel');
+        const buttonsContainer = document.getElementById('customModalButtons');
+
+        if (overlay.dataset.timerId) {
+            clearTimeout(parseInt(overlay.dataset.timerId));
+            delete overlay.dataset.timerId;
+        }
+
+        const closeModal = () => {
+            overlay.classList.remove('active');
+        };
+        
+        messageEl.textContent = message;
+        passInput.value = '';
+        passInput.classList.toggle('hidden', !showPassword);
+
+        const isInformational = typeof onConfirm !== 'function' && typeof onCancel !== 'function';
+
+        if (isInformational) {
+            buttonsContainer.classList.add('hidden');
+            const timerId = setTimeout(closeModal, 3000);
+            overlay.dataset.timerId = timerId;
+        } else {
+            buttonsContainer.classList.remove('hidden');
+            
+            if (typeof onConfirm === 'function') {
+                okBtn.textContent = confirmText;
+                okBtn.style.display = 'inline-flex';
+                okBtn.onclick = () => {
+                    closeModal();
+                    onConfirm(passInput.value);
+                };
+            } else {
+                okBtn.style.display = 'none';
+            }
+
+            if (typeof onCancel === 'function') {
+                cancelBtn.textContent = cancelText;
+                cancelBtn.style.display = 'inline-flex';
+                cancelBtn.onclick = () => {
+                    closeModal();
+                    onCancel();
+                };
+            } else {
+                cancelBtn.style.display = 'none';
+            }
+        }
+
+        overlay.classList.add('active');
+        if (showPassword) {
+            passInput.focus();
+        }
+    }
+
+    async function deleteAllProducts() { showCustomModal({ message: "Para excluir TODOS os produtos, digite 'excluir'.", showPassword: true, confirmText: "Excluir", onConfirm: async (password) => { if (password === "excluir") { showCustomModal({ message: "Ação IRREVERSÍVEL. Apagar TUDO?", confirmText: 'SIM, EXCLUIR', onConfirm: async () => { try { await remove(getProductsRef()); showCustomModal({message: 'Todos os produtos foram excluídos.'}); } catch (error) { showCustomModal({ message: `Erro: ${error.message}` }); } }, onCancel: () => {} }); } else showCustomModal({ message: "Senha incorreta." }); }, onCancel: () => {} }); }
     function displayDynamicSearchResults(searchTerm, resultsContainerId, onItemClick) { const resultsContainer = document.getElementById(resultsContainerId); resultsContainer.innerHTML = ''; if (!fuse || !searchTerm || searchTerm.length < 2) return; const results = fuse.search(searchTerm); results.slice(0, 10).forEach(result => { const product = result.item; const a = document.createElement('a'); a.href = '#'; a.className = 'list-group-item list-group-item-action'; a.textContent = `${product.nome} - ${(product.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`; a.onclick = (e) => { e.preventDefault(); onItemClick(product); }; resultsContainer.appendChild(a); }); }
     function setupFuse() { fuse = new Fuse(products, { keys: ['nome'], includeScore: true, threshold: 0.3, minMatchCharLength: 2 }); }
-    async function processNaturalLanguageCommand() { if (!areRatesLoaded) { showCustomModal({message:"Aguarde as taxas carregarem."}); return; } const command = document.getElementById('naturalCommandInput').value; if (!command.trim()) return; const priceMatches = command.match(/(?:R\$|💰|\$|€|£)?\s*[\d.,]+/g); if (!priceMatches) { showCustomModal({ message: 'Comando inválido. Não foi possível encontrar um valor numérico.', onConfirm: () => {}, confirmText: 'OK' }); return; } const valueStr = priceMatches.pop(); const newValue = parseBrazilianCurrencyToFloat(valueStr); if (isNaN(newValue)) { showCustomModal({ message: `O valor encontrado "${valueStr}" não é válido.`, onConfirm: () => {}, confirmText: 'OK' }); return; } const stopWordsAndSymbols = /mudar|baixar|subir|trocar|alterar|preço|valor|do|da|o|a|de|para|pra|[-→💰]|R\$|\$/gi; const productNameQuery = command.substring(0, command.lastIndexOf(valueStr)).replace(stopWordsAndSymbols, '').trim(); if (!productNameQuery) { showCustomModal({ message: 'Não foi possível identificar o nome do produto no comando.', onConfirm: () => {}, confirmText: 'OK' }); return; } if (!fuse) { showCustomModal({ message: 'A busca de produtos ainda não está pronta. Tente novamente.', onConfirm: () => {}, confirmText: 'OK' }); return; } const results = fuse.search(productNameQuery); if (results.length === 0) { let suggestionMessage = `Produto "${productNameQuery}" não encontrado.`; if (products.length > 0) { const suggestions = products.slice(0, 5).map(p => `• ${p.nome}`).join('\n'); suggestionMessage += `\n\nQue tal um destes?\n${suggestions}`; } showCustomModal({ message: suggestionMessage, onConfirm: () => {}, confirmText: 'OK' }); return; } const foundProduct = results[0].item; showCustomModal({ message: `Atualizar o preço de "${foundProduct.nome}" para ${newValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}?`, onConfirm: () => { updateProductInDB(foundProduct.id, { valor: newValue }); document.getElementById('naturalCommandInput').value = ''; }, onCancel: () => {} }); }
+    async function processNaturalLanguageCommand() { if (!areRatesLoaded) { showCustomModal({message:"Aguarde as taxas carregarem."}); return; } const command = document.getElementById('naturalCommandInput').value; if (!command.trim()) return; const priceMatches = command.match(/(?:R\$|💰|\$|€|£)?\s*[\d.,]+/g); if (!priceMatches) { showCustomModal({ message: 'Comando inválido. Valor numérico não encontrado.' }); return; } const valueStr = priceMatches.pop(), newValue = parseBrazilianCurrencyToFloat(valueStr); if (isNaN(newValue)) { showCustomModal({ message: `O valor "${valueStr}" não é válido.` }); return; } const stopWordsAndSymbols = /mudar|baixar|subir|trocar|alterar|preço|valor|do|da|o|a|de|para|pra|[-→💰]|R\$|\$/gi; const productNameQuery = command.substring(0, command.lastIndexOf(valueStr)).replace(stopWordsAndSymbols, '').trim(); if (!productNameQuery) { showCustomModal({ message: 'Não foi possível identificar o nome do produto.' }); return; } if (!fuse) { showCustomModal({ message: 'Busca de produtos não pronta.' }); return; } const results = fuse.search(productNameQuery); if (results.length === 0) { let suggestionMessage = `Produto "${productNameQuery}" não encontrado.`; if (products.length > 0) suggestionMessage += `\n\nQue tal um destes?\n${products.slice(0, 5).map(p => `• ${p.nome}`).join('\n')}`; showCustomModal({ message: suggestionMessage }); return; } const foundProduct = results[0].item; showCustomModal({ message: `Atualizar "${foundProduct.nome}" para ${newValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}?`, onConfirm: () => { updateProductInDB(foundProduct.id, { valor: newValue }); document.getElementById('naturalCommandInput').value = ''; }, onCancel: () => {} }); }
     
-    // --- LÓGICA DE REGISTRO PWA (Adicionado) ---
+    // --- LÓGICA DE FAVORITOS (APARELHO) ---
+    function getAparelhoFavorites() { return JSON.parse(safeStorage.getItem(APARELHO_FAVORITES_KEY) || '{}'); }
+    function saveAparelhoFavorites(favorites) { safeStorage.setItem(APARELHO_FAVORITES_KEY, JSON.stringify(favorites)); }
+    function renderAparelhoFavorites() {
+        const container = document.getElementById('aparelhoFavoritosContainer');
+        if (!container) return;
+        const favorites = getAparelhoFavorites();
+        const favoriteNames = Object.keys(favorites);
+        if (favoriteNames.length === 0) { container.innerHTML = ''; return; }
+        container.innerHTML = favoriteNames.map(name => `
+            <div class="favorito">
+                <button class="favorito-btn" data-name="${escapeHtml(name)}">${escapeHtml(name)}</button>
+                <span class="remove-favorito-btn" data-name="${escapeHtml(name)}">🗑️</span>
+            </div>
+        `).join('');
+    }
+    function applyAparelhoFavorite(name) {
+        const favorites = getAparelhoFavorites();
+        const favData = favorites[name];
+        if (!favData) return;
+        const product = products.find(p => p.nome === favData.productName);
+        if (!product) { showCustomModal({ message: `Produto "${favData.productName}" não encontrado.` }); return; }
+        
+        handleProductSelectionForAparelho(product);
+        document.getElementById('entradaAparelho').value = favData.entryValue || '';
+        document.getElementById('valorExtraAparelho').value = favData.additionalValue || '';
+
+        const toggleBtn = document.getElementById('toggleValorExtraBtn');
+        const extraContainer = document.getElementById('valorExtraContainer');
+        if (favData.additionalValue > 0) {
+            toggleBtn.classList.add('is-active');
+            extraContainer.classList.add('is-active');
+        } else {
+            toggleBtn.classList.remove('is-active');
+            extraContainer.classList.remove('is-active');
+        }
+        calculateAparelho();
+    }
+    function removeAparelhoFavorite(name) {
+        const favorites = getAparelhoFavorites();
+        delete favorites[name];
+        saveAparelhoFavorites(favorites);
+        renderAparelhoFavorites();
+    }
+
+    // --- LÓGICA DE REGISTRO PWA ---
     function setupPWA() {
-        // Registrar o Manifest
-        const manifestData = document.getElementById('manifest-data').textContent;
-        const manifestBlob = new Blob([manifestData], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(manifestBlob);
+        const manifestData = document.getElementById('manifest-data').textContent, manifestBlob = new Blob([manifestData], {type: 'application/json'}), manifestURL = URL.createObjectURL(manifestBlob);
         document.querySelector('link[rel="manifest"]').setAttribute('href', manifestURL);
-
-        // Registrar o Service Worker
         if ('serviceWorker' in navigator) {
-            const swScript = document.getElementById('sw-script').textContent;
-            const swBlob = new Blob([swScript], {type: 'text/javascript'});
-            const swURL = URL.createObjectURL(swBlob);
-
-            navigator.serviceWorker.register(swURL)
-                .then(registration => console.log('Service Worker registrado com sucesso:', registration))
-                .catch(error => console.log('Falha no registro do Service Worker:', error));
+            const swScript = document.getElementById('sw-script').textContent, swBlob = new Blob([swScript], {type: 'text/javascript'}), swURL = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swURL).then(reg => console.log('Service Worker registrado:', reg)).catch(err => console.log('Falha no registro do SW:', err));
         }
     }
     
     // --- FUNÇÃO PRINCIPAL E INICIALIZAÇÃO ---
     async function main() {
         try {
-            setupPWA(); // Configura o PWA
-            const savedTheme = safeStorage.getItem('theme') || 'dark';
-            applyTheme(savedTheme);
+            setupPWA();
+            applyTheme(safeStorage.getItem('theme') || 'dark');
             app = initializeApp(firebaseConfig); auth = getAuth(app); db = getDatabase(app);
             onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid; 
-                    isAuthReady = true;
-                    loadRatesFromDB();
-                    loadProductsFromDB();
-                    openSection(location.hash.substring(1) || 'mainMenu', true);
-                } else await signInAnonymously(auth);
+                if (user) { userId = user.uid; isAuthReady = true; loadRatesFromDB(); loadProductsFromDB(); openSection(location.hash.substring(1) || 'mainMenu', true); } 
+                else await signInAnonymously(auth);
             });
         } catch (error) { console.error("Firebase Init Error:", error); document.body.innerHTML = `<h1>Erro ao conectar.</h1><p>${error.message}</p>`; }
     }
     
     // --- EVENT LISTENERS ---
     document.addEventListener('DOMContentLoaded', () => {
-        // Navegação principal
-        ['openFecharVenda', 'openRepassarValores', 'openCalcularPorAparelho', 'openAdministracao'].forEach(id => { document.getElementById(id).addEventListener('click', () => openSection(id.replace('open', '').charAt(0).toLowerCase() + id.slice(5))); });
-        ['backFromFecharVenda', 'backFromRepassarValores', 'backFromCalcularPorAparelho', 'backFromAdministracao'].forEach(id => { document.getElementById(id).addEventListener('click', () => openSection('mainMenu')); });
+        ['openFecharVenda', 'openRepassarValores', 'openCalcularEmprestimo', 'openCalcularPorAparelho', 'openAdministracao'].forEach(id => { document.getElementById(id).addEventListener('click', () => openSection(id.replace('open', '').charAt(0).toLowerCase() + id.slice(5))); });
+        ['backFromFecharVenda', 'backFromRepassarValores', 'backFromCalcularEmprestimo', 'backFromCalcularPorAparelho', 'backFromAdministracao'].forEach(id => { document.getElementById(id).addEventListener('click', () => openSection('mainMenu')); });
         
-        // --- SECÇÃO FECHAR VENDA ---
-        document.getElementById('machine1').addEventListener('change', () => { updateInstallmentsOptions(); updateFecharVendaUI(); if(document.getElementById('machine1').value !== 'pagbank') { openFlagModal(document.getElementById('machine1'))}; });
+        document.getElementById('machine1').addEventListener('change', () => { updateInstallmentsOptions(); updateFecharVendaUI(); if(document.getElementById('machine1').value !== 'pagbank') openFlagModal(document.getElementById('machine1')); });
         document.getElementById('brand1').addEventListener('change', updateFecharVendaUI);
         document.getElementById('installments1').addEventListener('change', updateFecharVendaUI);
         document.getElementById('vendaModeToggle').addEventListener('change', updateFecharVendaUI); 
         document.querySelectorAll('input[name="manualMode"]').forEach(radio => radio.addEventListener('change', updateFecharVendaUI));
         document.getElementById('vendaProdutoSearch').addEventListener('input', () => displayDynamicSearchResults(document.getElementById('vendaProdutoSearch').value, 'vendaSearchResultsContainer', handleProductSelectionForVenda));
         document.getElementById('fecharVendaValue').addEventListener('input', calculateFecharVenda);
-        
-        // Listener para o container de resultado para capturar o clique no checkbox de fone dinâmico
-        document.getElementById('resultFecharVenda').addEventListener('change', e => {
-            if (e.target && e.target.id === 'descontarFoneCheckbox') {
-                calculateFecharVenda();
-            }
-        });
-        
+        document.getElementById('resultFecharVenda').addEventListener('change', e => { if (e.target && e.target.id === 'descontarFoneCheckbox') calculateFecharVenda(); });
         document.getElementById('entradaAVistaCheckbox').addEventListener('change', toggleEntradaAVistaUI);
         document.getElementById('valorEntradaAVista').addEventListener('input', calculateFecharVenda);
         document.getElementById('valorPassadoNoCartao').addEventListener('input', calculateFecharVenda);
         
-        // --- SECÇÃO CALCULAR POR APARELHO ---
         document.getElementById('aparelhoSearch').addEventListener('input', () => displayDynamicSearchResults(document.getElementById('aparelhoSearch').value, 'aparelhoResultsContainer', handleProductSelectionForAparelho));
         document.getElementById('entradaAparelho').addEventListener('input', calculateAparelho);
-        document.getElementById('machine3').addEventListener('change', () => { updateCalcularPorAparelhoUI(); if(document.getElementById('machine3').value !== 'pagbank') { openFlagModal(document.getElementById('machine3'))}; });
+        document.getElementById('valorExtraAparelho').addEventListener('input', calculateAparelho);
+        document.getElementById('toggleValorExtraBtn').addEventListener('click', (e) => {
+            const btn = e.currentTarget;
+            const container = document.getElementById('valorExtraContainer');
+            btn.classList.toggle('is-active');
+            container.classList.toggle('is-active');
+        });
+        document.getElementById('machine3').addEventListener('change', () => { updateCalcularPorAparelhoUI(); if(document.getElementById('machine3').value !== 'pagbank') openFlagModal(document.getElementById('machine3')); });
         document.getElementById('brand3').addEventListener('change', updateCalcularPorAparelhoUI);
         
-        // --- SECÇÃO REPASSAR VALORES ---
-        document.getElementById('machine2').addEventListener('change', () => { updateRepassarValoresUI(); if(document.getElementById('machine2').value !== 'pagbank') { openFlagModal(document.getElementById('machine2'))}; });
+        document.getElementById('aparelhoFavoritosContainer').addEventListener('click', e => {
+            const favoriteBtn = e.target.closest('.favorito-btn');
+            const removeBtn = e.target.closest('.remove-favorito-btn');
+            if (favoriteBtn) {
+                applyAparelhoFavorite(favoriteBtn.dataset.name);
+            } else if (removeBtn) {
+                removeAparelhoFavorite(removeBtn.dataset.name);
+            }
+        });
+
+        const favoriteNameModal = document.getElementById('favoriteNameModalOverlay');
+        const favoriteNameInput = document.getElementById('favoriteNameInput');
+        const confirmSaveFavoriteBtn = document.getElementById('confirmSaveFavoriteBtn');
+        const cancelSaveFavoriteBtn = document.getElementById('cancelSaveFavoriteBtn');
+        const closeFavoriteNameModal = () => favoriteNameModal.classList.remove('active');
+
+        document.getElementById('saveAparelhoFavoriteBtn').addEventListener('click', () => {
+            const favorites = getAparelhoFavorites();
+            if (Object.keys(favorites).length >= MAX_FAVORITES) {
+                showCustomModal({ message: `Você já tem ${MAX_FAVORITES} favoritos. Remova um para salvar outro.` });
+                return;
+            }
+            favoriteNameInput.value = '';
+            favoriteNameModal.classList.add('active');
+            favoriteNameInput.focus();
+        });
+
+        confirmSaveFavoriteBtn.addEventListener('click', () => {
+            const favoriteName = favoriteNameInput.value.trim();
+            const favorites = getAparelhoFavorites();
+            if (!favoriteName) {
+                showCustomModal({ message: "Por favor, digite um nome para o favorito." });
+                return;
+            }
+            if (favorites[favoriteName]) {
+                showCustomModal({ message: "Já existe um favorito com este nome." });
+                return;
+            }
+            const favoriteData = {
+                productName: document.getElementById('aparelhoSearch').value,
+                entryValue: parseFloat(document.getElementById('entradaAparelho').value) || 0,
+                additionalValue: parseFloat(document.getElementById('valorExtraAparelho').value) || 0
+            };
+            favorites[favoriteName] = favoriteData;
+            saveAparelhoFavorites(favorites);
+            renderAparelhoFavorites();
+            closeFavoriteNameModal();
+        });
+
+        cancelSaveFavoriteBtn.addEventListener('click', closeFavoriteNameModal);
+        favoriteNameModal.addEventListener('click', (e) => { if (e.target === favoriteNameModal) closeFavoriteNameModal(); });
+
+        document.getElementById('machine2').addEventListener('change', () => { updateRepassarValoresUI(); if(document.getElementById('machine2').value !== 'pagbank') openFlagModal(document.getElementById('machine2')); });
         document.getElementById('brand2').addEventListener('change', updateRepassarValoresUI);
         document.getElementById('repassarValue').addEventListener('input', calculateRepassarValores);
         
-        // --- SECÇÃO ADMINISTRAÇÃO ---
+        document.getElementById('emprestimoValue').addEventListener('input', calculateEmprestimo);
+        document.getElementById('machine4').addEventListener('change', () => { updateCalcularEmprestimoUI(); if(document.getElementById('machine4').value !== 'pagbank') openFlagModal(document.getElementById('machine4')); });
+        document.getElementById('brand4').addEventListener('change', updateCalcularEmprestimoUI);
+        
+        const lucroModalOverlay = document.getElementById('lucroModalOverlay');
+        const lucroPercentInput = document.getElementById('lucroPercentInput');
+        const closeLucroModal = () => lucroModalOverlay.classList.remove('active');
+
+        document.getElementById('openLucroModalBtn').addEventListener('click', () => {
+            lucroPercentInput.value = emprestimoLucroPercentual;
+            lucroModalOverlay.classList.add('active');
+            lucroPercentInput.focus();
+        });
+        
+        document.getElementById('saveLucroBtn').addEventListener('click', () => {
+            const newPercent = parseFloat(lucroPercentInput.value);
+            if (!isNaN(newPercent) && newPercent >= 0) {
+                emprestimoLucroPercentual = newPercent;
+                calculateEmprestimo();
+                closeLucroModal();
+            } else {
+                showCustomModal({ message: 'Por favor, insira um valor de lucro válido.' });
+            }
+        });
+
+        document.getElementById('cancelLucroBtn').addEventListener('click', closeLucroModal);
+        lucroModalOverlay.addEventListener('click', (e) => { if (e.target === lucroModalOverlay) closeLucroModal(); });
+
+
         document.getElementById('adminSearchInput').addEventListener('input', filterAdminProducts);
         document.getElementById('applyNaturalCommand').addEventListener('click', processNaturalLanguageCommand);
         document.getElementById('addNewProduct').addEventListener('click', () => push(getProductsRef(), { nome: 'Novo Produto', valor: 0 }));
@@ -1249,10 +1303,49 @@ self.addEventListener('activate', event => {
         document.getElementById('exportTxt').addEventListener('click', () => exportProducts('txt'));
         document.getElementById('exportJson').addEventListener('click', () => exportProducts('json'));
         document.getElementById('deleteAllProductsBtn').addEventListener('click', deleteAllProducts);
-        document.getElementById('productsTableBody').addEventListener('click', e => { if (e.target.closest('.delete-product-btn')) { const id = e.target.closest('tr').dataset.id; showCustomModal({ message: "Excluir este produto?", onConfirm: async () => await remove(ref(db, `products/${id}`)), onCancel: () => {} }); } });
-        document.getElementById('productsTableBody').addEventListener('change', e => { if (e.target.matches('input.form-control')) { const { field } = e.target.dataset; const id = e.target.closest('tr').dataset.id; let value = field === 'valor' ? parseBrazilianCurrencyToFloat(e.target.value) : e.target.value; if (id && field && value !== undefined) updateProductInDB(id, { [field]: value }); } });
         
-        // Listeners gerais e do modal
+        const productsTableBody = document.getElementById('productsTableBody');
+        productsTableBody.addEventListener('click', e => {
+            const deleteBtn = e.target.closest('.delete-product-btn');
+            if (deleteBtn) {
+                e.preventDefault();
+                const id = deleteBtn.dataset.id;
+                showCustomModal({ message: "Excluir este produto?", onConfirm: async () => await remove(ref(db, `products/${id}`)), onCancel: () => {} });
+                return;
+            }
+
+            const toggleBtn = e.target.closest('.btn-toggle-menu');
+            if (toggleBtn) {
+                e.preventDefault();
+                const separatorRow = toggleBtn.closest('.product-separator-row');
+                const dataRow = separatorRow.previousElementSibling;
+                const actionRow = separatorRow.nextElementSibling;
+                const wasActive = separatorRow.classList.contains('is-active');
+
+                productsTableBody.querySelectorAll('.is-active').forEach(el => el.classList.remove('is-active'));
+
+                if (!wasActive) {
+                    dataRow.classList.add('is-active');
+                    separatorRow.classList.add('is-active');
+                    actionRow.classList.add('is-active');
+                }
+            }
+        });
+
+        productsTableBody.addEventListener('change', e => {
+            if (e.target.matches('input.form-control')) {
+                const dataRow = e.target.closest('.product-data-row');
+                if (dataRow) {
+                    const { field } = e.target.dataset;
+                    const id = dataRow.dataset.id;
+                    let value = field === 'valor' ? parseBrazilianCurrencyToFloat(e.target.value) : e.target.value;
+                    if (id && field && value !== undefined) {
+                        updateProductInDB(id, { [field]: value });
+                    }
+                }
+            }
+        });
+        
         themeToggle.addEventListener('click', toggleTheme);
         document.getElementById('adminModeToggle').addEventListener('change', (e) => {
             const showRates = e.target.checked;
@@ -1265,15 +1358,8 @@ self.addEventListener('activate', event => {
         const flagModalOverlay = document.getElementById('flagSelectorModalOverlay');
         document.getElementById('closeFlagModalBtn').addEventListener('click', closeFlagModal);
         flagModalOverlay.addEventListener('click', (e) => { if (e.target === flagModalOverlay) closeFlagModal(); });
-        ['flagDisplayButton1', 'flagDisplayButton2', 'flagDisplayButton3'].forEach(id => {
-            document.getElementById(id).addEventListener('click', (e) => {
-                const sectionNumber = id.replace('flagDisplayButton', '');
-                openFlagModal(document.getElementById(`machine${sectionNumber}`));
-            });
-        });
-
+        ['flagDisplayButton1', 'flagDisplayButton2', 'flagDisplayButton3', 'flagDisplayButton4'].forEach(id => { document.getElementById(id).addEventListener('click', (e) => { const sectionNumber = id.replace('flagDisplayButton', ''); openFlagModal(document.getElementById(`machine${sectionNumber}`)); }); });
         document.addEventListener('click', (e) => { document.querySelectorAll('.search-wrapper').forEach(wrapper => { if (!wrapper.contains(e.target)) { const resultsContainer = wrapper.querySelector('.search-results-container'); if (resultsContainer) resultsContainer.innerHTML = ''; } }); });
-        
         window.addEventListener('popstate', (event) => openSection(event.state ? event.state.sectionId : 'mainMenu', true));
 
         main();
@@ -1285,4 +1371,4 @@ self.addEventListener('activate', event => {
 </body>
 </html>
 
-By Brendon 3.0.1
+ Power By Brendon Beta Final 3.5.0
