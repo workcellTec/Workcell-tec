@@ -93,8 +93,8 @@
                 var(--tertiary-color);
             background-size: 200% 200%;
             opacity: 0.25;
-            animation: moveGlow 25s ease infinite;
-            will-change: background-position;
+            animation: moveGlow 40s ease infinite; /* Otimização: animação mais lenta */
+            will-change: background-position; /* Otimização: dica de performance */
         }
 
         @keyframes moveGlow {
@@ -105,7 +105,8 @@
 
         #theme-toggle {
             position: fixed; top: 20px; right: 20px; z-index: 9999; cursor: pointer;
-            background-color: var(--glass-bg); backdrop-filter: blur(10px);
+            background-color: var(--glass-bg); 
+            backdrop-filter: blur(5px); /* Otimização: blur reduzido */
             border: 1px solid var(--glass-border); color: var(--text-color);
             width: 45px; height: 45px; border-radius: 50%; display: flex;
             align-items: center; justify-content: center; font-size: 1.2rem;
@@ -118,6 +119,7 @@
             display: flex; flex-direction: column; align-items: center; 
             min-height: 100vh; justify-content: flex-start;
             position: relative; z-index: 1;
+            will-change: transform, opacity; /* Otimização: dica de performance para transições */
         }
 
         h2, h3, h4, h5 { font-weight: 600; text-align: center; color: var(--text-color); }
@@ -140,8 +142,8 @@
             background-color: var(--glass-bg);
             color: var(--text-color); 
             border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(5px); /* Otimização: blur reduzido */
+            -webkit-backdrop-filter: blur(5px); /* Otimização: blur reduzido */
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             transition: all var(--transition-duration) ease;
             width: 100%; max-width: 320px; 
@@ -160,8 +162,8 @@
             padding: 25px; margin-bottom: 20px; width: 100%;
             border: 1px solid var(--glass-border); 
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(5px); /* Otimização: blur reduzido */
+            -webkit-backdrop-filter: blur(5px); /* Otimização: blur reduzido */
             transition: background-color var(--transition-duration) ease, border-color var(--transition-duration) ease;
         }
         
@@ -175,7 +177,7 @@
             background-color: var(--input-bg); color: var(--text-color);
             border: 1px solid var(--input-border); border-radius: 12px !important;
             padding: 12px 15px; transition: all var(--transition-duration) ease;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(2px); /* Otimização: blur bem reduzido para inputs */
         }
         .form-control::placeholder { color: var(--text-secondary); opacity: 0.7; }
         .form-control:focus, .form-select:focus {
@@ -266,7 +268,7 @@
         
         .hidden { display: none !important; }
 
-        .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 1056; opacity: 0; visibility: hidden; transition: opacity var(--transition-duration) ease, visibility var(--transition-duration) ease; }
+        .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1056; opacity: 0; visibility: hidden; transition: opacity var(--transition-duration) ease, visibility var(--transition-duration) ease; }
         .custom-modal-overlay.active { opacity: 1; visibility: visible; }
         .custom-modal-content { background-color: var(--secondary-color); color: var(--text-color); padding: 30px; border-radius: var(--border-radius); text-align: center; max-width: 400px; width: 90%; box-shadow: 0 10px 40px var(--shadow-color); transform: scale(0.9); transition: transform var(--transition-duration) ease; border: 1px solid var(--glass-border); }
         .custom-modal-overlay.active .custom-modal-content { transform: scale(1); }
@@ -279,7 +281,7 @@
         #contractPreview .section-title { font-weight: bold; margin-bottom: 6pt; text-transform: uppercase; color: #000;}
         #contractPreview .signature-line { border-bottom: 1px solid #000; width: 80%; margin: 40px auto 5px auto; }
         #administracao { max-width: 900px; }
-        #administracao .admin-section { margin-bottom: 30px; padding: 25px; background-color: var(--glass-bg); border-radius: var(--border-radius); border: 1px solid var(--glass-border); backdrop-filter: blur(10px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+        #administracao .admin-section { margin-bottom: 30px; padding: 25px; background-color: var(--glass-bg); border-radius: var(--border-radius); border: 1px solid var(--glass-border); backdrop-filter: blur(5px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
         
         .user-id-display { position: fixed; bottom: 15px; left: 15px; background-color: var(--glass-bg); color: var(--text-secondary); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; z-index: 1000; backdrop-filter: blur(5px); border: 1px solid var(--glass-border); }
         .spinner-border.text-primary { color: var(--primary-color) !important; }
@@ -287,7 +289,17 @@
         .results-table thead th { color: var(--text-secondary); }
         [data-theme="light"] .results-table { --bs-table-border-color: var(--input-border); }
         .lucro-display { color: var(--text-success); }
-        tr.not-checked { background-color: rgba(var(--primary-color-rgb), 0.08); border-left: 3px solid var(--primary-color); }
+
+        /* ESTOQUE: NOVOS ESTILOS */
+        tr.not-checked .product-name-cell div:first-child {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        tr.is-checked {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
         [data-theme="light"] tr.not-checked { background-color: rgba(var(--primary-color-rgb), 0.1); }
         @keyframes fadeInAndUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .content-card, .admin-section { animation: fadeInAndUp 0.5s ease-out forwards; }
@@ -350,6 +362,29 @@
         input[type="color"]::-webkit-color-swatch { border-radius: 50%; border: 1px solid var(--input-border); }
         input[type="color"]::-moz-color-swatch { border-radius: 50%; border: 1px solid var(--input-border); }
         #installments1Value { color: var(--text-color-strong); }
+
+        .quick-installments {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px; /* Reduz a distância de baixo */
+            flex-wrap: wrap;
+        }
+        .quick-installment-btn {
+            background-color: var(--input-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .quick-installment-btn.active, .quick-installment-btn:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
         
         @media print {
           html, body { background: #FFF !important; }
@@ -410,9 +445,13 @@
                         <span>Parcelas</span>
                         <span id="installments1Value" class="fw-bold">Débito</span>
                     </label>
+                    <div id="quickInstallmentsContainer" class="quick-installments">
+                        <!-- Botões de atalho serão inseridos aqui -->
+                    </div>
                     <input type="range" class="form-range" id="installments1" min="0" max="18" step="1" value="0">
                 </div>
             </div>
+            
             <div id="brand1Container" class="hidden"><select id="brand1"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
 
             <div class="toggle-switch">
@@ -847,8 +886,8 @@
 
 <script type="application/json" id="manifest-data">
 {
-  "name": "Central Workcell",
-  "short_name": "Central Workcell V.5",
+  "name": "Centrar Workcell",
+  "short_name": "CentrarWorkcell",
   "description": "Calculadora de taxas e gerador de contratos para facilitar suas vendas.",
   "start_url": ".",
   "display": "standalone",
@@ -1055,6 +1094,39 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         }; 
         if (sectionInitializers[sectionId]) sectionInitializers[sectionId](); 
     }
+    
+    // --- FUNÇÕES DE ATALHO DE PARCELAS ---
+    function renderQuickInstallmentButtons() {
+        const container = document.getElementById('quickInstallmentsContainer');
+        const installmentsSlider = document.getElementById("installments1");
+        const maxInstallments = parseInt(installmentsSlider.max);
+        const quickValues = [8, 10, 12, 18];
+
+        container.innerHTML = '';
+
+        quickValues.forEach(value => {
+            if (value <= maxInstallments) {
+                const btn = document.createElement('button');
+                btn.className = 'quick-installment-btn';
+                btn.textContent = `${value}x`;
+                btn.dataset.value = value;
+                btn.addEventListener('click', () => {
+                    installmentsSlider.value = value;
+                    installmentsSlider.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+                container.appendChild(btn);
+            }
+        });
+    }
+
+    function updateQuickButtonsActiveState() {
+        const installmentsSlider = document.getElementById("installments1");
+        const currentValue = installmentsSlider.value;
+        document.querySelectorAll('.quick-installment-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === currentValue);
+        });
+    }
+
     function updateInstallmentsOptions() { 
         const installmentsSlider = document.getElementById("installments1");
         const machine = document.getElementById("machine1").value; 
@@ -1077,6 +1149,8 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         if (parseInt(installmentsSlider.value) > max) {
             installmentsSlider.value = 0;
         }
+        
+        renderQuickInstallmentButtons(); // Renderiza os botões de atalho
         // Trigger input event to update display and calculation
         installmentsSlider.dispatchEvent(new Event('input'));
     }
@@ -1109,6 +1183,7 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         if (!isProdutoMode) { valueLabel.innerHTML = (installments > 0 && manualMode === 'parcela') ? '<i class="bi bi-currency-dollar"></i> Valor da Parcela (R$)' : '<i class="bi bi-currency-dollar"></i> Valor Total da Venda (R$)'; valueInput.placeholder = (installments > 0 && manualMode === 'parcela') ? "Digite o valor da parcela" : "Digite o valor total"; }
         flagDisplayContainer.style.display = (machine !== "pagbank") ? 'block' : 'none';
         updateFlagDisplay('1'); calculateFecharVenda();
+        updateQuickButtonsActiveState();
     }
     function updateRepassarValoresUI() { const machine = document.getElementById("machine2").value; document.getElementById("flagDisplayContainer2").style.display = (machine !== "pagbank") ? 'block' : 'none'; updateFlagDisplay('2'); calculateRepassarValores(); }
     function updateCalcularEmprestimoUI() { const machine = document.getElementById("machine4").value; document.getElementById("flagDisplayContainer4").style.display = (machine !== "pagbank") ? 'block' : 'none'; updateFlagDisplay('4'); calculateEmprestimo(); }
@@ -1645,11 +1720,11 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         } else {
             tableBody.innerHTML = sortedList.map(product => {
                 const isChecked = checkedItems[product.id]?.checked || false;
-                const rowClass = isChecked ? '' : 'not-checked';
+                const rowClass = isChecked ? 'is-checked' : 'not-checked';
 
                 return `
                 <tr data-id="${product.id}" class="${rowClass}">
-                    <td class="align-middle">
+                    <td class="align-middle product-name-cell">
                         <div>${escapeHtml(product.nome)}</div>
                         <div class="product-colors-display">${(product.cores || []).map(cor => `<div class="color-swatch-sm" style="background-color:${cor.hex};" title="${cor.nome}"></div>`).join('')}</div>
                     </td>
@@ -2653,8 +2728,8 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
             const toggles = document.querySelectorAll('.visibility-toggle');
 
             toggles.forEach(toggle => {
-                const disabledMachines = getDisabledMachines();
                 const machineName = toggle.dataset.machine;
+                const disabledMachines = getDisabledMachines();
                 // O switch está checado se a maquininha NÃO ESTIVER na lista de desativadas
                 toggle.checked = !disabledMachines.includes(machineName);
 
