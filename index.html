@@ -53,7 +53,7 @@
             --text-color: #18181b;
             --text-color-strong: #000000;
             --text-secondary: #52525b;
-            --text-success: #B71C1C;
+            --text-success: #16a34a; /* Verde mais forte para o modo claro */
             --glass-bg: rgba(255, 255, 255, 0.75);
             --glass-border: rgba(0, 0, 0, 0.1);
             --shadow-color: rgba(183, 28, 28, 0.15);
@@ -102,17 +102,6 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
-        #theme-toggle {
-            position: fixed; top: 20px; right: 20px; z-index: 9999; cursor: pointer;
-            background-color: var(--glass-bg); 
-            backdrop-filter: blur(5px); /* Otimização: blur reduzido */
-            border: 1px solid var(--glass-border); color: var(--text-color);
-            width: 45px; height: 45px; border-radius: 50%; display: flex;
-            align-items: center; justify-content: center; font-size: 1.2rem;
-            transition: all var(--transition-duration); box-shadow: 0 4px 15px var(--shadow-color);
-        }
-        #theme-toggle:hover { transform: scale(1.1); box-shadow: 0 6px 20px var(--shadow-color); }
 
         .container {
             width: 100%; max-width: 550px; margin: 0 auto; padding: 20px 15px;
@@ -289,18 +278,7 @@
         .results-table thead th { color: var(--text-secondary); }
         [data-theme="light"] .results-table { --bs-table-border-color: var(--input-border); }
         .lucro-display { color: var(--text-success); }
-
-        /* ESTOQUE: NOVOS ESTILOS */
-        tr.not-checked .product-name-cell div:first-child {
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-        tr.is-checked {
-            opacity: 0.5;
-            transition: opacity 0.3s ease;
-        }
         
-        [data-theme="light"] tr.not-checked { background-color: rgba(var(--primary-color-rgb), 0.1); }
         @keyframes fadeInAndUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .content-card, .admin-section { animation: fadeInAndUp 0.5s ease-out forwards; }
         .btn:active, .btn-menu:active { transform: scale(0.97); transition: transform 0.1s ease; }
@@ -386,6 +364,263 @@
             border-color: var(--primary-color);
         }
         
+        /* NOVOS ESTILOS HISTÓRICO DE BOLETOS */
+        .history-accordion .accordion-item {
+            background-color: transparent; /* O fundo virá do botão/body */
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            overflow: hidden; /* Garante que os cantos arredondados funcionem */
+        }
+        .history-accordion .accordion-header button {
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(5px);
+            color: var(--text-color);
+            font-weight: 500;
+            border-radius: 0 !important;
+            box-shadow: none;
+            width: 100%;
+            text-align: left;
+            padding: 15px 20px;
+            border: none;
+        }
+        .history-accordion .accordion-header button:not(.collapsed) {
+            background-color: rgba(var(--primary-color-rgb), 0.1);
+            color: var(--primary-color);
+        }
+        .history-accordion .accordion-body {
+            padding: 20px;
+            background-color: rgba(0,0,0,0.1);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .history-accordion .accordion-body strong {
+            color: var(--text-color);
+        }
+        .history-accordion .accordion-collapse {
+            border-top: 1px solid var(--glass-border);
+        }
+        .history-accordion .accordion-button::after {
+            filter: brightness(0) invert(1);
+            opacity: 0.7;
+        }
+        [data-theme="light"] .history-accordion .accordion-button::after {
+             filter: none;
+        }
+        
+        /* CONTROLES DO TOPO DIREITO */
+        #top-right-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 15px;
+        }
+
+        /* NOVO SELETOR DE TEMA */
+        .toggle-switch-theme {
+            background-color: var(--input-bg);
+            border-radius: 20px;
+            padding: 2px;
+            display: flex;
+            border: 1px solid var(--input-border);
+            position: relative;
+            width: 60px;
+            height: 30px;
+            cursor: pointer;
+        }
+        .toggle-switch-theme input[type="checkbox"] { display: none; }
+        .toggle-switch-theme label {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            margin: 0;
+            color: var(--text-secondary);
+        }
+        .toggle-switch-theme label span {
+            z-index: 2;
+            font-size: 0.8rem;
+        }
+        .toggle-switch-theme label::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            border-radius: 50%;
+            transition: transform var(--transition-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 1;
+        }
+        .toggle-switch-theme input:checked + label::before {
+            transform: translateX(calc(100% + 2px));
+        }
+        .toggle-switch-theme input:not(:checked) + label span:first-of-type,
+        .toggle-switch-theme input:checked + label span:last-of-type {
+            color: var(--primary-color);
+        }
+
+        /* SINO DE NOTIFICAÇÃO */
+        #notification-bell {
+            position: relative; /* Mudado de fixed para relative */
+            cursor: pointer;
+            background-color: var(--glass-bg); 
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--glass-border); color: var(--text-color);
+            width: 45px; height: 45px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 1.2rem;
+            transition: all var(--transition-duration); box-shadow: 0 4px 15px var(--shadow-color);
+        }
+        #notification-bell:hover { transform: scale(1.1); box-shadow: 0 6px 20px var(--shadow-color); }
+        .notification-badge {
+            position: absolute;
+            top: -2px; right: -2px;
+            width: 20px; height: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 2px solid var(--tertiary-color);
+        }
+        .offcanvas {
+             background-color: var(--tertiary-color);
+             color: var(--text-color);
+             border-left: 1px solid var(--glass-border);
+             box-shadow: -10px 0 30px var(--shadow-color);
+             backdrop-filter: blur(10px);
+             background-color: var(--glass-bg);
+        }
+        .offcanvas-header {
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .offcanvas-header .btn-close {
+            filter: invert(1) grayscale(1) brightness(2);
+        }
+        [data-theme="light"] .offcanvas-header .btn-close {
+             filter: none;
+        }
+        #notificationList .list-group-item {
+            background-color: transparent;
+            border-color: var(--glass-border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+         #notificationList .list-group-item:hover {
+            background-color: rgba(var(--primary-color-rgb), 0.1);
+        }
+        #notificationList .list-group-item strong {
+            color: var(--text-color);
+        }
+
+        /* ============================================== */
+        /* LAYOUT DE ESTOQUE (NOVO - CARD STYLE)          */
+        /* ============================================== */
+        #stockContainer {
+            max-width: 100%;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .stock-list-container {
+            width: 100%;
+        }
+
+        .stock-item-card {
+            background-color: rgba(var(--primary-color-rgb), 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all var(--transition-duration) ease;
+        }
+
+        .stock-item-card.is-checked {
+            opacity: 0.6;
+            background-color: transparent;
+        }
+
+        .stock-item-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .product-info {
+            flex-grow: 1;
+        }
+
+        .product-name {
+            font-weight: 500;
+            color: var(--text-color-strong);
+        }
+
+        .stock-item-card:not(.is-checked) .product-name {
+            color: var(--primary-color);
+        }
+
+        .stock-item-main .form-check.form-switch .form-check-input {
+            width: 3.5em;
+            height: 1.75em;
+            cursor: pointer;
+            margin-left: auto; /* Alinha o switch à direita */
+        }
+        
+        .stock-item-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; 
+            gap: 15px;
+            padding-top: 12px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .ignore-toggle-btn i {
+            font-size: 1.2rem;
+            transition: color 0.2s ease;
+        }
+        .ignore-toggle-btn .bi-eye-fill {
+            color: var(--text-success);
+        }
+        .ignore-toggle-btn .bi-eye-slash-fill {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 400px) {
+            .stock-item-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+             .stock-item-controls .input-group {
+                width: 100%;
+                justify-content: center;
+             }
+             .stock-item-controls .d-flex {
+                width: 100%;
+                justify-content: space-around;
+             }
+        }
+
         @media print {
           html, body { background: #FFF !important; }
           body::before { display: none !important; } /* CORREÇÃO: Remove o fundo animado na impressão */
@@ -404,8 +639,18 @@
     <p class="mt-3" style="color: var(--text-secondary);">Carregando sistema...</p>
 </div>
 
-<div id="theme-toggle">
-    <i class="bi bi-sun-fill"></i>
+<div id="top-right-controls" class="hidden">
+    <div class="toggle-switch-theme">
+        <input type="checkbox" id="theme-toggle-checkbox">
+        <label for="theme-toggle-checkbox">
+            <span><i class="bi bi-moon-fill"></i></span>
+            <span><i class="bi bi-sun-fill"></i></span>
+        </label>
+    </div>
+    <div id="notification-bell">
+        <i class="bi bi-bell-fill"></i>
+        <span class="notification-badge hidden"></span>
+    </div>
 </div>
 
 <!-- MENU PRINCIPAL NOVO -->
@@ -413,7 +658,7 @@
     <h2 class="mb-4">Bem-vindo(a) à Central Workcell,<br/>O que você quer fazer?</h2>
     <div class="d-grid gap-2">
         <button class="btn-menu" id="goToCalculator"><i class="bi bi-calculator-fill"></i> Calculadora de Taxa</button>
-        <button class="btn-menu" id="goToContract"><i class="bi bi-file-earmark-text-fill"></i> Formulário Boleto</button>
+        <button class="btn-menu" id="goToContract"><i class="bi bi-file-earmark-text-fill"></i> Boletos</button>
         <button class="btn-menu" id="goToStock"><i class="bi bi-box-seam"></i> Controle de Estoque</button>
         <button class="btn-menu" id="goToAdmin"><i class="bi bi-gear"></i> Administração</button>
     </div>
@@ -702,74 +947,103 @@
 <!-- CONTAINER PARA O NOVO FORMULÁRIO DE CONTRATO -->
 <div id="contractContainer" class="container hidden">
     <div class="section-header">
-        <h3>Contrato de Boleto</h3>
+        <h3>Boletos</h3>
         <button aria-label="Voltar" class="btn-back" id="backFromContract"><i class="bi bi-arrow-left"></i></button>
     </div>
-    <div class="content-card w-100">
-        <form id="contractForm">
-            <h5 class="form-section-title">Dados do Comprador</h5>
-            <div class="row">
-                <div class="col-md-12 mb-3">
-                    <label for="compradorNome" class="form-label">Nome Completo</label>
-                    <input type="text" class="form-control" id="compradorNome" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="compradorCpf" class="form-label">CPF</label>
-                    <input type="text" class="form-control" id="compradorCpf" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="compradorRg" class="form-label">RG</label>
-                    <input type="text" class="form-control" id="compradorRg">
-                </div>
-                <div class="col-md-12 mb-3">
-                    <label for="compradorEndereco" class="form-label">Endereço Completo</label>
-                    <input type="text" class="form-control" id="compradorEndereco" required>
-                </div>
-            </div>
+    
+    <div class="toggle-switch">
+        <input type="checkbox" id="boletoModeToggle">
+        <label for="boletoModeToggle">
+            <span><i class="bi bi-file-earmark-plus-fill"></i> Novo Formulário</span>
+            <span><i class="bi bi-clock-history"></i> Histórico</span>
+        </label>
+    </div>
 
-            <h5 class="form-section-title">Dados do Produto</h5>
-            <div class="row">
-                <div class="col-md-12 mb-3">
-                    <label for="produtoModelo" class="form-label">Modelo(s) do Smartphone</label>
-                    <input type="text" class="form-control" id="produtoModelo" required>
+    <div id="newBoletoContent">
+        <div class="content-card w-100">
+            <form id="contractForm">
+                <h5 class="form-section-title">Dados do Comprador</h5>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="compradorNome" class="form-label">Nome Completo</label>
+                        <input type="text" class="form-control" id="compradorNome" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="compradorCpf" class="form-label">CPF</label>
+                        <input type="text" class="form-control" id="compradorCpf" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="compradorRg" class="form-label">RG</label>
+                        <input type="text" class="form-control" id="compradorRg">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="compradorTelefone" class="form-label">Telefone (WhatsApp)</label>
+                        <input type="tel" class="form-control" id="compradorTelefone" placeholder="(XX) XXXXX-XXXX">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="compradorEndereco" class="form-label">Endereço Completo</label>
+                        <input type="text" class="form-control" id="compradorEndereco" required>
+                    </div>
                 </div>
-                <div class="col-md-12 mb-3">
-                    <label for="produtoImei" class="form-label">IMEI(s)</label>
-                    <input type="text" class="form-control" id="produtoImei" required>
+
+                <h5 class="form-section-title">Dados do Produto</h5>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="produtoModelo" class="form-label">Modelo(s) do Smartphone</label>
+                        <input type="text" class="form-control" id="produtoModelo" required>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="produtoImei" class="form-label">IMEI(s)</label>
+                        <input type="text" class="form-control" id="produtoImei" required>
+                    </div>
                 </div>
-            </div>
-            
-            <h5 class="form-section-title">Condições de Pagamento</h5>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="valorTotal" class="form-label">Valor Total (R$)</label>
-                    <input type="number" step="0.01" class="form-control" id="valorTotal" required>
+                
+                <h5 class="form-section-title">Condições de Pagamento</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="valorTotal" class="form-label">Valor Total (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="valorTotal" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="valorEntrada" class="form-label">Valor da Entrada (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="valorEntrada" required>
+                    </div>
+                     <div class="col-md-6 mb-3">
+                        <label for="numeroParcelas" class="form-label">Nº de Parcelas</label>
+                        <input type="number" step="1" class="form-control" id="numeroParcelas" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                         <label for="tipoParcela" class="form-label">Frequência</label>
+                        <select class="form-select" id="tipoParcela">
+                            <option value="mensais" selected>Mensais</option>
+                            <option value="semanais">Semanais</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="primeiroVencimento" class="form-label">Dia do 1º Vencimento <span style="color: var(--primary-color); font-size: 0.8em;">(Opcional)</span></label>
+                        <input type="date" class="form-control" id="primeiroVencimento">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="valorParcela" class="form-label">Valor da Parcela (R$)</label>
+                        <input type="text" class="form-control" id="valorParcela" readonly>
+                    </div>
+                    <div class="col-12">
+                         <label for="saldoRestante" class="form-label">Saldo Restante (R$)</label>
+                        <input type="text" class="form-control" id="saldoRestante" readonly>
+                    </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="valorEntrada" class="form-label">Valor da Entrada (R$)</label>
-                    <input type="number" step="0.01" class="form-control" id="valorEntrada" required>
+                
+                <div class="text-center mt-4 d-flex justify-content-center gap-2 flex-wrap">
+                    <button type="button" id="btnImprimir" class="btn btn-primary"><i class='bi bi-printer'></i> Imprimir e Salvar</button>
+                    <button type="button" id="btnLimparCampos" class="btn btn-secondary"><i class='bi bi-eraser'></i> Limpar Campos</button>
+                    <button type="button" id="btnApagarRascunho" class="btn btn-outline-danger"><i class='bi bi-trash'></i> Apagar Rascunho</button>
                 </div>
-                <div class="col-md-4 mb-3">
-                     <label for="saldoRestante" class="form-label">Saldo Restante (R$)</label>
-                    <input type="text" class="form-control" id="saldoRestante" readonly>
-                </div>
-                 <div class="col-md-4 mb-3">
-                    <label for="numeroParcelas" class="form-label">Nº de Parcelas</label>
-                    <input type="number" step="1" class="form-control" id="numeroParcelas" required>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="valorParcela" class="form-label">Valor da Parcela (R$)</label>
-                    <input type="text" class="form-control" id="valorParcela" readonly>
-                </div>
-            </div>
-            
-            <div class="text-center mt-4 d-flex justify-content-center gap-2 flex-wrap">
-                <button type="button" id="btnImprimir" class="btn btn-primary"><i class='bi bi-printer'></i> Imprimir contrato</button>
-                <button type="button" id="btnLimparCampos" class="btn btn-secondary"><i class='bi bi-eraser'></i> Limpar Campos</button>
-                <button type="button" id="btnApagarRascunho" class="btn btn-outline-danger"><i class='bi bi-trash'></i> Apagar Rascunho</button>
-            </div>
-            <div id="draftStatus" class="text-secondary small mt-2 text-center" style="height: 1.2em;"></div>
-        </form>
+                <div id="draftStatus" class="text-secondary small mt-2 text-center" style="height: 1.2em;"></div>
+            </form>
+        </div>
+    </div>
+    <div id="historyBoletoContent" class="hidden w-100">
+        <!-- O histórico de boletos será renderizado aqui pelo JavaScript -->
     </div>
 </div>
 
@@ -783,25 +1057,14 @@
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <input class="form-control" id="stockSearchInput" placeholder="Filtrar produtos..." style="flex: 1; min-width: 180px;" type="text">
             <div class="btn-group">
-                <button class="btn btn-outline-secondary btn-sm" id="toggleIgnoredBtn" title="Mostrar/Ocultar ignorados"><i class="bi bi-eye-slash"></i></button>
+                <button class="btn btn-outline-secondary btn-sm" id="toggleIgnoredBtn" title="Mostrar produtos ignorados"><i class="bi bi-eye-slash-fill"></i></button>
                 <button class="btn btn-outline-danger btn-sm" id="resetCountBtn" title="Resetar Contagem"><i class="bi bi-arrow-counterclockwise"></i></button>
                 <button class="btn btn-info btn-sm" id="generateReportBtn"><i class="bi bi-printer"></i> Relatório</button>
             </div>
         </div>
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th style="width: 40%;">Produto</th>
-                        <th style="width: 25%;" class="text-center">Quantidade</th>
-                        <th style="width: 25%;" class="text-center">Ações</th>
-                        <th style="width: 10%;" class="text-center">OK</th>
-                    </tr>
-                </thead>
-                <tbody id="stockTableBody">
-                    <!-- Products will be dynamically inserted here -->
-                </tbody>
-            </table>
+        <!-- O container da lista de estoque agora é um div, não mais uma tabela -->
+        <div class="stock-list-container" id="stockTableBody">
+            <!-- Os cards de produto serão inseridos aqui dinamicamente -->
         </div>
     </div>
 </div>
@@ -884,6 +1147,19 @@
     </div>
 </div>
 
+<!-- Notification Panel -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="notificationPanel" aria-labelledby="notificationPanelLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="notificationPanelLabel"><i class="bi bi-bell-fill me-2"></i>Notificações</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div id="notificationList" class="list-group list-group-flush">
+       <!-- Notifications will be inserted here -->
+    </div>
+  </div>
+</div>
+
 <script type="application/json" id="manifest-data">
 {
   "name": "Centrar Workcell",
@@ -930,9 +1206,11 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
     let app, db, auth, userId = null, isAuthReady = false, areRatesLoaded = false;
     let products = [], fuse, selectedAparelhoValue = 0, fecharVendaPrecoBase = 0;
     let currentCalculatorSectionId = 'calculatorHome', productsListener = null, rates = {};
+    let boletosListener = null;
+    let notificationsListener = null;
     let currentMainSectionId = 'main';
     let emprestimoLucroPercentual = 15;
-    let showIgnoredInStock = false;
+    let onlyShowIgnored = false;
     let checkedItems = {};
     let modificationTracker = {}; // Para rastrear mudanças de contagem
     const APARELHO_FAVORITES_KEY = 'ctwAparelhoFavoritos';
@@ -949,10 +1227,19 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
     };
 
     // --- FUNÇÕES DE TEMA (MODO NOTURNO/CLARO) ---
-    const themeToggle = document.getElementById('theme-toggle');
-    const sunIcon = 'bi-sun-fill', moonIcon = 'bi-moon-fill';
-    function applyTheme(theme) { document.body.dataset.theme = theme; themeToggle.querySelector('i').className = theme === 'light' ? moonIcon : sunIcon; safeStorage.setItem('theme', theme); }
-    function toggleTheme() { const currentTheme = document.body.dataset.theme || 'dark'; applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+    const themeToggleCheckbox = document.getElementById('theme-toggle-checkbox');
+    function applyTheme(theme) { 
+        document.body.dataset.theme = theme;
+        const isLight = theme === 'light';
+        if (themeToggleCheckbox.checked !== isLight) {
+            themeToggleCheckbox.checked = isLight;
+        }
+        safeStorage.setItem('theme', theme); 
+    }
+    function toggleTheme() { 
+        const isLight = themeToggleCheckbox.checked;
+        applyTheme(isLight ? 'light' : 'dark'); 
+    }
 
     // --- NOVA NAVEGAÇÃO PRINCIPAL ---
     const mainMenu = document.getElementById('mainMenu');
@@ -960,15 +1247,21 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
     const contractContainer = document.getElementById('contractContainer');
     const stockContainer = document.getElementById('stockContainer');
     const adminContainer = document.getElementById('administracao');
+    const topRightControls = document.getElementById('top-right-controls');
 
     function showMainSection(sectionId) {
-        if (!isAuthReady) return; // Impede a navegação antes do app estar pronto
+        if (!isAuthReady) return;
+
+        // Detach listeners from other sections to save resources
+        if (productsListener) { off(getProductsRef(), 'value', productsListener); productsListener = null; }
+        if (boletosListener) { off(ref(db, 'boletos'), 'value', boletosListener); boletosListener = null; }
 
         mainMenu.classList.add('hidden');
         calculatorContainer.classList.add('hidden');
         contractContainer.classList.add('hidden');
         stockContainer.classList.add('hidden');
         adminContainer.classList.add('hidden');
+        topRightControls.classList.add('hidden');
         
         mainMenu.style.display = 'none';
         calculatorContainer.style.display = 'none';
@@ -979,7 +1272,7 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         if (sectionId === 'main') {
             mainMenu.classList.remove('hidden');
             mainMenu.style.display = 'flex';
-            themeToggle.style.display = 'flex';
+            topRightControls.classList.remove('hidden');
         } else if (sectionId === 'calculator') {
             calculatorContainer.classList.remove('hidden');
             calculatorContainer.style.display = 'block';
@@ -987,18 +1280,20 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         } else if (sectionId === 'contract') {
             contractContainer.classList.remove('hidden');
             contractContainer.style.display = 'flex';
-            themeToggle.style.display = 'none';
             loadContractDraft();
+            const toggle = document.getElementById('boletoModeToggle');
+            if (toggle.checked) {
+                toggle.checked = false;
+                toggle.dispatchEvent(new Event('change'));
+            }
         } else if (sectionId === 'stock') {
             stockContainer.classList.remove('hidden');
             stockContainer.style.display = 'flex';
-            themeToggle.style.display = 'none';
             loadCheckedItems();
             filterStockProducts(); 
         } else if (sectionId === 'administracao') {
             adminContainer.classList.remove('hidden');
             adminContainer.style.display = 'flex';
-            themeToggle.style.display = 'flex';
             filterAdminProducts();
         }
         currentMainSectionId = sectionId;
@@ -1071,13 +1366,10 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
     }
 
     // --- FUNÇÕES UTILITÁRIAS E DE UI ---
-    function escapeHtml(text) { const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}; return text ? text.replace(/[&<>"']/g, m => map[m]) : ''; }
+    function escapeHtml(text) { const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}; return text ? text.toString().replace(/[&<>"']/g, m => map[m]) : ''; }
     function parseBrazilianCurrencyToFloat(valueString) { let cleaned = String(valueString).replace(/R\$?\s?|💰|\$\s?/g, '').trim(); if (cleaned.includes(',')) { cleaned = cleaned.replace(/\./g, '').replace(',', '.'); } return parseFloat(cleaned); }
     function openCalculatorSection(sectionId) { 
         if (!sectionId || !document.getElementById(sectionId)) sectionId = 'calculatorHome'; 
-        
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        themeToggleBtn.style.display = (sectionId === 'calculatorHome') ? 'flex' : 'none';
 
         ['calculatorHome', 'fecharVenda', 'repassarValores', 'calcularEmprestimo', 'calcularPorAparelho'].forEach(id => { 
             const el = document.getElementById(id);
@@ -1703,69 +1995,73 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
     }
 
     function renderStockList(list) {
-        const tableBody = document.getElementById('stockTableBody');
-        if (!tableBody) return;
+        const container = document.getElementById('stockTableBody'); // Agora é um div
+        if (!container) return;
         
         const sortedList = [...list].sort((a, b) => {
             const aIsChecked = checkedItems[a.id]?.checked || false;
             const bIsChecked = checkedItems[b.id]?.checked || false;
             if (aIsChecked !== bIsChecked) {
-                return aIsChecked ? 1 : -1; // Not checked items first
+                return aIsChecked ? 1 : -1; // Itens não checados primeiro
             }
-            return a.nome.localeCompare(b.nome); // Then sort by name
+            return a.nome.localeCompare(b.nome); // Depois ordena por nome
         });
 
         if (sortedList.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="4" class="text-center p-5"><i class="bi bi-box-seam" style="font-size: 3rem; color: var(--text-secondary);"></i><h5 class="mt-3">Nenhum produto para exibir.</h5><p class="text-secondary">Verifique os filtros ou adicione produtos na Administração.</p></td></tr>`;
+            container.innerHTML = `<div class="text-center p-5"><i class="bi bi-box-seam" style="font-size: 3rem; color: var(--text-secondary);"></i><h5 class="mt-3">Nenhum produto para exibir.</h5><p class="text-secondary">Verifique os filtros ou adicione produtos na Administração.</p></div>`;
         } else {
-            tableBody.innerHTML = sortedList.map(product => {
+            container.innerHTML = sortedList.map(product => {
                 const isChecked = checkedItems[product.id]?.checked || false;
-                const rowClass = isChecked ? 'is-checked' : 'not-checked';
+                const cardClass = isChecked ? 'is-checked' : 'not-checked';
 
                 return `
-                <tr data-id="${product.id}" class="${rowClass}">
-                    <td class="align-middle product-name-cell">
-                        <div>${escapeHtml(product.nome)}</div>
-                        <div class="product-colors-display">${(product.cores || []).map(cor => `<div class="color-swatch-sm" style="background-color:${cor.hex};" title="${cor.nome}"></div>`).join('')}</div>
-                    </td>
-                    <td class="text-center align-middle">
-                         <div class="input-group input-group-sm justify-content-center">
-                            <button class="btn btn-outline-secondary stock-qty-btn" data-change="-1" aria-label="Diminuir">-</button>
-                            <input type="number" class="form-control text-center stock-qty-input px-1" value="${product.quantidade || 0}" min="0" step="1" style="max-width: 60px; font-weight: bold;">
-                            <button class="btn btn-outline-secondary stock-qty-btn" data-change="1" aria-label="Aumentar">+</button>
+                <div class="stock-item-card ${cardClass}" data-id="${product.id}">
+                    <div class="stock-item-main">
+                        <div class="product-info">
+                            <div class="product-name">${escapeHtml(product.nome)}</div>
+                            <div class="product-colors-display">${(product.cores || []).map(cor => `<div class="color-swatch-sm" style="background-color:${cor.hex};" title="${cor.nome}"></div>`).join('')}</div>
                         </div>
-                    </td>
-                    <td class="text-center align-middle">
-                        <div class="d-flex justify-content-center align-items-center gap-2">
-                            <button class="btn btn-sm btn-secondary open-color-picker-btn" data-id="${product.id}" title="Editar Cores"><i class="bi bi-palette-fill"></i></button>
-                            <div class="form-check form-switch" title="Ignorar na contagem">
-                                <input class="form-check-input ignore-toggle-switch-stock" type="checkbox" role="switch" id="ignore-stock-${product.id}" data-id="${product.id}" ${product.ignorarContagem ? 'checked' : ''}>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="text-center align-middle">
-                         <div class="form-check d-flex justify-content-center">
+                        <div class="form-check form-switch d-flex align-items-center">
                             <input class="form-check-input stock-checked-toggle" type="checkbox" title="Marcar como conferido" id="check-${product.id}" data-id="${product.id}" ${isChecked ? 'checked' : ''}>
                         </div>
-                    </td>
-                </tr>
+                    </div>
+                    <div class="stock-item-controls">
+                        <div class="input-group input-group-sm">
+                            <button class="btn btn-outline-secondary stock-qty-btn" data-change="-1" aria-label="Diminuir">-</button>
+                            <input type="number" class="form-control text-center stock-qty-input px-1" value="${product.quantidade || 0}" min="0" step="1" style="max-width: 70px;">
+                            <button class="btn btn-outline-secondary stock-qty-btn" data-change="1" aria-label="Aumentar">+</button>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-secondary open-color-picker-btn" data-id="${product.id}" title="Editar Cores"><i class="bi bi-palette-fill"></i></button>
+                            <button class="btn btn-sm btn-secondary ignore-toggle-btn" data-id="${product.id}" title="${product.ignorarContagem ? 'Mostrar na contagem' : 'Ignorar na contagem'}">
+                                <i class="bi ${product.ignorarContagem ? 'bi-eye-slash-fill' : 'bi-eye-fill'}"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             `}).join('');
         }
     }
 
     function filterStockProducts() {
         const searchTerm = document.getElementById('stockSearchInput').value;
-        let visibleProducts = showIgnoredInStock ? products : products.filter(p => !p.ignorarContagem);
         
-        const fuseInstance = new Fuse(visibleProducts, { keys: ['nome'], threshold: 0.4 });
-        const filtered = !searchTerm ? visibleProducts : fuseInstance.search(searchTerm).map(r => r.item);
+        let baseList;
+        if (onlyShowIgnored) {
+            baseList = products.filter(p => p.ignorarContagem);
+        } else {
+            baseList = products.filter(p => !p.ignorarContagem);
+        }
+        
+        const fuseInstance = new Fuse(baseList, { keys: ['nome'], threshold: 0.4 });
+        const filtered = !searchTerm ? baseList : fuseInstance.search(searchTerm).map(r => r.item);
 
         renderStockList(filtered);
     }
 
     function generateStockReport() {
         const reportPreview = document.getElementById('reportPreview');
-        const visibleProducts = showIgnoredInStock ? products : products.filter(p => !p.ignorarContagem);
+        const visibleProducts = onlyShowIgnored ? products.filter(p => p.ignorarContagem) : products.filter(p => !p.ignorarContagem);
         const searchTerm = document.getElementById('stockSearchInput').value;
         
         const fuseInstance = new Fuse(visibleProducts, { keys: ['nome'], threshold: 0.4 });
@@ -2014,7 +2310,7 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
     function saveContractDraft() {
         const draftStatus = document.getElementById('draftStatus');
         const formData = {};
-        document.querySelectorAll('#contractForm input').forEach(input => {
+        document.querySelectorAll('#contractForm input, #contractForm select').forEach(input => {
             if(input.id) {
                 formData[input.id] = input.value;
             }
@@ -2055,20 +2351,18 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
     }
 
     function populatePreview() {
+        // PARTE INTOCÁVEL DO CONTRATO
         document.getElementById('contractPreview').innerHTML = `
             <h4>CONTRATO DE COMPRA E VENDA DE SMARTPHONE</h4>
             <p>Pelo presente instrumento particular, as partes a seguir identificadas firmam o presente CONTRATO DE COMPRA E VENDA, mediante as cláusulas e condições abaixo:</p>
-            
             <div class="section-title" style="text-transform: none; text-align: left;">VENDEDOR</div>
             <p>Workcell Tecnologia LTDA – CNPJ nº 50.299.715/0001-65, com sede em Av. Goiás, n° 4118 - loja 05 posto - St. Crimeia Oeste, Goiânia - GO, 74563-220.</p>
-            
             <div class="section-title" style="text-transform: none; text-align: left;">COMPRADOR</div>
             <p style="margin-bottom: 24pt;">
                 Nome: <span id="previewNome"></span><br>
                 CPF: <span id="previewCpf"></span> RG: <span id="previewRg"></span><br>
                 Endereço: <span id="previewEndereco"></span>
             </p>
-
             <div class="section-title">CLÁUSULA 1 – DO OBJETO</div>
             <p>O presente contrato tem por objeto a venda do(s) smartphone(s) descrito(s) abaixo:</p>
             <p style="margin-bottom: 24pt;">
@@ -2076,49 +2370,39 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
                 IMEI(s): <span id="previewImei"></span><br>
                 Valor total: R$ <span id="previewValorTotal"></span>
             </p>
-
             <div class="section-title">CLÁUSULA 2 – DO PAGAMENTO</div>
             <p>2.1 O valor total da compra é de R$ <span id="previewValorTotal2"></span> (<span id="previewValorExtenso"></span>), sendo pago da seguinte forma:</p>
-            <p>
-                a) Entrada no valor de R$ <span id="previewEntrada"></span>, paga no ato da assinatura deste contrato;<br>
-                b) O saldo restante de R$ <span id="previewSaldo"></span>, dividido em <span id="previewNumParcelas"></span> parcelas mensais de R$ <span id="previewValorParcela"></span>, a serem pagas através de boleto bancário emitido pelo VENDEDOR.
-            </p>
+            <p id="clausulaPagamentoB"></p>
             <p style="margin-bottom: 24pt;">
                 2.2 O não pagamento de qualquer parcela na data de vencimento acarretará:<br>
                 Multa de 2% (dois por cento) sobre o valor da parcela em atraso;<br>
                 Juros de mora de 1% (um por cento) ao mês;<br>
                 Correção monetária conforme índice legal aplicável.
             </p>
-
             <div class="section-title">CLÁUSULA 3 – DA PROPRIEDADE</div>
             <p>3.1 A propriedade do smartphone somente será transferida ao COMPRADOR após a quitação integral de todas as parcelas.</p>
             <p>3.2 Em caso de inadimplência, o COMPRADOR será notificado pelo VENDEDOR e terá o prazo de 5 (cinco) dias corridos para regularizar o pagamento.</p>
             <p style="margin-bottom: 24pt;">3.3 Caso não haja a regularização no prazo informado, o VENDEDOR poderá proceder ao bloqueio remoto do aparelho, impedindo seu uso até a quitação ou negociação da dívida, sem prejuízo da cobrança das parcelas vencidas e demais encargos previstos neste contrato.</p>
-
             <div class="section-title">CLÁUSULA 4 – DAS GARANTIAS</div>
             <p>4.1 O aparelho possui garantia legal de 1 (um) ano para qualquer defeito de fabricação pelo fabricante, contados a partir da entrega do produto.</p>
             <p style="margin-bottom: 24pt;">4.2 A garantia não cobre mau uso, quedas, molhar, oxidação ou violação do aparelho.</p>
-
             <div class="section-title">CLÁUSULA 5 – DA RESCISÃO</div>
             <p style="margin-bottom: 24pt;">5.1 O não cumprimento de qualquer obrigação contratual poderá resultar na rescisão imediata deste contrato, com a cobrança das parcelas vencidas e vincendas, além das penalidades cabíveis.</p>
-
             <div class="section-title">CLÁUSULA 6 – DO FORO</div>
             <p>As partes elegem o foro da comarca de Goiânia para dirimir quaisquer dúvidas oriundas deste contrato.</p>
-            
             <p style="margin-top: 24pt;">E por estarem de acordo, firmam o presente contrato em 2 (duas) vias de igual teor.</p>
-            
             <p style="margin-top: 40pt;">Local e data: <span id="previewLocalData"></span></p>
-
             <div style="text-align: center; margin-top: 40pt;">
                 <div class="signature-line" style="margin-bottom: 5px;"></div>
                 <p style="margin-bottom: 5pt; margin-top:0;">Assinatura VENDEDOR</p>
             </div>
-
             <div style="text-align: center; margin-top: 20pt;">
                 <div class="signature-line" style="margin-bottom: 5px;"></div>
                 <p style="margin-bottom: 5pt; margin-top:0;">Assinatura COMPRADOR</p>
             </div>
         `;
+        
+        // DADOS GERAIS
         document.getElementById('previewNome').textContent = document.getElementById('compradorNome').value;
         document.getElementById('previewCpf').textContent = document.getElementById('compradorCpf').value;
         document.getElementById('previewRg').textContent = document.getElementById('compradorRg').value;
@@ -2127,24 +2411,210 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         document.getElementById('previewImei').textContent = document.getElementById('produtoImei').value;
 
         const total = parseFloat(document.getElementById('valorTotal').value) || 0;
-        const entrada = parseFloat(document.getElementById('valorEntrada').value) || 0;
-        const numParcelas = parseInt(document.getElementById('numeroParcelas').value, 10) || 0;
-        const saldo = total - entrada;
-        const valorParcela = numParcelas > 0 ? saldo / numParcelas : 0;
-        
         document.getElementById('previewValorTotal').textContent = formatCurrency(total);
         document.getElementById('previewValorTotal2').textContent = formatCurrency(total);
         document.getElementById('previewValorExtenso').textContent = numeroPorExtenso(total, 'moeda');
-        document.getElementById('previewEntrada').textContent = formatCurrency(entrada);
-        document.getElementById('previewSaldo').textContent = formatCurrency(saldo);
-        const numParcelasExtenso = numeroPorExtenso(numParcelas);
-        document.getElementById('previewNumParcelas').textContent = `${numParcelasExtenso} (${numParcelas})`;
-        document.getElementById('previewValorParcela').textContent = formatCurrency(valorParcela);
+
+        // LÓGICA DA CLÁUSULA DE PAGAMENTO (MODIFICÁVEL)
+        const entrada = parseFloat(document.getElementById('valorEntrada').value) || 0;
+        const numParcelas = parseInt(document.getElementById('numeroParcelas').value, 10) || 0;
+        const tipoParcela = document.getElementById('tipoParcela').value; // 'mensais' ou 'semanais'
+        const primeiroVencimento = document.getElementById('primeiroVencimento').value;
+        const saldo = total - entrada;
+        const valorParcela = numParcelas > 0 ? saldo / numParcelas : 0;
         
+        let textoClausulaB = `a) Entrada no valor de R$ ${formatCurrency(entrada)}, paga no ato da assinatura deste contrato;<br>
+                              b) O saldo restante de R$ ${formatCurrency(saldo)}, dividido em ${numeroPorExtenso(numParcelas)} (${numParcelas}) parcelas ${tipoParcela} de R$ ${formatCurrency(valorParcela)}, a serem pagas através de boleto bancário emitido pelo VENDEDOR`;
+
+        if (primeiroVencimento) {
+            const [ano, mes, dia] = primeiroVencimento.split('-');
+            const dataFormatada = `${dia}/${mes}/${ano}`;
+            textoClausulaB += `, com o primeiro vencimento em ${dataFormatada}.`;
+        } else {
+            textoClausulaB += '.';
+        }
+
+        document.getElementById('clausulaPagamentoB').innerHTML = textoClausulaB;
+        
+        // DATA DO CONTRATO
         const today = new Date();
         const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
         document.getElementById('previewLocalData').textContent = `Goiânia, ${today.toLocaleDateString('pt-BR', dateOptions)}`;
     }
+    
+    // --- LÓGICA DE HISTÓRICO DE BOLETOS ---
+    function loadBoletosHistory() {
+        if (!db || !isAuthReady) return;
+        const boletosRef = ref(db, 'boletos');
+        const historyContainer = document.getElementById('historyBoletoContent');
+
+        historyContainer.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div></div>';
+
+        if (boletosListener) off(boletosRef, 'value', boletosListener);
+
+        boletosListener = onValue(boletosRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                renderBoletosHistory(data);
+            } else {
+                historyContainer.innerHTML = `<div class="text-center p-5">
+                    <i class="bi bi-journal-x" style="font-size: 4rem; color: var(--text-secondary);"></i>
+                    <h5 class="mt-3">Nenhum formulário no histórico</h5>
+                    <p class="text-secondary">Crie um novo formulário para vê-lo aqui.</p>
+                </div>`;
+            }
+        }, (error) => {
+            console.error("Firebase Read Error (Boletos):", error);
+            historyContainer.innerHTML = `<div class="alert alert-danger">Erro ao carregar o histórico.</div>`;
+        });
+    }
+
+    function renderBoletosHistory(data) {
+        const historyContainer = document.getElementById('historyBoletoContent');
+        const boletosArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        
+        // Sort by creation date, newest first
+        boletosArray.sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
+
+        if (boletosArray.length === 0) {
+             historyContainer.innerHTML = `<div class="text-center p-5">...</div>`;
+             return;
+        }
+
+        historyContainer.innerHTML = `<div class="accordion w-100 history-accordion" id="boletosAccordion">${boletosArray.map(boleto => {
+            const telefoneLimpo = boleto.compradorTelefone ? boleto.compradorTelefone.replace(/\D/g, '') : '';
+            const whatsappLink = telefoneLimpo ? `https://wa.me/55${telefoneLimpo}` : '';
+            const telefoneHtml = whatsappLink ? `<a href="${whatsappLink}" target="_blank" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> ${escapeHtml(boleto.compradorTelefone)}</a>` : '(Não informado)';
+            
+            return `
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-${boleto.id}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${boleto.id}" aria-expanded="false" aria-controls="collapse-${boleto.id}">
+                       ${escapeHtml(boleto.compradorNome)} - ${new Date(boleto.criadoEm).toLocaleDateString('pt-BR')}
+                    </button>
+                </h2>
+                <div id="collapse-${boleto.id}" class="accordion-collapse collapse" aria-labelledby="heading-${boleto.id}" data-bs-parent="#boletosAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Comprador:</strong> ${escapeHtml(boleto.compradorNome)}<br>
+                        <strong>CPF:</strong> ${escapeHtml(boleto.compradorCpf)}<br>
+                        <strong>Telefone:</strong> ${telefoneHtml}</p>
+                        <p><strong>Produto:</strong> ${escapeHtml(boleto.produtoModelo)}<br>
+                        <strong>IMEI:</strong> ${escapeHtml(boleto.produtoImei)}</p>
+                        <p><strong>Valor Total:</strong> R$ ${escapeHtml(boleto.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2}))}<br>
+                        <strong>Entrada:</strong> R$ ${escapeHtml(boleto.valorEntrada.toLocaleString('pt-BR', {minimumFractionDigits: 2}))}<br>
+                        <strong>Parcelas:</strong> ${boleto.numeroParcelas}x de R$ ${boleto.valorParcela}</p>
+                        <hr style="border-color: var(--glass-border);">
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-outline-danger delete-boleto-btn" data-id="${boleto.id}"><i class="bi bi-trash"></i> Excluir</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`
+        }).join('')}</div>`;
+
+        // Add event listeners for delete buttons
+        historyContainer.querySelectorAll('.delete-boleto-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const boletoId = e.currentTarget.dataset.id;
+                showCustomModal({
+                    message: "Tem certeza que deseja excluir este registro do histórico? Esta ação não pode ser desfeita.",
+                    confirmText: "Sim, Excluir",
+                    onConfirm: async () => {
+                        try {
+                            await remove(ref(db, `boletos/${boletoId}`));
+                            showCustomModal({ message: "Registro excluído com sucesso." });
+                        } catch (error) {
+                            showCustomModal({ message: `Erro ao excluir: ${error.message}` });
+                        }
+                    },
+                    onCancel: () => {}
+                });
+            });
+        });
+    }
+
+    // --- LÓGICA DE NOTIFICAÇÕES ---
+    function checkForDueInstallments() {
+        if (!db || !isAuthReady) return;
+        const boletosRef = ref(db, 'boletos');
+
+        const todayStr = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+        const viewedNotifsKey = `viewedNotifications_${todayStr}`;
+        
+        // Cleanup old notification keys from localStorage
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('viewedNotifications_') && key !== viewedNotifsKey) {
+                safeStorage.removeItem(key);
+            }
+        });
+
+        if (notificationsListener) off(boletosRef, 'value', notificationsListener);
+
+        notificationsListener = onValue(boletosRef, (snapshot) => {
+            const viewedNotifs = JSON.parse(safeStorage.getItem(viewedNotifsKey) || '[]');
+            const notifications = [];
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                for (const key in data) {
+                    const boleto = data[key];
+                    const baseDate = boleto.primeiroVencimento ? new Date(boleto.primeiroVencimento + 'T00:00:00') : new Date(boleto.criadoEm);
+
+                    for (let i = 0; i < boleto.numeroParcelas; i++) {
+                        let dueDate;
+                        if(boleto.primeiroVencimento) {
+                             dueDate = new Date(baseDate);
+                             if (boleto.tipoParcela === 'mensais') {
+                                dueDate.setMonth(baseDate.getMonth() + i);
+                            } else { // semanais
+                                dueDate.setDate(baseDate.getDate() + (i * 7));
+                            }
+                        } else {
+                             dueDate = new Date(baseDate);
+                             if (boleto.tipoParcela === 'mensais') {
+                                dueDate.setMonth(baseDate.getMonth() + i + 1);
+                            } else { // semanais
+                                dueDate.setDate(baseDate.getDate() + ((i + 1) * 7));
+                            }
+                        }
+                        
+                        dueDate.setHours(0, 0, 0, 0);
+
+                        if (dueDate.getTime() === today.getTime()) {
+                            const notificationId = `${key}_${i}`; // boletoId_parcelaIndex
+                            if (!viewedNotifs.includes(notificationId)) {
+                                 notifications.push({
+                                    notificationId: notificationId,
+                                    boletoId: key,
+                                    message: `<strong>${escapeHtml(boleto.compradorNome)}:</strong> Parcela ${i + 1}/${boleto.numeroParcelas} vence hoje.`
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            updateNotificationUI(notifications);
+        });
+    }
+
+    function updateNotificationUI(notifications) {
+        const badge = document.querySelector('#notification-bell .notification-badge');
+        const notificationList = document.getElementById('notificationList');
+
+        if (notifications.length > 0) {
+            badge.textContent = notifications.length;
+            badge.classList.remove('hidden');
+            notificationList.innerHTML = notifications.map(notif => 
+                `<a href="#" class="list-group-item list-group-item-action notification-item" data-boleto-id="${notif.boletoId}" data-notification-id="${notif.notificationId}">${notif.message}</a>`
+            ).join('');
+        } else {
+            badge.classList.add('hidden');
+            notificationList.innerHTML = '<div class="list-group-item text-center">Nenhuma notificação hoje.</div>';
+        }
+    }
+
 
     // --- FUNÇÃO PRINCIPAL E INICIALIZAÇÃO ---
     async function main() {
@@ -2157,13 +2627,13 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
                     userId = user.uid; 
                     isAuthReady = true; 
                     loadRatesFromDB(); 
-                    loadProductsFromDB(); 
+                    loadProductsFromDB();
+                    checkForDueInstallments();
 
                     const loadingOverlay = document.getElementById('loadingOverlay');
                     loadingOverlay.style.opacity = '0';
                     setTimeout(() => {
                         loadingOverlay.style.display = 'none';
-                        document.getElementById('mainMenu').classList.remove('hidden');
                         showMainSection('main');
                     }, 500);
 
@@ -2175,6 +2645,70 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
     
     // --- EVENT LISTENERS ---
     document.addEventListener('DOMContentLoaded', () => {
+        // --- Notificações ---
+        const notificationOffcanvasEl = document.getElementById('notificationPanel');
+        const notificationOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(notificationOffcanvasEl);
+        document.getElementById('notification-bell').addEventListener('click', () => notificationOffcanvas.toggle());
+        document.getElementById('notificationList').addEventListener('click', (e) => {
+             const item = e.target.closest('.notification-item');
+             if (item) {
+                 e.preventDefault();
+                 const boletoId = item.dataset.boletoId;
+                 const notificationId = item.dataset.notificationId;
+
+                 // Mark as viewed
+                 const todayStr = new Date().toISOString().split('T')[0];
+                 const viewedNotifsKey = `viewedNotifications_${todayStr}`;
+                 let viewedNotifs = JSON.parse(safeStorage.getItem(viewedNotifsKey) || '[]');
+                 if (!viewedNotifs.includes(notificationId)) {
+                    viewedNotifs.push(notificationId);
+                    safeStorage.setItem(viewedNotifsKey, JSON.stringify(viewedNotifs));
+                 }
+
+                 // Visually remove notification and update badge
+                 item.remove();
+                 const remainingItems = document.querySelectorAll('#notificationList .notification-item').length;
+                 const badge = document.querySelector('#notification-bell .notification-badge');
+                 if (remainingItems > 0) {
+                    badge.textContent = remainingItems;
+                 } else {
+                    badge.classList.add('hidden');
+                    document.getElementById('notificationList').innerHTML = '<div class="list-group-item text-center">Nenhuma notificação hoje.</div>';
+                 }
+
+                 // Navigate to history
+                 showMainSection('contract');
+                 
+                 setTimeout(() => {
+                    const toggle = document.getElementById('boletoModeToggle');
+                    if (!toggle.checked) {
+                        toggle.checked = true;
+                        toggle.dispatchEvent(new Event('change'));
+                    }
+                    setTimeout(() => {
+                        const accordionButton = document.querySelector(`#heading-${boletoId} button`);
+                        if (accordionButton) {
+                            const collapseEl = document.getElementById(accordionButton.getAttribute('data-bs-target').substring(1));
+                            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
+                            bsCollapse.show();
+                            
+                            collapseEl.addEventListener('shown.bs.collapse', () => {
+                                accordionButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, { once: true });
+                        }
+                    }, 300); 
+                 }, 100);
+                 
+                 notificationOffcanvas.hide();
+             }
+        });
+        
+        // --- Tema ---
+        const savedTheme = safeStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
+        themeToggleCheckbox.addEventListener('change', toggleTheme);
+
+
         // --- Nova Navegação ---
         document.getElementById('goToCalculator').addEventListener('click', () => showMainSection('calculator'));
         document.getElementById('goToContract').addEventListener('click', () => showMainSection('contract'));
@@ -2419,7 +2953,6 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
             }
         });
         
-        themeToggle.addEventListener('click', toggleTheme);
         document.getElementById('adminModeToggle').addEventListener('change', (e) => {
             const showRates = e.target.checked;
             document.getElementById('adminProductsContent').style.display = showRates ? 'none' : 'block';
@@ -2438,16 +2971,18 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         document.getElementById('stockSearchInput').addEventListener('input', filterStockProducts);
         document.getElementById('generateReportBtn').addEventListener('click', generateStockReport);
         document.getElementById('toggleIgnoredBtn').addEventListener('click', (e) => {
-            showIgnoredInStock = !showIgnoredInStock;
+            onlyShowIgnored = !onlyShowIgnored;
             const btn = e.currentTarget;
             const icon = btn.querySelector('i');
-            if (showIgnoredInStock) {
-                btn.title = "Ocultar ignorados";
-                icon.className = 'bi bi-eye';
+            document.getElementById('stockSearchInput').value = '';
+
+            if (onlyShowIgnored) {
+                btn.title = "Mostrar produtos visíveis";
+                icon.className = 'bi bi-eye-fill';
                 btn.classList.add('active');
             } else {
-                btn.title = "Mostrar ignorados";
-                icon.className = 'bi bi-eye-slash';
+                btn.title = "Mostrar produtos ignorados";
+                icon.className = 'bi bi-eye-slash-fill';
                 btn.classList.remove('active');
             }
             filterStockProducts();
@@ -2467,9 +3002,9 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
 
         const stockTableBody = document.getElementById('stockTableBody');
         const handleStockUpdate = (inputElement) => {
-            const row = inputElement.closest('tr');
-            if (!row) return;
-            const id = row.dataset.id;
+            const card = inputElement.closest('.stock-item-card');
+            if (!card) return;
+            const id = card.dataset.id;
             const product = products.find(p => p.id === id);
             if (!product) return;
             
@@ -2491,13 +3026,6 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
                 if (e.target.classList.contains('stock-qty-input')) {
                     handleStockUpdate(e.target);
                 }
-                if (e.target.classList.contains('ignore-toggle-switch-stock')) {
-                    const id = e.target.dataset.id;
-                    const isChecked = e.target.checked;
-                    updateProductInDB(id, { ignorarContagem: isChecked }).then(() => {
-                         setTimeout(filterStockProducts, 150); 
-                    });
-                }
                 if (e.target.classList.contains('stock-checked-toggle')) {
                     const id = e.target.dataset.id;
                     const isChecked = e.target.checked;
@@ -2518,6 +3046,7 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
             stockTableBody.addEventListener('click', e => {
                 const qtyButton = e.target.closest('.stock-qty-btn');
                 const colorButton = e.target.closest('.open-color-picker-btn');
+                const ignoreBtn = e.target.closest('.ignore-toggle-btn');
 
                 if (qtyButton) {
                     const change = parseInt(qtyButton.dataset.change, 10);
@@ -2533,6 +3062,15 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
                 if (colorButton) {
                     const id = colorButton.dataset.id;
                     openColorPicker(id);
+                }
+
+                if (ignoreBtn) {
+                    const id = ignoreBtn.dataset.id;
+                    const product = products.find(p => p.id === id);
+                    if (product) {
+                        const newIgnoredState = !product.ignorarContagem;
+                        updateProductInDB(id, { ignorarContagem: newIgnoredState });
+                    }
                 }
             });
         }
@@ -2584,6 +3122,15 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         });
 
         // --- Listeners do Formulário de Contrato ---
+        document.getElementById('boletoModeToggle').addEventListener('change', (e) => {
+            const showHistory = e.target.checked;
+            document.getElementById('newBoletoContent').classList.toggle('hidden', showHistory);
+            document.getElementById('historyBoletoContent').classList.toggle('hidden', !showHistory);
+            if (showHistory) {
+                loadBoletosHistory();
+            }
+        });
+
         document.getElementById('contractForm').addEventListener('input', () => {
              calculateContractPayments();
              saveContractDraft();
@@ -2595,14 +3142,44 @@ self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]
         });
         
         document.getElementById('btnImprimir').addEventListener('click', () => {
-            if (!document.getElementById('contractForm').checkValidity()) {
+            const contractForm = document.getElementById('contractForm');
+            if (!contractForm.checkValidity()) {
                 showCustomModal({ message: "Por favor, preencha todos os campos obrigatórios." });
-                document.getElementById('contractForm').reportValidity();
+                contractForm.reportValidity();
                 return;
             }
-            populatePreview();
-            document.body.classList.add('print-only-contract');
-            window.print();
+
+            const boletosRef = ref(db, 'boletos');
+            const boletoData = {
+                compradorNome: document.getElementById('compradorNome').value,
+                compradorCpf: document.getElementById('compradorCpf').value,
+                compradorRg: document.getElementById('compradorRg').value,
+                compradorTelefone: document.getElementById('compradorTelefone').value,
+                compradorEndereco: document.getElementById('compradorEndereco').value,
+                produtoModelo: document.getElementById('produtoModelo').value,
+                produtoImei: document.getElementById('produtoImei').value,
+                valorTotal: parseFloat(document.getElementById('valorTotal').value) || 0,
+                valorEntrada: parseFloat(document.getElementById('valorEntrada').value) || 0,
+                saldoRestante: document.getElementById('saldoRestante').value,
+                numeroParcelas: parseInt(document.getElementById('numeroParcelas').value, 10) || 0,
+                valorParcela: document.getElementById('valorParcela').value,
+                tipoParcela: document.getElementById('tipoParcela').value,
+                primeiroVencimento: document.getElementById('primeiroVencimento').value,
+                criadoEm: new Date().toISOString()
+            };
+
+            push(boletosRef, boletoData)
+                .then(() => {
+                    showCustomModal({ message: 'Contrato salvo no banco de dados!' });
+                    // Após salvar, continua com a impressão
+                    populatePreview();
+                    document.body.classList.add('print-only-contract');
+                    window.print();
+                })
+                .catch((error) => {
+                    console.error("Erro ao salvar contrato: ", error);
+                    showCustomModal({ message: `Falha ao salvar o contrato: ${error.message}` });
+                });
         });
 
         // --- Event Listeners for Export Buttons ---
