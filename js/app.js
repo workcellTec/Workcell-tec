@@ -27,6 +27,8 @@ let tagTexts = {};
 let tags = [];
 let tagsListener = null;
 let currentlySelectedProductForCalc = null;
+let aparelhoQuantity = 1;
+let carrinhoDeAparelhos = [];
 
 const APARELHO_FAVORITES_KEY = 'ctwAparelhoFavoritos';
 const CHECKED_ITEMS_KEY = 'ctwCheckedItems';
@@ -458,6 +460,43 @@ function calculateEmprestimo() {
     exportContainer.style.display = tableRows.trim() !== "" ? 'block' : 'none';
 }
 
+function renderCarrinho() {
+    const container = document.getElementById('carrinhoAparelhosContainer');
+    if (!container) return;
+
+    if (carrinhoDeAparelhos.length === 0) {
+        container.innerHTML = '';
+        // Adicionado para limpar a nota de info quando o carrinho estiver vazio
+        document.getElementById('aparelhoInfoNote').classList.add('hidden');
+        return;
+    }
+
+    // A variável 'totalCarrinho' não é mais necessária aqui, pois não será exibida.
+
+    container.innerHTML = `
+        <div class="p-3 rounded mb-2" style="background-color: var(--input-bg);">
+            <h6 class="mb-2">Produtos no cálculo:</h6>
+            <ul class="list-unstyled mb-2">
+                ${carrinhoDeAparelhos.map((produto, index) => `
+                    <li class="d-flex justify-content-between align-items-center mb-1">
+                        <span>${escapeHtml(produto.nome)}</span>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removerDoCarrinho(${index})" style="line-height: 1; padding: 4px 8px;">&times;</button>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
+}
+
+function removerDoCarrinho(index) {
+    carrinhoDeAparelhos.splice(index, 1);
+    renderCarrinho();
+    calculateAparelho();
+}
+
+// PRECISAMOS DECLARAR ESTA FUNÇÃO FORA DO EVENT LISTENER PARA SER ACESSÍVEL GLOBALMENTE
+window.removerDoCarrinho = removerDoCarrinho;
+
 function calculateAparelho() {
     if (!areRatesLoaded) return;
     const resultDiv = document.getElementById('resultCalcularPorAparelho');
@@ -465,28 +504,34 @@ function calculateAparelho() {
     const entradaValue = parseFloat(document.getElementById('entradaAparelho').value) || 0;
     const extraValue = parseFloat(document.getElementById('valorExtraAparelho').value) || 0;
 
-    if (isNaN(selectedAparelhoValue) || selectedAparelhoValue <= 0) {
-        resultDiv.innerHTML = '<div class="alert alert-warning d-flex align-items-center mt-3 w-100" style="max-width: 400px;"><i class="bi bi-exclamation-triangle-fill me-3"></i>Selecione um aparelho.</div>';
+    if (carrinhoDeAparelhos.length === 0) {
+        resultDiv.innerHTML = '<div class="alert alert-warning d-flex align-items-center mt-3 w-100" style="max-width: 400px; margin: 1rem auto;"><i class="bi bi-exclamation-triangle-fill me-3"></i>Adicione um aparelho para calcular.</div>';
         exportContainer.style.display = 'none';
         return;
     }
-
-    const valorTotalAparelho = selectedAparelhoValue + extraValue;
-    const valorBaseParaCalculo = valorTotalAparelho - entradaValue;
-    let headerHtml = `<h4 class="mt-4">Preço Total: ${valorTotalAparelho.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</h4>`;
     
+    const valorTotalProdutos = carrinhoDeAparelhos.reduce((total, p) => total + parseFloat(p.valor), 0);
+    const valorTotalAparelho = valorTotalProdutos + extraValue;
+    const valorBaseParaCalculo = valorTotalAparelho - entradaValue;
+
+    const precoTotalDisplay = document.getElementById('aparelhoPrecoTotalDisplay');
+    if(precoTotalDisplay) {
+        precoTotalDisplay.innerHTML = `Preço Total (com extra): ${valorTotalAparelho.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+    }
+    
+    let headerHtml = ``;
     if (entradaValue > 0) {
-        headerHtml += `<div class="alert alert-info d-flex align-items-center w-100" style="max-width: 400px;"><i class="bi bi-info-circle-fill me-3"></i><div><strong>Entrada:</strong> ${entradaValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}<br><strong>Valor a Parcelar:</strong> ${valorBaseParaCalculo.toLocaleString('pt-BR', { style: 'currency', 'currency': 'BRL' })}</div></div>`;
+        headerHtml += `<div class="alert alert-info d-flex align-items-center w-100" style="max-width: 400px; margin-top: 1rem;"><i class="bi bi-info-circle-fill me-3"></i><div><strong>Entrada de ${entradaValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} aplicada.</strong><br><small>O valor das parcelas abaixo já considera este abatimento.</small></div></div>`;
     }
 
     if (valorBaseParaCalculo < 0) {
-        resultDiv.innerHTML = headerHtml + '<div class="alert alert-danger d-flex align-items-center mt-3 w-100" style="max-width: 400px;"><i class="bi bi-x-circle-fill me-3"></i>O valor da entrada não pode ser maior que o valor do aparelho.</div>';
+        resultDiv.innerHTML = headerHtml + '<div class="alert alert-danger d-flex align-items-center mt-3 w-100" style="max-width: 400px; margin: 1rem auto;"><i class="bi bi-x-circle-fill me-3"></i>O valor da entrada não pode ser maior que o valor total.</div>';
         exportContainer.style.display = 'none';
         return;
     }
 
     if (valorBaseParaCalculo <= 0) {
-        resultDiv.innerHTML = headerHtml + '<div class="alert alert-success d-flex align-items-center mt-3 w-100" style="max-width: 400px;"><i class="bi bi-check-circle-fill me-3"></i>Aparelho quitado com a entrada.</div>';
+        resultDiv.innerHTML = headerHtml + '<div class="alert alert-success d-flex align-items-center mt-3 w-100" style="max-width: 400px; margin: 1rem auto;"><i class="bi bi-check-circle-fill me-3"></i>Valor quitado com a entrada.</div>';
         exportContainer.style.display = 'none';
         return;
     }
@@ -529,24 +574,36 @@ function calculateAparelho() {
 }
 
 function handleProductSelectionForAparelho(product) {
-    currentlySelectedProductForCalc = product;
-    document.getElementById('saveAparelhoFavoriteBtn').classList.remove('hidden');
-    selectedAparelhoValue = parseFloat(product.valor);
-    document.getElementById('aparelhoSearch').value = `${product.nome}`;
+    carrinhoDeAparelhos.push(product);
+    document.getElementById('aparelhoSearch').value = ''; // Limpa a busca para o próximo item
     document.getElementById('aparelhoResultsContainer').innerHTML = '';
-    document.getElementById('entradaAparelho').value = '';
-    document.getElementById('valorExtraAparelho').value = '';
+    document.getElementById('aparelhoSearch').focus();
+
+    // Se este é o PRIMEIRO produto adicionado, define o valor extra padrão
+    if (carrinhoDeAparelhos.length === 1) {
+        document.getElementById('valorExtraAparelho').value = '40';
+    }
+
+    // NOVO: Mostra um aviso quando o segundo produto é adicionado
+    if (carrinhoDeAparelhos.length === 2) {
+        showCustomModal({ message: "Múltiplos produtos: Textos de etiqueta desativados." });
+    }
+
+    // Re-adicionando a lógica para mostrar as cores do ÚLTIMO produto adicionado
     const infoNoteEl = document.getElementById('aparelhoInfoNote');
     if (product.lastCheckedTimestamp) {
         const date = new Date(product.lastCheckedTimestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         const colorsString = (product.cores && product.cores.length > 0)
             ? product.cores.map(c => c.nome).join(', ')
             : 'Nenhuma cor cadastrada';
-        infoNoteEl.innerHTML = `<i class="bi bi-info-circle"></i> Última checagem em ${date} - Cores: ${colorsString}`;
+        infoNoteEl.innerHTML = `<i class="bi bi-info-circle"></i> <strong>Último item:</strong> Checado em ${date} - Cores: ${colorsString}`;
         infoNoteEl.classList.remove('hidden');
     } else {
-        infoNoteEl.classList.add('hidden');
+         infoNoteEl.classList.add('hidden');
     }
+
+    // Atualiza a interface
+    renderCarrinho();
     calculateAparelho();
 }
 
@@ -1109,6 +1166,8 @@ function applyAparelhoFavorite(name) {
     handleProductSelectionForAparelho(product);
     document.getElementById('entradaAparelho').value = favData.entryValue || '';
     document.getElementById('valorExtraAparelho').value = favData.additionalValue || '';
+    document.getElementById('aparelhoQuantity').value = favData.quantity || 1;
+    aparelhoQuantity = favData.quantity || 1;
     const toggleBtn = document.getElementById('toggleValorExtraBtn');
     const extraContainer = document.getElementById('valorExtraContainer');
     if (favData.additionalValue > 0) {
@@ -1650,7 +1709,7 @@ function renderTagManagementUI() {
         invertToggle.checked = safeStorage.getItem('ctwInvertCopyOrder') === 'true';
         invertToggle.addEventListener('change', () => {
             safeStorage.setItem('ctwInvertCopyOrder', invertToggle.checked);
-            showCustomModal({ message: `Ordem de cópia ${invertToggle.checked ? 'INVERTIDA' : 'PADRÃO'}.` });
+            showCustomModal({ message: `Ordem de cópia ${invertToggle.checked ? 'ATIVADA' : 'DESATIVADA'}.` });
         });
     }
 }
@@ -1880,9 +1939,8 @@ document.addEventListener('DOMContentLoaded', () => {
         container.classList.toggle('is-active');
     });
 
-    document.getElementById('machine3').addEventListener('change', (event) => { // Adicionamos o 'event'
+    document.getElementById('machine3').addEventListener('change', (event) => {
     updateCalcularPorAparelhoUI(); 
-    // Adicionamos a checagem 'event.isTrusted'
     if(event.isTrusted && document.getElementById('machine3').value !== 'pagbank') {
         openFlagModal(document.getElementById('machine3'));
     }
@@ -1901,41 +1959,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('resultCalcularPorAparelho').addEventListener('click', (e) => {
         const row = e.target.closest('.copyable-row');
-        if (!row) return;
+        if (!row || carrinhoDeAparelhos.length === 0) return;
+        
         const installments = row.dataset.installments;
         const parcelaValue = parseFloat(row.dataset.parcela);
         const totalValue = parseFloat(row.dataset.total);
-        const produtoNome = currentlySelectedProductForCalc ? currentlySelectedProductForCalc.nome : (document.getElementById('aparelhoSearch').value.trim() || 'Produto');
         const entradaValue = parseFloat(document.getElementById('entradaAparelho').value) || 0;
+        
         const parcelaFormatted = parcelaValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         const totalFormatted = totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         
+        // Lógica para gerar o nome dos produtos
+        const productCounts = carrinhoDeAparelhos.reduce((acc, product) => {
+            acc[product.nome] = (acc[product.nome] || 0) + 1;
+            return acc;
+        }, {});
+        const produtoNome = Object.entries(productCounts)
+            .map(([nome, qtd]) => qtd > 1 ? `${qtd}x ${nome}` : nome)
+            .join(' e ');
+
         let entradaText = '';
         if (entradaValue > 0) {
             const entradaFormatted = entradaValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             entradaText = `\n"+${entradaFormatted} no dinheiro ou pix"`;
         }
         
+        // Desativa texto de etiqueta se tiver mais de 1 produto no carrinho
         let customText = '';
-        if (currentlySelectedProductForCalc && currentlySelectedProductForCalc.tag && currentlySelectedProductForCalc.tag !== 'Nenhuma' && tagTexts[currentlySelectedProductForCalc.tag]) {
-            customText = `\n\n${tagTexts[currentlySelectedProductForCalc.tag]}`;
+        if (carrinhoDeAparelhos.length === 1) {
+            const produtoUnico = carrinhoDeAparelhos[0];
+            if (produtoUnico.tag && produtoUnico.tag !== 'Nenhuma' && tagTexts[produtoUnico.tag]) {
+                customText = `\n\n${tagTexts[produtoUnico.tag]}`;
+            }
         }
         
         let textToCopy;
         const invertOrder = safeStorage.getItem('ctwInvertCopyOrder') === 'true';
-        
-        // Mantemos os 3 blocos de texto separados para reorganizá-los corretamente
         const simulationBlock = `${installments}x ${parcelaFormatted}\n_(Total: ${totalFormatted})_${entradaText}`;
         const productNameBlock = produtoNome;
-        const customTextBlock = customText; // A variável customText já contém as quebras de linha necessárias
+        const customTextBlock = customText;
 
         if (invertOrder) {
-            // Ordem Invertida: Produto -> Cálculo -> Etiqueta
             textToCopy = `${productNameBlock}\n${simulationBlock}${customTextBlock}`;
         } else {
-            // Ordem Padrão: Cálculo -> Produto -> Etiqueta
             textToCopy = `${simulationBlock}\n ${productNameBlock}${customTextBlock}`;
         }
+        
         const textArea = document.createElement("textarea");
         textArea.value = textToCopy;
         textArea.style.position = "fixed";
@@ -2028,7 +2097,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const favoriteData = {
             productName: document.getElementById('aparelhoSearch').value,
             entryValue: parseFloat(document.getElementById('entradaAparelho').value) || 0,
-            additionalValue: parseFloat(document.getElementById('valorExtraAparelho').value) || 0
+            additionalValue: parseFloat(document.getElementById('valorExtraAparelho').value) || 0,
+            quantity: parseInt(document.getElementById('aparelhoQuantity').value) || 1
         };
         favorites[favoriteName] = favoriteData;
         saveAparelhoFavorites(favorites);
@@ -2039,9 +2109,8 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelSaveFavoriteBtn.addEventListener('click', closeFavoriteNameModal);
     favoriteNameModal.addEventListener('click', (e) => { if (e.target === favoriteNameModal) closeFavoriteNameModal(); });
 
-   document.getElementById('machine2').addEventListener('change', (event) => { // Adicionamos o 'event'
+   document.getElementById('machine2').addEventListener('change', (event) => {
     updateRepassarValoresUI(); 
-    // Adicionamos a checagem 'event.isTrusted'
     if(event.isTrusted && document.getElementById('machine2').value !== 'pagbank') {
         openFlagModal(document.getElementById('machine2'));
     }
@@ -2050,9 +2119,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('repassarValue').addEventListener('input', calculateRepassarValores);
 
     document.getElementById('emprestimoValue').addEventListener('input', calculateEmprestimo);
-    document.getElementById('machine4').addEventListener('change', (event) => { // Adicionamos o 'event'
+    document.getElementById('machine4').addEventListener('change', (event) => {
     updateCalcularEmprestimoUI(); 
-    // Adicionamos a checagem 'event.isTrusted'
     if(event.isTrusted && document.getElementById('machine4').value !== 'pagbank') {
         openFlagModal(document.getElementById('machine4'));
     }
@@ -2429,13 +2497,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.classList.contains('stock-qty-input')) {
                 handleStockUpdate(e.target);
             }
-            if (e.target.classList.contains('stock-checked-toggle')) {
+                        if (e.target.classList.contains('stock-checked-toggle')) {
                 const id = e.target.dataset.id;
                 const isChecked = e.target.checked;
                 if (isChecked) {
                     const timestamp = Date.now();
                     checkedItems[id] = { checked: true, timestamp: timestamp };
                     updateProductInDB(id, { lastCheckedTimestamp: timestamp });
+                    // Adiciona a notificação toast
+                    const product = products.find(p => p.id === id);
+                    if (product) {
+                        showCustomModal({ message: `Produto "${product.nome}" conferido e salvo!`});
+                    }
                 } else {
                     delete checkedItems[id];
                     updateProductInDB(id, { lastCheckedTimestamp: null });
@@ -2444,6 +2517,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 delete modificationTracker[id];
                 filterStockProducts();
             }
+
         });
         
         stockTableBody.addEventListener('click', e => {
@@ -2504,15 +2578,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('saveColorPicker').addEventListener('click', () => {
         if (currentEditingProductId) {
             updateProductInDB(currentEditingProductId, { cores: tempSelectedColors });
-            modificationTracker[currentEditingProductId] = { ...modificationTracker[currentEditingProductId], color: true };
-            if (modificationTracker[currentEditingProductId]?.quantity) {
-                const timestamp = Date.now();
-                checkedItems[currentEditingProductId] = { checked: true, timestamp: timestamp };
-                saveCheckedItems();
-                updateProductInDB(currentEditingProductId, { lastCheckedTimestamp: timestamp });
-                delete modificationTracker[currentEditingProductId];
-                filterStockProducts();
-            }
+            // A lógica que marcava o item como 'conferido' automaticamente foi removida.
         }
         colorPickerModal.classList.remove('active');
     });
@@ -2587,11 +2653,21 @@ document.addEventListener('DOMContentLoaded', () => {
         exportResultsToImage('resultCalcularEmprestimo', 'calculo-emprestimo.png', header);
     });
     document.getElementById('exportAparelhoBtn').addEventListener('click', () => {
-        const aparelhoNome = document.getElementById('aparelhoSearch').value.trim();
-        if (!aparelhoNome) {
-            showCustomModal({ message: "Selecione um aparelho para exportar." });
+        // Nova lógica: Verifica se o carrinho tem itens
+        if (carrinhoDeAparelhos.length === 0) {
+            showCustomModal({ message: "Adicione um aparelho para exportar." });
             return;
         }
+
+        // Nova lógica: Gera o nome a partir dos itens do carrinho (igual fizemos para copiar/colar)
+        const productCounts = carrinhoDeAparelhos.reduce((acc, product) => {
+            acc[product.nome] = (acc[product.nome] || 0) + 1;
+            return acc;
+        }, {});
+        const aparelhoNome = Object.entries(productCounts)
+            .map(([nome, qtd]) => qtd > 1 ? `${qtd}x ${nome}` : nome)
+            .join(' e ');
+
         const header = `<h4 class="text-center mb-3" style="width: 100%; grid-column: 1 / -1;">${escapeHtml(aparelhoNome)}</h4>`;
         const fileName = aparelhoNome.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'calculo-aparelho';
         exportResultsToImage('resultCalcularPorAparelho', `${fileName}.png`, header);
@@ -2703,5 +2779,3 @@ document.addEventListener('DOMContentLoaded', () => {
     setupVisibilityToggles();
     updateMachineVisibility();
 });
-
-
