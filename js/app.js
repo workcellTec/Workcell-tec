@@ -589,14 +589,18 @@ function handleProductSelectionForAparelho(product) {
         showCustomModal({ message: "Múltiplos produtos: Textos de etiqueta desativados." });
     }
 
-    // Re-adicionando a lógica para mostrar as cores do ÚLTIMO produto adicionado
+    // LÓGICA ATUALIZADA DA NOTA COM O LÁPIS
     const infoNoteEl = document.getElementById('aparelhoInfoNote');
     if (product.lastCheckedTimestamp) {
         const date = new Date(product.lastCheckedTimestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         const colorsString = (product.cores && product.cores.length > 0)
             ? product.cores.map(c => c.nome).join(', ')
             : 'Nenhuma cor cadastrada';
-        infoNoteEl.innerHTML = `<i class="bi bi-info-circle"></i> <strong>Último item:</strong> Checado em ${date} - Cores: ${colorsString}`;
+            
+        // Adicionando o botão de lápis aqui
+        const editBtn = `<button class="btn btn-sm text-primary edit-colors-shortcut" style="padding: 0 0 0 8px; border: none; background: none; line-height: 1;" data-id="${product.id}" title="Editar cores"><i class="bi bi-pencil-square"></i></button>`;
+        
+        infoNoteEl.innerHTML = `<div class="d-flex align-items-center justify-content-center flex-wrap gap-1"><i class="bi bi-info-circle"></i> <span><strong>Último item:</strong> Checado em ${date} - Cores: ${colorsString}</span> ${editBtn}</div>`;
         infoNoteEl.classList.remove('hidden');
     } else {
          infoNoteEl.classList.add('hidden');
@@ -1810,7 +1814,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const notificationOffcanvasEl = document.getElementById('notificationPanel');
     const notificationOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(notificationOffcanvasEl);
     
+    
     document.getElementById('notification-bell').addEventListener('click', () => notificationOffcanvas.toggle());
+    
+    // LISTENER PARA O LÁPIS DA NOTA DE CORES
+    document.getElementById('aparelhoInfoNote').addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.edit-colors-shortcut');
+        if (editBtn) {
+            e.preventDefault(); // Evita comportamentos estranhos
+            const id = editBtn.dataset.id;
+            openColorPicker(id);
+        }
+    });
     
     document.getElementById('notificationList').addEventListener('click', (e) => {
         const item = e.target.closest('.notification-item');
@@ -2576,6 +2591,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('cancelColorPicker').addEventListener('click', () => colorPickerModal.classList.remove('active'));
     document.getElementById('saveColorPicker').addEventListener('click', () => {
+        if (currentEditingProductId) {
+            // ATUALIZAÇÃO: Salva as cores E a data atual
+            const newTimestamp = Date.now();
+            updateProductInDB(currentEditingProductId, { 
+                cores: tempSelectedColors,
+                lastCheckedTimestamp: newTimestamp
+            });
+            
+            // ATUALIZAÇÃO VISUAL IMEDIATA DA NOTA (Se ela estiver visível para este produto)
+            const infoNoteEl = document.getElementById('aparelhoInfoNote');
+            const shortcutBtn = infoNoteEl.querySelector('.edit-colors-shortcut');
+            
+            // Verifica se a nota que está na tela é do produto que acabamos de editar
+            if (shortcutBtn && shortcutBtn.dataset.id === currentEditingProductId) {
+                const date = new Date(newTimestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                const colorsString = tempSelectedColors.length > 0 
+                    ? tempSelectedColors.map(c => c.nome).join(', ') 
+                    : 'Nenhuma cor cadastrada';
+                
+                // Reconstrói o HTML da nota com os dados novos
+                const editBtn = `<button class="btn btn-sm text-primary edit-colors-shortcut" style="padding: 0 0 0 8px; border: none; background: none; line-height: 1;" data-id="${currentEditingProductId}" title="Editar cores"><i class="bi bi-pencil-square"></i></button>`;
+                infoNoteEl.innerHTML = `<div class="d-flex align-items-center justify-content-center flex-wrap gap-1"><i class="bi bi-info-circle"></i> <span><strong>Último item:</strong> Checado em ${date} - Cores: ${colorsString}</span> ${editBtn}</div>`;
+            }
+        }
+        colorPickerModal.classList.remove('active');
+    });('click', () => {
         if (currentEditingProductId) {
             updateProductInDB(currentEditingProductId, { cores: tempSelectedColors });
             // A lógica que marcava o item como 'conferido' automaticamente foi removida.
