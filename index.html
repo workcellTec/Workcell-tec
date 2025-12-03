@@ -19,6 +19,172 @@
 
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+    /* Força o layout lado a lado */
+    .product-action-buttons {
+        display: flex !important;
+        gap: 12px !important;
+        margin-top: 15px !important;
+    }
+
+    /* Estilo base dos botões (Pílula Redondinha) */
+    .btn-action-sm {
+        flex: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        padding: 12px 15px !important;
+        border-radius: 50px !important; /* Bem redondo */
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        border: none !important; /* Remove a borda cinza feia */
+        cursor: pointer !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; /* Sombra suave */
+    }
+
+    /* Botão Editar Valor (Verde Dinheiro) */
+    .edit-price-btn {
+        background-color: rgba(16, 185, 129, 0.15) !important; /* Fundo verde transparente */
+        color: #10b981 !important; /* Texto verde */
+    }
+    
+    /* Botão Editar Cores (Roxo/Azul do Sistema) */
+    .edit-colors-btn {
+        background-color: rgba(139, 92, 246, 0.15) !important; /* Fundo roxo transparente */
+        color: #8b5cf6 !important; /* Texto roxo */
+    }
+
+    /* Efeito ao clicar/passar mouse */
+    .btn-action-sm:active, .btn-action-sm:hover {
+        transform: translateY(-2px) !important; /* Sobe um pouquinho */
+        filter: brightness(1.1) !important;
+    }
+</style>
+    
+    <style>
+    /* FORÇAR FAVORITOS LADO A LADO */
+    #aparelhoFavoritosContainer {
+        display: flex !important;
+        flex-direction: row !important; /* Obriga a ser uma linha */
+        flex-wrap: wrap !important; /* Se encher a tela, quebra pro lado, não pra baixo */
+        justify-content: center !important; /* Centraliza bonitinho */
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .favorito {
+        display: inline-flex !important;
+        align-items: center !important;
+        width: auto !important; /* Importante: impede de esticar a tela toda */
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
+</style>
+
+<style>
+    /* FORÇAR VISUAL DAS CORES (Lado a Lado) */
+    .product-action-colors {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        margin: 8px 0 !important;
+    }
+    
+    .color-pill {
+        display: inline-flex !important;
+        width: auto !important;
+        align-items: center !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding: 4px 10px !important;
+        border-radius: 20px !important;
+    }
+
+    /* FORÇAR VISUAL DO CABEÇALHO E DO BOTÃO X */
+    .product-action-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+    }
+
+    .btn-remove-card {
+        background: transparent !important;
+        border: none !important;
+        color: #ff4d4d !important;
+        font-size: 1.3rem !important;
+        padding: 0 0 0 10px !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        width: auto !important;
+        height: auto !important;
+    }
+    
+    /* Esconde qualquer fundo ou borda antiga que esteja sobrando */
+    .btn-remove-card:hover {
+        background: transparent !important;
+        transform: scale(1.1);
+        color: #ff0000 !important;
+    }
+</style>
+
+    <style>
+    /* 1. Botões de Quantidade Redondos */
+    .stock-qty-btn {
+        width: 35px !important;
+        height: 35px !important;
+        border-radius: 50% !important; /* Bolinha perfeita */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: var(--text-color) !important;
+        margin: 0 5px !important;
+    }
+
+    /* Input transparente no meio */
+    .stock-qty-input {
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-color) !important;
+        font-weight: 800 !important;
+        font-size: 1.1rem !important;
+        max-width: 50px !important;
+    }
+
+    /* Container dos botões arredondado */
+    .stock-item-controls .input-group {
+        background-color: rgba(0,0,0,0.2) !important;
+        border-radius: 50px !important; /* Pílula */
+        padding: 4px !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        flex-wrap: nowrap !important;
+    }
+
+    /* 2. Visual "GAMIFICADO" (Item Conferido) */
+    /* Quando marcado, brilha verde em vez de apagar */
+    .stock-item-card.is-checked {
+        opacity: 1 !important; /* Removemos a transparência! */
+        background: rgba(22, 163, 74, 0.1) !important; /* Fundo verde bem suave */
+        border: 1px solid #4ade80 !important; /* Borda verde neon */
+        box-shadow: 0 0 15px rgba(74, 222, 128, 0.2) !important; /* Brilho verde */
+        transform: scale(1.01) !important; /* Cresce um pouquinho */
+    }
+
+    /* O nome do produto fica verde quando conferido */
+    .stock-item-card.is-checked .product-name {
+        color: #4ade80 !important;
+        font-weight: 700 !important;
+    }
+</style>
+
+    
+    
 </head>
 <body>
     <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--tertiary-color); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
@@ -419,6 +585,17 @@
                     <button class="btn btn-info btn-sm" id="generateReportBtn"><i class="bi bi-printer"></i> Relatório</button>
                 </div>
             </div>
+            <div id="stockProgressContainer" class="mb-3" style="background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 15px; border: 1px solid var(--glass-border);">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <small class="text-secondary" style="font-weight: 500;"><i class="bi bi-clipboard-check"></i> Progresso da Contagem</small>
+        <small id="stockProgressText" class="fw-bold text-success" style="font-size: 0.9rem;">Calculando...</small>
+    </div>
+    <div class="progress" style="height: 8px; background-color: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+        <div id="stockProgressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);"></div>
+    </div>
+</div>
+
+            
             <div class="stock-list-container" id="stockTableBody"></div>
         </div>
     </div>
@@ -439,6 +616,21 @@
     </div>
     
     <div id="toastNotification"></div>
+
+    <div class="custom-modal-overlay" id="editPriceModalOverlay">
+        <div class="custom-modal-content">
+            <h4>Editar Valor do Produto</h4>
+            <p class="text-warning small mb-3"><i class="bi bi-exclamation-triangle"></i> Atenção: Isso altera o preço oficial do produto no sistema.</p>
+            <input class="form-control form-control-lg mb-3" id="editPriceInput" type="text" inputmode="numeric" placeholder="R$ 0,00"/>
+
+            <input type="hidden" id="editPriceProductIndex">
+            <div class="d-flex gap-2 justify-content-center mt-3">
+                <button class="btn btn-secondary" id="cancelEditPriceBtn">Cancelar</button>
+                <button class="btn btn-primary" id="confirmEditPriceBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     
     <div class="custom-modal-overlay" id="lucroModalOverlay">
         <div class="custom-modal-content">
