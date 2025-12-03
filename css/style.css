@@ -907,3 +907,236 @@ input[type="color"]::-moz-color-swatch { border-radius: 50%; border: 1px solid v
     margin: -30px auto 0 auto;
 }
 
+/* Estilo para linhas selecionadas */
+.copyable-row.is-selected {
+    background-color: rgba(var(--primary-color-rgb), 0.25) !important;
+    border-left: 4px solid var(--primary-color);
+}
+/* Botão Flutuante de Copiar */
+#fabCopyMulti {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 10000;
+    padding: 12px 24px;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    font-weight: bold;
+    display: none; /* Escondido por padrão */
+    animation: fadeInUp 0.3s ease;
+}
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } 
+    
+    
+   /* --- NOVO DESIGN: Card de Produto --- */
+.product-action-card {
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 15px;
+    margin: 15px auto;
+    max-width: 450px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px var(--shadow-color);
+    animation: fadeInAndUp 0.4s ease-out forwards;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.product-action-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px; margin-bottom: 5px;
+}
+.product-action-info h5 { margin: 0; font-size: 1rem; font-weight: 600; text-align: left; color: var(--text-color); }
+.product-action-date { font-size: 0.75rem; color: var(--text-secondary); }
+.product-action-colors { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.color-pill {
+    display: flex; align-items: center; gap: 6px; background-color: var(--input-bg);
+    border: 1px solid var(--glass-border); padding: 4px 10px; border-radius: 20px;
+    font-size: 0.8rem; color: var(--text-color);
+}
+.product-action-buttons { display: flex; gap: 10px; margin-top: 5px; }
+/* Estilo dos Botões do Card (DESIGN CORRIGIDO) */
+.product-action-buttons {
+    display: flex;
+    gap: 12px; /* Mais espaço entre os botões */
+    margin-top: 8px;
+}
+
+.btn-action-sm {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px; /* Um pouco mais gordinho */
+    border-radius: 20px; /* BEM arredondado (pílula) */
+    font-size: 0.85rem;
+    font-weight: 600; /* Letra um pouco mais grossa */
+    border: none; /* Remove a borda feia */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
+}
+
+/* Botão de Editar Valor (Verde suave para dinheiro) */
+.edit-price-btn {
+    background-color: rgba(var(--text-success), 0.15); 
+    color: var(--text-success);
+}
+.edit-price-btn:hover {
+    background-color: var(--text-success);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--text-success), 0.4);
+}
+
+/* Botão de Editar Cores (Roxo/Azul suave para design) */
+.edit-colors-btn {
+    background-color: rgba(var(--primary-color-rgb), 0.15);
+    color: var(--primary-color);
+}
+.edit-colors-btn:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4);
+}
+
+/* Ajuste nos ícones dentro dos botões */
+.btn-action-sm i {
+    font-size: 1rem;
+}
+
+    /* --- CORREÇÃO DE LAYOUT DO CARD --- */
+
+/* 1. Cores lado a lado (Inline) */
+.product-action-colors {
+    display: flex;
+    flex-wrap: wrap; /* Se tiver muitas cores, quebra linha de forma bonita */
+    gap: 8px; /* Espaço entre as cores */
+    align-items: center;
+    margin: 10px 0; /* Espaço acima e abaixo */
+}
+
+/* Estilo da "etiqueta" de cor individual */
+.color-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgba(255, 255, 255, 0.05); /* Fundo bem sutil */
+    border: 1px solid var(--glass-border);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* A bolinha da cor */
+.color-swatch-sm {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    display: inline-block;
+}
+
+/* 2. Cabeçalho do Card (Nome + Data + Botão X) */
+.product-action-header {
+    display: flex;
+    justify-content: space-between; /* Joga o texto pra esq e o X pra direita */
+    align-items: flex-start;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 5px;
+}
+
+/* 3. O Botão "X" Moderno */
+.btn-remove-card {
+    background: transparent; /* Remove o fundo cinza feio */
+    border: none; /* Remove a borda quadrada */
+    color: #ff4d4d; /* Cor vermelha suave */
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 10px;
+    transition: transform 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-remove-card:hover {
+    transform: scale(1.2); /* Aumenta um pouco ao passar o mouse */
+    color: #ff0000;
+}
+/* --- MELHORIAS VISUAIS DO ESTOQUE --- */
+
+/* 1. Botões de Quantidade Redondos e Modernos */
+.stock-qty-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50% !important; /* Totalmente redondo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--glass-border);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-color);
+    transition: all 0.2s ease;
+    padding: 0; /* Remove preenchimento extra */
+}
+
+.stock-qty-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+    transform: scale(1.1);
+    border-color: var(--primary-color);
+}
+
+.stock-qty-input {
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-color) !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    max-width: 50px !important; /* Menor largura */
+}
+
+/* Container dos botões de quantidade */
+.input-group-sm {
+    background-color: var(--input-bg);
+    border-radius: 20px;
+    padding: 4px;
+    border: 1px solid var(--glass-border);
+    gap: 5px; /* Espaço entre os botões */
+}
+
+/* 2. Visual de "Item Conferido" (Brilho Verde em vez de apagado) */
+.stock-item-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--glass-border);
+}
+
+.stock-item-card.is-checked {
+    opacity: 1 !important; /* Remove a transparência antiga */
+    border-color: var(--text-success) !important; /* Borda verde */
+    background: linear-gradient(90deg, rgba(var(--text-success), 0.05) 0%, rgba(var(--primary-color-rgb), 0.05) 100%);
+    box-shadow: 0 0 15px rgba(22, 163, 74, 0.15); /* Brilho verde suave */
+}
+
+.stock-item-card.is-checked .product-name {
+    color: var(--text-success) !important; /* Nome fica verde */
+    text-decoration: none; /* Garante que não tenha risco */
+}
+
+/* Ícone de check do switch mais evidente */
+.form-check-input:checked {
+    background-color: var(--text-success);
+    border-color: var(--text-success);
+    filter: drop-shadow(0 0 2px rgba(0,255,0,0.5));
+}
+
+    
