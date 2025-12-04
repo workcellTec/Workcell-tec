@@ -190,25 +190,45 @@ function parseBrazilianCurrencyToFloat(valueString) { let cleaned = String(value
 
 function openCalculatorSection(sectionId) {
     if (!sectionId || !document.getElementById(sectionId)) sectionId = 'calculatorHome';
+    
+    // Esconde todas as seções
     ['calculatorHome', 'fecharVenda', 'repassarValores', 'calcularEmprestimo', 'calcularPorAparelho'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
+
     if (sectionId !== 'calcularPorAparelho') {
         currentlySelectedProductForCalc = null;
     }
+
+    // --- CORREÇÃO: SE FOR ENTRAR NA ABA DE APARELHO, AÍ SIM LIMPA TUDO ---
+    if (sectionId === 'calcularPorAparelho') {
+        carrinhoDeAparelhos = []; // Zera a memória
+        renderCarrinho(); // Limpa visualmente os cards
+        
+        // Zera os inputs
+        const inputEntrada = document.getElementById('entradaAparelho');
+        const inputExtra = document.getElementById('valorExtraAparelho');
+        if(inputEntrada) inputEntrada.value = '';
+        if(inputExtra) inputExtra.value = '';
+    }
+    // ---------------------------------------------------------------------
+
     document.getElementById(sectionId).style.display = 'flex';
     currentCalculatorSectionId = sectionId;
+    
     const sectionInitializers = {
         fecharVenda: () => { updateInstallmentsOptions(); updateFecharVendaUI(); },
         repassarValores: () => { updateRepassarValoresUI(); },
         calcularEmprestimo: () => { updateCalcularEmprestimoUI(); },
         calcularPorAparelho: () => { updateCalcularPorAparelhoUI(); }
     };
+    
     if (sectionInitializers[sectionId]) sectionInitializers[sectionId]();
-       // --- ADICIONE ESTA LINHA ---
+    
     safeStorage.setItem('ctwLastCalcSub', sectionId);
 }
+
 
 function renderQuickInstallmentButtons() {
     const container = document.getElementById('quickInstallmentsContainer');
@@ -300,59 +320,18 @@ function updateRepassarValoresUI() { const machine = document.getElementById("ma
 function updateCalcularEmprestimoUI() { const machine = document.getElementById("machine4").value; document.getElementById("flagDisplayContainer4").style.display = (machine !== "pagbank") ? 'block' : 'none'; updateFlagDisplay('4'); calculateEmprestimo(); }
 function updateCalcularPorAparelhoUI() {
     const machineSelect = document.getElementById("machine3");
-    const brandSelect = document.getElementById("brand3");
     
-    // --- PASSO 2: RECUPERAR RASCUNHO (Com proteção contra erro) ---
-    // Só carrega se o carrinho estiver vazio (para não sobrescrever trabalho atual)
-    if (carrinhoDeAparelhos.length === 0) {
-        const rascunhoSalvo = safeStorage.getItem('ctwRascunhoAparelho');
-        if (rascunhoSalvo) {
-            try {
-                const estado = JSON.parse(rascunhoSalvo);
-                
-                // 1. Restaura o carrinho
-                if (estado.carrinho && Array.isArray(estado.carrinho) && estado.carrinho.length > 0) {
-                    carrinhoDeAparelhos = estado.carrinho;
-                    renderCarrinho(); // Atualiza visualmente a lista
-                }
-                
-                // 2. Restaura valores numéricos
-                if (estado.entrada) document.getElementById('entradaAparelho').value = estado.entrada;
-                if (estado.extra) document.getElementById('valorExtraAparelho').value = estado.extra;
-                
-                // 3. Restaura Maquininha e Bandeira
-                if (estado.maquininha) {
-                    machineSelect.value = estado.maquininha;
-                    // Força o evento 'change' para atualizar as parcelas
-                    updateInstallmentsOptions(); 
-                }
-                
-                if (estado.bandeira && brandSelect) {
-                    // Pequeno delay para garantir que o select de bandeira apareceu
-                    setTimeout(() => {
-                        brandSelect.value = estado.bandeira;
-                        updateFlagDisplay('3'); // Atualiza o ícone da bandeira
-                    }, 50);
-                }
-                
-                // 4. Recalcula tudo com os dados carregados
-                setTimeout(() => calculateAparelho(), 100);
-
-            } catch (e) {
-                console.error("Erro ao restaurar rascunho. Limpando memória corrompida.", e);
-                safeStorage.removeItem('ctwRascunhoAparelho');
-            }
-        }
-    }
-    // -------------------------------------------------------------
-
+    // Configura a visualização das bandeiras
     document.getElementById("flagDisplayContainer3").style.display = (machineSelect.value !== "pagbank") ? 'block' : 'none';
     updateFlagDisplay('3');
+    
+    // Mostra os favoritos
     renderAparelhoFavorites();
-    // O calculateAparelho já é chamado no timeout acima se carregar rascunho,
-    // mas se não carregar, chamamos aqui para garantir estado inicial
-    if (carrinhoDeAparelhos.length === 0) calculateAparelho(); 
+    
+    // Apenas recalcula o que já está na tela (sem apagar nada)
+    calculateAparelho();
 }
+
 
 
 function getRate(machine, brand, installments) { 
@@ -595,9 +574,10 @@ function removerDoCarrinho(index) {
     renderCarrinho();
     calculateAparelho();
 }
-
-// PRECISAMOS DECLARAR ESTA FUNÇÃO FORA DO EVENT LISTENER PARA SER ACESSÍVEL GLOBALMENTE
+// LINHA MÁGICA: Torna a função visível para o botão do HTML
 window.removerDoCarrinho = removerDoCarrinho;
+
+
 
 function calculateAparelho() {
     if (!areRatesLoaded) return;
@@ -667,9 +647,11 @@ function calculateAparelho() {
         }
     }
 
+        // ... (parte anterior do calculateAparelho continua igual) ...
+
     let finalHtml = headerHtml;
     if(tableRows) {
-        // --- ADIÇÃO: Toggle de Seleção Múltipla ---
+        // ... (código do html da tabela) ...
         finalHtml += `
         <div class="d-flex justify-content-end align-items-center mb-2 px-2">
             <div class="form-check form-switch">
@@ -677,32 +659,14 @@ function calculateAparelho() {
                 <label class="form-check-label small" for="multiSelectToggle">Selecionar Vários</label>
             </div>
         </div>`;
-        // ------------------------------------------
-        
         finalHtml += `<div class="table-responsive"><table class="table results-table"><thead><tr><th>Parcelas</th><th>Valor da Parcela</th><th>Total a Passar</th></tr></thead><tbody>${tableRows}</tbody></table></div>`;
     }
     resultDiv.innerHTML = finalHtml;
     exportContainer.style.display = tableRows.trim() !== "" ? 'block' : 'none';
     
-        // --- PASSO 1: SALVAR RASCUNHO AUTOMÁTICO (Seguro) ---
-    try {
-        // Cria o pacote de dados para salvar
-        const estadoParaSalvar = {
-            carrinho: carrinhoDeAparelhos,
-            entrada: document.getElementById('entradaAparelho').value,
-            extra: document.getElementById('valorExtraAparelho').value,
-            maquininha: document.getElementById('machine3').value,
-            bandeira: document.getElementById('brand3').value
-        };
-        // Grava na memória do navegador
-        safeStorage.setItem('ctwRascunhoAparelho', JSON.stringify(estadoParaSalvar));
-    } catch (e) {
-        console.warn("Não foi possível salvar o rascunho:", e);
-    }
-    // ----------------------------------------------------
-
-    
+    // REMOVEMOS A PARTE QUE SALVAVA O RASCUNHO AQUI
 }
+
 
 function handleProductSelectionForAparelho(product) {
     // Adiciona ao carrinho
@@ -824,6 +788,17 @@ function loadRatesFromDB() {
             areRatesLoaded = true; 
             updateInstallmentsOptions(); 
             console.log("Taxas carregadas."); 
+            
+            // --- CORREÇÃO: RECALCULAR ASSIM QUE AS TAXAS CHEGAREM ---
+            // Se o usuário estiver na tela de "Calcular por Aparelho", forçamos o cálculo agora
+            // pois antes ele pode ter falhado por falta de taxas.
+            if (currentCalculatorSectionId === 'calcularPorAparelho') {
+                calculateAparelho();
+            }
+            // Se estiver em outras telas que precisam de recálculo imediato
+            if (currentCalculatorSectionId === 'fecharVenda') calculateFecharVenda();
+            // ---------------------------------------------------------
+
             if (currentMainSectionId === 'administracao' && document.getElementById('adminModeToggle')?.checked) renderRatesEditor(); 
         } else { 
             console.error("ERRO: As taxas não foram encontradas."); 
@@ -834,6 +809,7 @@ function loadRatesFromDB() {
         showCustomModal({ message: `Erro ao carregar taxas: ${error.message}` }); 
     }); 
 }
+ //fim da funcao
 
 const getProductsRef = () => ref(db, 'products');
 
@@ -2346,7 +2322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let entradaText = '';
             if (entradaValue > 0) {
                 const entradaFormatted = entradaValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                entradaText = `\n"+${entradaFormatted} no dinheiro ou pix"`;
+                entradaText = `\n*_+${entradaFormatted} no dinheiro ou pix_*`;
             }
 
             // Dados da Etiqueta
@@ -2436,7 +2412,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let entradaText = '';
             if (entradaValue > 0) {
                 const entradaFormatted = entradaValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                entradaText = `\n"+${entradaFormatted} no dinheiro ou pix"`;
+                entradaText = `\n*_+${entradaFormatted} no dinheiro ou pix_*`;
             }
             
             let customText = '';
