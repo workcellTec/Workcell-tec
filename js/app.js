@@ -119,7 +119,12 @@ function showMainSection(sectionId) {
 
 function renderRatesEditor() {
     const accordionContainer = document.getElementById('ratesAccordion');
-    if (!areRatesLoaded || Object.keys(rates).length === 0) { accordionContainer.innerHTML = '<p class="text-center text-secondary">Aguardando carregamento das taxas...</p>'; return; }
+    if (!areRatesLoaded || Object.keys(rates).length === 0) { 
+        accordionContainer.innerHTML = '<p class="text-center text-secondary">Aguardando carregamento das taxas...</p>'; 
+        return; 
+    }
+    
+    // 1. Renderiza as taxas (Código original mantido)
     accordionContainer.innerHTML = '';
     Object.keys(rates).forEach((machine, index) => {
         const machineData = rates[machine], isPagBank = machine === 'pagbank';
@@ -139,42 +144,130 @@ function renderRatesEditor() {
         }
         accordionContainer.insertAdjacentHTML('beforeend', `<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${machine}">${machine.charAt(0).toUpperCase() + machine.slice(1)}</button></h2><div id="collapse-${machine}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#ratesAccordion"><div class="accordion-body">${machineContent}</div></div></div>`);
     });
+    
     accordionContainer.querySelectorAll('[data-bs-toggle="tab"]').forEach(triggerEl => { if (!bootstrap.Tab.getInstance(triggerEl)) new bootstrap.Tab(triggerEl); });
+
+    // 2. INSERIR PAINEL DE PADRÕES (NOVO CÓDIGO)
+    renderDefaultSettingsPanel(accordionContainer);
 }
 
-async function saveRates() {
-    const updatedRates = JSON.parse(JSON.stringify(rates));
-    let hasError = false;
-    document.querySelectorAll('#adminRatesContent input[type="number"]').forEach(input => {
-        const { machine, brand, type, installments } = input.dataset;
-        const value = parseFloat(input.value);
-        if (isNaN(value)) { hasError = true; return; }
-        if (brand) { if (type === 'debito') updatedRates[machine][brand].debito = value; else if (type === 'credito') updatedRates[machine][brand].credito[parseInt(installments) - 1] = value; }
-        else { if (type === 'debito') updatedRates[machine].debito = value; else if (type === 'credito') updatedRates[machine].credito[parseInt(installments) - 1] = value; }
+// --- FUNÇÃO NOVA: PAINEL DE PADRÕES DE MÁQUINA E BANDEIRA ---
+function renderDefaultSettingsPanel(container) {
+    const savedMachine = safeStorage.getItem('ctwDefaultMachine') || 'pagbank';
+    const savedBrand = safeStorage.getItem('ctwDefaultBrand') || '';
+
+    // HTML do Painel
+    const panelHtml = `
+    <div class="admin-section mt-4" style="border: 1px solid var(--primary-color);">
+        <h4 class="text-start mb-3"><i class="bi bi-bookmark-star-fill text-warning"></i> Definir Padrões de Cálculo</h4>
+        <p class="text-secondary small">Escolha qual máquina e bandeira devem vir selecionadas automaticamente ao abrir a calculadora.</p>
+        
+        <div class="mb-3">
+            <label class="form-label">Maquininha Padrão</label>
+            <select id="defaultMachineSelect" class="form-select">
+                <option value="pagbank">PagBank</option>
+                <option value="infinity">InfinityPay</option>
+                <option value="valorante">Valorante</option>
+            </select>
+        </div>
+
+        <div class="mb-3 hidden" id="defaultBrandContainer">
+            <label class="form-label">Bandeira Padrão</label>
+            <select id="defaultBrandSelect" class="form-select">
+                </select>
+        </div>
+
+        <button id="saveDefaultsBtn" class="btn btn-warning w-100 fw-bold" style="color: #000;"><i class="bi bi-check-circle-fill"></i> Salvar Padrão</button>
+    </div>
+    `;
+    
+    container.insertAdjacentHTML('afterend', panelHtml);
+
+    // Lógica dos Selects
+    const machineSelect = document.getElementById('defaultMachineSelect');
+    const brandSelect = document.getElementById('defaultBrandSelect');
+    const brandContainer = document.getElementById('defaultBrandContainer');
+    const saveBtn = document.getElementById('saveDefaultsBtn');
+
+    // 1. Carrega Máquina Salva
+    machineSelect.value = savedMachine;
+
+    // 2. Função para atualizar as bandeiras baseada na máquina
+    const updateBrands = () => {
+        const machine = machineSelect.value;
+        brandSelect.innerHTML = '';
+        
+        if (machine === 'pagbank') {
+            brandContainer.classList.add('hidden');
+        } else {
+            brandContainer.classList.remove('hidden');
+            // Pega as bandeiras disponíveis nessa máquina direto do objeto 'rates'
+            if (rates[machine]) {
+                const availableBrands = Object.keys(rates[machine]);
+                availableBrands.forEach(brand => {
+                    const option = document.createElement('option');
+                    option.value = brand;
+                    option.textContent = brand.charAt(0).toUpperCase() + brand.slice(1);
+                    if (brand === savedBrand) option.selected = true;
+                    brandSelect.appendChild(option);
+                });
+            }
+        }
+    };
+
+    machineSelect.addEventListener('change', updateBrands);
+    updateBrands(); // Roda ao abrir
+
+    // 3. Botão Salvar
+    saveBtn.addEventListener('click', () => {
+        const machine = machineSelect.value;
+        const brand = (machine !== 'pagbank') ? brandSelect.value : '';
+        
+        safeStorage.setItem('ctwDefaultMachine', machine);
+        safeStorage.setItem('ctwDefaultBrand', brand);
+        
+        showCustomModal({ message: `Padrão salvo! Agora a calculadora abrirá com ${machine.charAt(0).toUpperCase() + machine.slice(1)} ${brand ? '- ' + brand.toUpperCase() : ''}.` });
     });
-    if (hasError) { showCustomModal({ message: "Corrija campos inválidos." }); return; }
-    try { await update(ref(db, 'rates'), updatedRates); showCustomModal({ message: "Taxas atualizadas!" }); }
-    catch (error) { console.error("Erro ao salvar taxas:", error); showCustomModal({ message: `Erro ao salvar: ${error.message}` }); }
 }
 
-let activeBrandSelect = null;
-const flagData = { visa: { name: 'Visa', icon: 'bi-credit-card' }, mastercard: { name: 'Mastercard', icon: 'bi-credit-card-2-front-fill' }, hiper: { name: 'Hiper', icon: 'bi-card-heading' }, hipercard: { name: 'Hipercard', icon: 'bi-card-heading' }, elo: { name: 'Elo', icon: 'bi-credit-card-fill' }, amex: { name: 'Amex', icon: 'bi-person-badge' } };
+
+
 
 function openFlagModal(machineSelectElement) {
-    const flagModalOverlay = document.getElementById('flagSelectorModalOverlay'), flagModalButtons = document.getElementById('flagSelectorButtons');
-    const machineValue = machineSelectElement.value, sectionNumber = machineSelectElement.id.replace('machine', '');
-    activeBrandSelect = document.getElementById(`brand${sectionNumber}`);
-    if (machineValue === 'pagbank' || !activeBrandSelect) { if (flagModalOverlay.classList.contains('active')) closeFlagModal(); return; }
+    const flagModalOverlay = document.getElementById('flagSelectorModalOverlay');
+    const flagModalButtons = document.getElementById('flagSelectorButtons');
+    const machineValue = machineSelectElement.value;
+    const sectionNumber = machineSelectElement.id.replace('machine', '');
+    
+    // CORREÇÃO AQUI: Adicionei 'const' para declarar a variável. Antes estava sem nada e travava.
+    const activeBrandSelect = document.getElementById(`brand${sectionNumber}`);
+    
+    if (machineValue === 'pagbank' || !activeBrandSelect) { 
+        if (flagModalOverlay.classList.contains('active')) closeFlagModal(); 
+        return; 
+    }
+    
     flagModalButtons.innerHTML = '';
     Array.from(activeBrandSelect.options).forEach(option => {
-        const brand = option.value, data = flagData[brand] || { name: brand.charAt(0).toUpperCase() + brand.slice(1), icon: 'bi-question-circle' };
+        const brand = option.value;
+        // Proteção extra caso flagData não tenha a bandeira
+        const data = (typeof flagData !== 'undefined' && flagData[brand]) ? flagData[brand] : { name: brand, icon: 'bi-question-circle' };
+        
         const button = document.createElement('button');
-        button.className = 'btn-flag'; button.dataset.value = brand; button.innerHTML = `<i class="bi ${data.icon}"></i> ${data.name}`;
-        button.onclick = () => { activeBrandSelect.value = brand; activeBrandSelect.dispatchEvent(new Event('change', { bubbles: true })); closeFlagModal(); };
+        button.className = 'btn-flag'; 
+        button.dataset.value = brand; 
+        button.innerHTML = `<i class="bi ${data.icon}"></i> ${data.name}`;
+        
+        button.onclick = () => { 
+            activeBrandSelect.value = brand; 
+            activeBrandSelect.dispatchEvent(new Event('change', { bubbles: true })); 
+            closeFlagModal(); 
+        };
         flagModalButtons.appendChild(button);
     });
     flagModalOverlay.classList.add('active');
 }
+
 
 function closeFlagModal() { document.getElementById('flagSelectorModalOverlay').classList.remove('active'); }
 
@@ -191,40 +284,68 @@ function parseBrazilianCurrencyToFloat(valueString) { let cleaned = String(value
 function openCalculatorSection(sectionId) {
     if (!sectionId || !document.getElementById(sectionId)) sectionId = 'calculatorHome';
     
-    // Esconde todas as seções
+    // 1. Esconde tudo primeiro
     ['calculatorHome', 'fecharVenda', 'repassarValores', 'calcularEmprestimo', 'calcularPorAparelho'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
+        document.getElementById(id).style.display = 'none';
     });
 
     if (sectionId !== 'calcularPorAparelho') {
         currentlySelectedProductForCalc = null;
     }
 
-    // --- CORREÇÃO: SE FOR ENTRAR NA ABA DE APARELHO, AÍ SIM LIMPA TUDO ---
+    // 2. Limpeza ao entrar na aba
     if (sectionId === 'calcularPorAparelho') {
-        carrinhoDeAparelhos = []; // Zera a memória
-        renderCarrinho(); // Limpa visualmente os cards
-        
-        // Zera os inputs
+        carrinhoDeAparelhos = [];
+        renderCarrinho();
         const inputEntrada = document.getElementById('entradaAparelho');
         const inputExtra = document.getElementById('valorExtraAparelho');
         if(inputEntrada) inputEntrada.value = '';
         if(inputExtra) inputExtra.value = '';
     }
-    // ---------------------------------------------------------------------
 
+    // 3. Mostra a seção
     document.getElementById(sectionId).style.display = 'flex';
     currentCalculatorSectionId = sectionId;
     
-    const sectionInitializers = {
-        fecharVenda: () => { updateInstallmentsOptions(); updateFecharVendaUI(); },
-        repassarValores: () => { updateRepassarValoresUI(); },
-        calcularEmprestimo: () => { updateCalcularEmprestimoUI(); },
-        calcularPorAparelho: () => { updateCalcularPorAparelhoUI(); }
+    // --- LÓGICA DE PADRÕES ---
+    const defaultMachine = safeStorage.getItem('ctwDefaultMachine');
+    const defaultBrand = safeStorage.getItem('ctwDefaultBrand');
+
+    // Mapeamento de qual select pertence a qual seção
+    const sectionMap = {
+        'fecharVenda': { m: 'machine1', b: 'brand1', init: () => { updateInstallmentsOptions(); updateFecharVendaUI(); } },
+        'repassarValores': { m: 'machine2', b: 'brand2', init: () => updateRepassarValoresUI() },
+        'calcularEmprestimo': { m: 'machine4', b: 'brand4', init: () => updateCalcularEmprestimoUI() },
+        'calcularPorAparelho': { m: 'machine3', b: 'brand3', init: () => updateCalcularPorAparelhoUI() }
     };
-    
-    if (sectionInitializers[sectionId]) sectionInitializers[sectionId]();
+
+    const config = sectionMap[sectionId];
+
+    // Se a seção tem configuração de máquina/bandeira
+    if (config) {
+        const mSelect = document.getElementById(config.m);
+        const bSelect = document.getElementById(config.b);
+
+        // A. Aplica os valores nos selects (mesmo que ainda invisíveis)
+        if (defaultMachine && mSelect) {
+            mSelect.value = defaultMachine;
+        }
+        if (defaultMachine !== 'pagbank' && defaultBrand && bSelect) {
+            bSelect.value = defaultBrand;
+        }
+
+        // B. Roda a inicialização da tela (Isso vai ler os selects e desenhar os botões)
+        config.init();
+
+        // C. Correção Final: Se não for PagBank, garante que o botão da bandeira mostre o ícone certo
+        if (defaultMachine && defaultMachine !== 'pagbank' && defaultBrand) {
+            const sectionNum = config.m.replace('machine', '');
+            // Pequeno delay para garantir que o DOM atualizou
+            setTimeout(() => {
+                updateFlagDisplay(sectionNum);
+            }, 50);
+        }
+    }
     
     safeStorage.setItem('ctwLastCalcSub', sectionId);
 }
@@ -1075,7 +1196,21 @@ function setupFuse() {
 
 
 let currentEditingProductId = null;
+
+// --- DADOS DAS BANDEIRAS (Correção para o botão funcionar) ---
+const flagData = {
+    visa: { name: 'Visa', icon: 'bi-credit-card-2-front' },
+    mastercard: { name: 'Mastercard', icon: 'bi-credit-card-2-back' },
+    hiper: { name: 'Hiper', icon: 'bi-credit-card' },
+    hipercard: { name: 'Hipercard', icon: 'bi-credit-card' },
+    elo: { name: 'Elo', icon: 'bi-credit-card' },
+    amex: { name: 'Amex', icon: 'bi-credit-card' }
+};
+
 let tempSelectedColors = [];
+
+
+
 const colorPalette = [
     { nome: 'Preto', hex: '#212121' }, { nome: 'Branco', hex: '#FFFFFF' }, { nome: 'Cinza Espacial', hex: '#535559' }, { nome: 'Prata', hex: '#E0E0E0' },
     { nome: 'Dourado', hex: '#FFD700' }, { nome: 'Rosê', hex: '#E0BFB8' }, { nome: 'Rosa', hex: '#FFC0CB' }, { nome: 'Rosa Claro', hex: '#FFD1DC' },
@@ -1664,29 +1799,38 @@ function setupNotificationListeners() {
 function checkForDueInstallments(initialNotifications = []) {
     if (!db || !isAuthReady) return;
     const boletosRef = ref(db, 'boletos');
-    const todayStr = new Date().toISOString().split('T')[0];
-    const viewedNotifsKey = `viewedNotifications_${todayStr}`;
     
-    Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('viewedNotifications_') && key !== viewedNotifsKey) {
-            safeStorage.removeItem(key);
-        }
-    });
+    // 1. Carrega a lista de notificações que ESSE usuário já limpou
+    const dismissedKey = 'ctwDismissedNotifs';
+    let dismissedList = [];
+    try {
+        dismissedList = JSON.parse(safeStorage.getItem(dismissedKey) || '[]');
+    } catch (e) {
+        dismissedList = [];
+    }
 
     if (installmentNotificationsListener) off(boletosRef, 'value', installmentNotificationsListener);
     
     installmentNotificationsListener = onValue(boletosRef, (snapshot) => {
-        const viewedNotifs = JSON.parse(safeStorage.getItem(viewedNotifsKey) || '[]');
         const notifications = [...initialNotifications];
+        
         if (snapshot.exists()) {
             const data = snapshot.val();
+            
+            // Datas para comparação (Zerar horas para comparar apenas dia/mês/ano)
             const today = new Date();
             today.setHours(0, 0, 0, 0);
+            
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1); // Pega o dia de ontem
+
             for (const key in data) {
                 const boleto = data[key];
                 const baseDate = boleto.primeiroVencimento ? new Date(boleto.primeiroVencimento + 'T00:00:00') : new Date(boleto.criadoEm);
+                
                 for (let i = 0; i < boleto.numeroParcelas; i++) {
                     let dueDate;
+                    // Lógica de cálculo da data
                     if(boleto.primeiroVencimento) {
                         dueDate = new Date(baseDate);
                         if (boleto.tipoParcela === 'mensais') {
@@ -1703,14 +1847,23 @@ function checkForDueInstallments(initialNotifications = []) {
                         }
                     }
                     dueDate.setHours(0, 0, 0, 0);
-                    if (dueDate.getTime() === today.getTime()) {
-                        const notificationId = `${key}_${i}`;
-                        if (!viewedNotifs.includes(notificationId)) {
+                    
+                    // 2. Verifica se vence HOJE ou venceu ONTEM
+                    const isToday = dueDate.getTime() === today.getTime();
+                    const isYesterday = dueDate.getTime() === yesterday.getTime();
+
+                    if (isToday || isYesterday) {
+                        const notificationId = `${key}_${i}`; // ID único: idBoleto + numeroParcela
+                        
+                        // 3. Só mostra se o usuário NÃO limpou essa notificação antes
+                        if (!dismissedList.includes(notificationId)) {
+                            const timeText = isToday ? '<span class="text-warning fw-bold">Vence Hoje</span>' : '<span class="text-danger fw-bold">Venceu Ontem</span>';
+                            
                             notifications.push({
                                 isGeneral: false,
                                 notificationId: notificationId,
                                 boletoId: key,
-                                message: `<strong>${escapeHtml(boleto.compradorNome)}:</strong> Parcela ${i + 1}/${boleto.numeroParcelas} vence hoje.`
+                                message: `<strong>${escapeHtml(boleto.compradorNome)}:</strong> Parcela ${i + 1}/${boleto.numeroParcelas}. ${timeText}`
                             });
                         }
                     }
@@ -1728,59 +1881,62 @@ function updateNotificationUI(notifications) {
     if (notifications.length > 0) {
         badge.textContent = notifications.length;
         badge.classList.remove('hidden');
+        
         notificationList.innerHTML = notifications.map(notif => {
             if (notif.isGeneral) {
-                return `<div class="list-group-item">${notif.message}</div>`;
+                return `<div class="list-group-item bg-transparent text-light border-secondary">${notif.message}</div>`;
             } else {
-                return `<a href="#" class="list-group-item list-group-item-action notification-item" data-boleto-id="${notif.boletoId}" data-notification-id="${notif.notificationId}">${notif.message}</a>`;
+                // DESIGN NOVO: Botão redondo, discreto e alinhado
+                return `
+                <div class="list-group-item list-group-item-action notification-item d-flex justify-content-between align-items-center bg-transparent border-secondary text-light p-3 mb-2" id="notif-item-${notif.notificationId}" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.1) !important;">
+                    <div class="flex-grow-1 pe-3" style="cursor: pointer;" onclick="verBoletoDeNotificacao('${notif.boletoId}')">
+                        ${notif.message}
+                    </div>
+                    <button class="dismiss-notif-btn text-secondary" data-id="${notif.notificationId}" title="Limpar notificação" style="background: rgba(255,255,255,0.05); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s;">
+                        <i class="bi bi-x-lg" style="font-size: 0.9rem;"></i>
+                    </button>
+                </div>`;
             }
-        }).join('') + '<hr><div class="list-group-item text-secondary small text-center">Notificações de parcelas podem ser dispensadas.</div>';
+        }).join('') + '<div class="text-secondary small text-center mt-3" style="opacity: 0.6;">As notificações limpas somem apenas para você.</div>';
+        
+        // Lógica do botão limpar
+        document.querySelectorAll('.dismiss-notif-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const notifId = e.currentTarget.dataset.id;
+                
+                // Salva no LocalStorage
+                const dismissedKey = 'ctwDismissedNotifs';
+                let dismissedList = [];
+                try { dismissedList = JSON.parse(safeStorage.getItem(dismissedKey) || '[]'); } catch(err) { dismissedList = []; }
+
+                if (!dismissedList.includes(notifId)) {
+                    dismissedList.push(notifId);
+                    safeStorage.setItem(dismissedKey, JSON.stringify(dismissedList));
+                }
+
+                // Efeito visual de remover
+                const itemRow = document.getElementById(`notif-item-${notifId}`);
+                if (itemRow) {
+                    itemRow.style.opacity = '0';
+                    setTimeout(() => itemRow.remove(), 300);
+                }
+
+                // Atualiza o contador
+                const currentCount = parseInt(badge.textContent || '0');
+                const newCount = Math.max(0, currentCount - 1);
+                if (newCount > 0) {
+                    badge.textContent = newCount;
+                } else {
+                    badge.classList.add('hidden');
+                    notificationList.innerHTML = '<div class="list-group-item bg-transparent text-secondary text-center border-0 p-4">Nenhuma notificação pendente.</div>';
+                }
+            });
+        });
+
     } else {
         badge.classList.add('hidden');
-        notificationList.innerHTML = '<div class="list-group-item text-center">Nenhuma notificação hoje.</div>';
-    }
-}
-
-const initialDefaultTags = ['Nenhuma', 'Chinês', 'Samsung / Apple', 'Seminovo Iphone', 'Seminovo android'];
-
-function getTagList() { return tags; }
-
-async function saveTagList(newTags) {
-    try {
-        await update(ref(db), { 'tags': newTags });
-    } catch (error) {
-        console.error("Erro ao salvar etiquetas:", error);
-        showCustomModal({ message: `Erro ao salvar etiquetas: ${error.message}`});
-    }
-}
-
-function loadTagTexts() {
-    const stored = safeStorage.getItem(TAG_TEXTS_KEY);
-    tagTexts = stored ? JSON.parse(stored) : {};
-}
-
-function populateTagSelects() {
-    const tags = getTagList();
-    const optionsHtml = tags.map(tag => `<option value="${escapeHtml(tag)}">${escapeHtml(tag)}</option>`).join('');
-    document.getElementById('newProductTag').innerHTML = optionsHtml;
-    document.getElementById('newProductTag').value = 'Nenhuma';
-}
-
-async function updateTagNameInProducts(oldTag, newTag) {
-    const updates = {};
-    products.forEach(product => {
-        if (product.tag === oldTag) {
-            updates[`/products/${product.id}/tag`] = newTag;
-        }
-    });
-    if (Object.keys(updates).length > 0) {
-        try {
-            await update(ref(db), updates);
-            showCustomModal({ message: `Etiqueta atualizada em ${Object.keys(updates).length} produto(s).`});
-        } catch(error) {
-            console.error("Erro ao atualizar etiquetas nos produtos:", error);
-            showCustomModal({ message: `Erro ao atualizar produtos: ${error.message}`});
-        }
+        notificationList.innerHTML = '<div class="list-group-item bg-transparent text-secondary text-center border-0 p-4">Nenhuma notificação pendente.</div>';
     }
 }
 
@@ -1910,11 +2066,48 @@ function renderScheduledNotificationsAdminList() {
         }
     });
 }
+function loadTagTexts() {
+    try {
+        const stored = safeStorage.getItem(TAG_TEXTS_KEY);
+        tagTexts = stored ? JSON.parse(stored) : {};
+    } catch (e) {
+        console.error("Erro ao carregar textos das etiquetas:", e);
+        tagTexts = {};
+    }
+}
+
+// --- FUNÇÕES DE TEMA DE COR ---
+function applyColorTheme(color) {
+    // Remove qualquer cor anterior
+    document.body.removeAttribute('data-color');
+    
+    // Se não for 'red' (padrão), aplica a nova cor
+    if (color && color !== 'red') {
+        document.body.setAttribute('data-color', color);
+    }
+    
+    // Salva na memória
+    safeStorage.setItem('ctwColorTheme', color);
+    
+    // Atualiza visual dos botões no modal (Checkmark)
+    document.querySelectorAll('.theme-option-btn').forEach(btn => {
+        btn.innerHTML = ''; // Limpa ícones antigos
+        btn.classList.remove('active');
+        if (btn.dataset.color === color) {
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="bi bi-check-lg"></i>';
+        }
+    });
+}
+
 
 async function main() {
     try {
         setupPWA();
         applyTheme(safeStorage.getItem('theme') || 'dark');
+                // Carrega a cor salva (ou usa vermelho se não tiver)
+        applyColorTheme(safeStorage.getItem('ctwColorTheme') || 'red');
+
         app = initializeApp(firebaseConfig); 
         auth = getAuth(app); 
         db = getDatabase(app);
@@ -1974,6 +2167,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const notificationOffcanvasEl = document.getElementById('notificationPanel');
     const notificationOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(notificationOffcanvasEl);
     
+        // --- CORREÇÃO VISUAL: ESCONDER CONTROLES QUANDO A ABA ABRIR ---
+    const controlsPanel = document.getElementById('top-right-controls');
+    
+    notificationOffcanvasEl.addEventListener('show.bs.offcanvas', () => {
+        // Esconde suavemente o sino e o tema
+        if(controlsPanel) {
+            controlsPanel.style.opacity = '0';
+            controlsPanel.style.pointerEvents = 'none'; // Impede cliques acidentais
+        }
+    });
+    
+    notificationOffcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
+        // Mostra de volta quando fechar
+        if(controlsPanel) {
+            controlsPanel.style.opacity = '1';
+            controlsPanel.style.pointerEvents = 'auto';
+        }
+    });
+    // -------------------------------------------------------------
+
         // --- LÓGICA DE MÁSCARA DE DINHEIRO (R$) AO VIVO ---
     
     const moneyInput = document.getElementById('editPriceInput');
@@ -2205,6 +2418,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('backFromStock').addEventListener('click', () => showMainSection('main'));
     document.getElementById('backFromAdmin').addEventListener('click', () => showMainSection('main'));
     document.getElementById('goToAdminFromEmptyState').addEventListener('click', () => showMainSection('administracao'));
+    // Botão Voltar do Sub-menu da Calculadora
+    document.getElementById('backFromCalculatorHome').addEventListener('click', () => showMainSection('main'));
 
     ['openFecharVenda', 'openRepassarValores', 'openCalcularEmprestimo', 'openCalcularPorAparelho'].forEach(id => { document.getElementById(id).addEventListener('click', () => openCalculatorSection(id.replace('open', '').charAt(0).toLowerCase() + id.slice(5))); });
     ['backFromFecharVenda', 'backFromRepassarValores', 'backFromCalcularEmprestimo', 'backFromCalcularPorAparelho'].forEach(id => { document.getElementById(id).addEventListener('click', () => openCalculatorSection('calculatorHome')); });
@@ -3248,4 +3463,33 @@ document.addEventListener('DOMContentLoaded', () => {
     
     setupVisibilityToggles();
     updateMachineVisibility();
+    
+        // --- LÓGICA DO SELETOR DE TEMAS ---
+    const themeModal = document.getElementById('themeSelectorModal');
+    
+    // Abrir Modal
+    const paletteBtn = document.getElementById('theme-palette-btn');
+    if (paletteBtn) {
+        paletteBtn.addEventListener('click', () => {
+            themeModal.classList.add('active');
+        });
+    }
+    
+    // Fechar Modal
+    const closeThemeBtn = document.getElementById('closeThemeModal');
+    if (closeThemeBtn) {
+        closeThemeBtn.addEventListener('click', () => {
+            themeModal.classList.remove('active');
+        });
+    }
+    
+    // Clicar nas cores
+    document.querySelectorAll('.theme-option-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            applyColorTheme(btn.dataset.color);
+            // Pequeno delay para fechar o modal
+            setTimeout(() => themeModal.classList.remove('active'), 200);
+        });
+    });
+
 });
