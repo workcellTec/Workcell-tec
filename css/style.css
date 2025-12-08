@@ -1,21 +1,29 @@
 :root {
-    --primary-color: #EF5350;
-    --primary-color-rgb: 239, 83, 80;
-    --tertiary-color: #030303;
-    --text-color: #F1F1F1;
+    /* TEMA: CYBER BLUE */
+    --primary-color: #2979FF;       /* Azul Elétrico Brilhante */
+    --primary-color-rgb: 41, 121, 255;
+    --tertiary-color: #0B1120;      /* Azul Noturno Profundo (Fundo) */
+    --text-color: #E2E8F0;          /* Branco Suave */
     --text-color-strong: #FFFFFF;
-    --text-secondary: #AAAAAA;
-    --text-success: #81C784;
-    --glass-bg: rgba(28, 28, 28, 0.65);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --shadow-color: rgba(0, 0, 0, 0.3);
-    --input-bg: rgba(44, 44, 46, 0.7);
-    --input-border: rgba(255, 255, 255, 0.1);
+    --text-secondary: #94A3B8;      /* Cinza Azulado */
+    --text-success: #00E676;        /* Verde Neon */
+    
+    /* Vidro mais azulado e moderno */
+    --glass-bg: rgba(30, 41, 59, 0.7); 
+    --glass-border: rgba(148, 163, 184, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    
+    --input-bg: rgba(15, 23, 42, 0.6);
+    --input-border: rgba(56, 189, 248, 0.1); /* Borda sutil azul */
+    
     --border-radius: 16px;
     --transition-duration: 0.3s;
-    --glow-1: #8A2BE2;
-    --glow-2: #B71C1C;
+    
+    /* Brilhos de fundo */
+    --glow-1: #00B0FF; /* Azul Claro */
+    --glow-2: #2979FF; /* Azul Escuro */
 }
+
 
 [data-theme="light"] {
     --primary-color: #B71C1C;
@@ -1139,4 +1147,72 @@ input[type="color"]::-moz-color-swatch { border-radius: 50%; border: 1px solid v
     filter: drop-shadow(0 0 2px rgba(0,255,0,0.5));
 }
 
-    
+    /* --- TEMAS DE CORES PERSONALIZADOS --- */
+
+/* 1. AZUL CYBER (Cyber Blue) */
+body[data-color="blue"] {
+    --primary-color: #2979FF;
+    --primary-color-rgb: 41, 121, 255;
+    --glow-1: #00B0FF; --glow-2: #2979FF;
+}
+/* Fundo especial azulado apenas no modo escuro */
+body[data-color="blue"][data-theme="dark"] {
+    --tertiary-color: #0B1120;
+    --glass-bg: rgba(30, 41, 59, 0.75);
+    --input-bg: rgba(15, 23, 42, 0.6);
+}
+
+/* 2. VERDE DINHEIRO (Emerald) */
+body[data-color="green"] {
+    --primary-color: #00C853;
+    --primary-color-rgb: 0, 200, 83;
+    --glow-1: #00E676; --glow-2: #FFD600;
+}
+body[data-color="green"][data-theme="dark"] {
+    --tertiary-color: #050505;
+    --glass-bg: rgba(20, 20, 20, 0.8);
+}
+
+/* 3. ROXO NUBANK (Deep Purple) */
+body[data-color="purple"] {
+    --primary-color: #8B5CF6;
+    --primary-color-rgb: 139, 92, 246;
+    --glow-1: #7C3AED; --glow-2: #EC4899;
+}
+body[data-color="purple"][data-theme="dark"] {
+    --tertiary-color: #0F0720;
+    --glass-bg: rgba(46, 16, 101, 0.5);
+    --input-bg: rgba(0, 0, 0, 0.3);
+}
+
+/* 4. LARANJA SUNSET (Orange) */
+body[data-color="orange"] {
+    --primary-color: #FF6D00;
+    --primary-color-rgb: 255, 109, 0;
+    --glow-1: #FFAB00; --glow-2: #FF3D00;
+}
+
+/* Botão do Pincel (Para abrir o menu) */
+#theme-palette-btn {
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-color);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--shadow-color);
+    transition: transform 0.2s;
+    backdrop-filter: blur(5px);
+}
+#theme-palette-btn:hover { transform: scale(1.1); }
+
+/* Botões de escolha de cor no Modal */
+.theme-option-btn {
+    width: 50px; height: 50px; border-radius: 50%; border: 2px solid transparent;
+    cursor: pointer; transition: transform 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 1.2rem;
+}
+.theme-option-btn:hover { transform: scale(1.1); }
+.theme-option-btn.active { border-color: #FFF; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
