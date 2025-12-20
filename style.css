@@ -25,6 +25,7 @@
 }
 
 
+
 [data-theme="light"] {
     --primary-color: #B71C1C;
     --primary-color-rgb: 183, 28, 28;
@@ -98,11 +99,13 @@ h2, h3, h4, h5 { font-weight: 600; text-align: center; color: var(--text-color);
 .section-header { width: 100%; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--glass-border); flex-shrink: 0;}
 .section-header h3 { margin-bottom: 0; font-size: 1.5rem; }
 
-#mainMenu, #calculatorHome {
-    padding-top: 80px; justify-content: flex-start;
+/* ATUALIZADO: Inclui #documentsHome na regra */
+#mainMenu, #calculatorHome, #documentsHome {
+    padding-top: 80px; 
+    justify-content: flex-start;
 }
 
-#mainMenu h2, #calculatorHome h2 {
+#mainMenu h2, #calculatorHome h2, #documentsHome h2 {
     text-shadow: 0 1px 3px rgba(0,0,0,0.3);
     margin-bottom: 30px;
     color: var(--text-color);
@@ -140,9 +143,11 @@ h2, h3, h4, h5 { font-weight: 600; text-align: center; color: var(--text-color);
     transition: background-color var(--transition-duration) ease, border-color var(--transition-duration) ease;
 }
 
-.container:not(#mainMenu):not(#calculatorHome) {
+./* AQUI ESTAVA O ERRO: Adicionamos :not(#documentsHome) para ele NÃO esticar os botões */
+.container:not(#mainMenu):not(#calculatorHome):not(#documentsHome) {
     padding-top: 20px; align-items: stretch;
 }
+
 
 .form-label { color: var(--text-secondary); margin-bottom: 8px; font-weight: 400; }
 [data-theme="dark"] .form-label { color: var(--text-color); }
@@ -1388,4 +1393,562 @@ body[data-color="orange"] {
     color: #fff;
     border-color: var(--primary-color);
     box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4);
+}
+
+    
+/* --- ESTILOS DO BOOKIP (DESIGN PREMIUM - REF: WORKCELL) --- */
+
+/* --- ESTILOS DO BOOKIP (LAYOUT "NOTA DE GARANTIA") --- */
+
+/* Esconde o preview na tela normal do app */
+#bookipPreview {
+    display: none;
+}
+
+/* Configuração de Impressão */
+@media print {
+    /* Esconde todo o app, EXCETO o preview */
+    body:not(.print-bookip) * {
+        display: none !important;
+    }
+
+    body.print-bookip #bookipPreview {
+        display: block !important;
+    }
+
+    * { 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+    }
+}
+    /* Mostra só o recibo */
+    body.print-bookip #bookipPreview { 
+        display: block !important; 
+        position: absolute; 
+        top: 0; 
+        left: 0; 
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        z-index: 9999;
+    }
+
+    /* Força a impressão das cores de fundo (barra colorida) */
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+
+/* O DESIGN DO DOCUMENTO */
+#bookipPreview {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    line-height: 1.3;
+    font-size: 10pt; /* Tamanho de letra padrão de documento */
+    padding: 10mm; /* Margem da folha A4 */
+    box-sizing: border-box;
+    max-width: 210mm;
+    margin: 0 auto;
+}
+
+/* 1. Cabeçalho (Logo Esq | Texto Dir) */
+.bk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
+
+.bk-logo-area {
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.bk-logo-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.bk-company-info {
+    text-align: right;
+    font-size: 9pt;
+    color: #444;
+}
+.bk-title-main {
+    font-size: 22pt;
+    font-weight: 400; /* Leve */
+    color: #000;
+    margin-bottom: 5px;
+    line-height: 1.1;
+}
+.bk-title-sub {
+    font-size: 22pt;
+    font-weight: 700; /* Negrito */
+    color: #000;
+    margin-bottom: 15px;
+    line-height: 1.1;
+}
+
+/* 2. Grid de Informações (Cliente | Datas) */
+.bk-info-grid {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-top: 1px solid #ddd;
+    padding-top: 15px;
+}
+
+.bk-col-client { flex: 2; padding-right: 20px; }
+.bk-col-dates { flex: 1; }
+
+.bk-label-bold {
+    font-weight: 700;
+    font-size: 10pt;
+    color: #000;
+    margin-bottom: 2px;
+    display: block;
+}
+.bk-text {
+    font-size: 10pt;
+    color: #333;
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Tabela de Datas na direita */
+.bk-date-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 9pt;
+}
+.bk-date-label { font-weight: 700; color: #000; }
+.bk-date-val { text-align: right; }
+
+/* 3. Tabela de Produtos (Barra Colorida) */
+.bk-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+.bk-table th {
+    background-color: var(--primary-color); /* Usa a cor do tema do app */
+    color: #fff;
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9pt;
+    text-transform: uppercase;
+}
+.bk-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+    font-size: 10pt;
+}
+.bk-table td:last-child, .bk-table th:last-child { text-align: right; }
+
+/* Detalhes do produto (marca, cor, etc) */
+.bk-prod-desc { font-weight: 700; font-size: 10pt; display: block; }
+.bk-prod-meta { font-size: 9pt; color: #666; display: block; margin-top: 3px; }
+
+/* 4. Totais e "Valor Pago" */
+.bk-totals-area {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 30px;
+}
+.bk-totals-box {
+    width: 250px;
+}
+.bk-total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 10pt;
+    border-bottom: 1px solid #eee;
+}
+.bk-total-final {
+    display: flex;
+    justify-content: space-between;
+    background-color: #f0f0f0; /* Fundo cinza igual da foto */
+    padding: 10px;
+    margin-top: 5px;
+    font-weight: 700;
+    color: #000;
+    font-size: 11pt;
+}
+.bk-total-highlight { color: #2e7d32; } /* Verde escuro para o valor */
+
+/* 5. Termos e Garantia */
+.bk-terms-area {
+    font-size: 9pt;
+    color: #333;
+    text-align: justify;
+}
+.bk-section-title {
+    font-weight: 700;
+    font-size: 10pt;
+    text-transform: uppercase;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    color: #000;
+}
+.bk-warning-box {
+    border: 1px dashed #000;
+    padding: 10px;
+    margin: 15px 0;
+    font-weight: 700;
+    text-align: center;
+    background-color: #fafafa;
+}
+
+
+
+/* ============================================================
+   /* ============================================================
+   ESTILO DA TELA DE CLIENTES (COM !IMPORTANT PARA FORÇAR)
+   ============================================================ */
+
+/* 1. Barra de Pesquisa (Forçando o visual) */
+#clientsContainer .input-group-text {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--input-border) !important;
+    border-right: none !important;
+    color: var(--text-secondary) !important;
+}
+
+#clientSearchInput {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--input-border) !important;
+    border-left: none !important;
+    color: var(--text-color) !important;
+    box-shadow: none !important;
+}
+
+/* Foco */
+#clientSearchInput:focus, #clientsContainer .input-group:focus-within .input-group-text {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.15) !important;
+}
+
+/* 2. Tabela Transparente (A Marreta no Bootstrap) */
+#clientsTableBody tr {
+    background-color: transparent !important; /* Remove fundo branco da linha */
+    border-bottom: 1px solid var(--glass-border) !important;
+}
+
+/* Remove fundo branco das CÉLULAS também (O Bootstrap põe cor aqui as vezes) */
+#clientsTableBody td {
+    background-color: transparent !important;
+    color: var(--text-color) !important;
+    vertical-align: middle !important;
+    border: none !important;
+}
+
+/* Efeito Hover (Passar o mouse) */
+#clientsTableBody tr:hover td {
+    background-color: rgba(var(--primary-color-rgb), 0.1) !important;
+}
+
+/* 3. Botões de Ação */
+.client-action-btn {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid transparent !important;
+    background: transparent; /* Reset */
+}
+
+/* Botão EDITAR (Pega cor do tema) */
+.btn-edit-theme {
+    background-color: rgba(var(--primary-color-rgb), 0.15) !important;
+    color: var(--primary-color) !important;
+    border-color: rgba(var(--primary-color-rgb), 0.3) !important;
+}
+
+/* Botão EXCLUIR (Vermelho) */
+.btn-delete-theme {
+    background-color: rgba(255, 82, 82, 0.15) !important;
+    color: #ff5252 !important;
+    border-color: rgba(255, 82, 82, 0.3) !important;
+}
+/* ============================================================
+   /* ============================================================
+   OTIMIZAÇÃO DE PERFORMANCE (ANTI-LAG)
+   ============================================================ */
+
+/* 1. Remove o efeito de vidro dos inputs (Isso pesa muito no scroll) */
+.form-control, .form-select {
+    backdrop-filter: none !important; 
+    -webkit-backdrop-filter: none !important;
+    /* Usa uma cor sólida levemente transparente em vez de calcular o blur */
+    background-color: var(--input-bg) !important; 
+    /* Força o celular a usar a placa de vídeo (GPU) para desenhar */
+    transform: translate3d(0,0,0); 
+}
+
+/* 2. Otimiza o container principal para não redesenhar tudo ao rolar */
+.content-card {
+    will-change: transform; 
+    transform: translate3d(0,0,0);
+}
+
+/* 3. Reduz a complexidade da sombra nos itens de lista (como as notificações) */
+.list-group-item {
+    box-shadow: none !important;
+    border: 1px solid var(--glass-border) !important;
+}
+/* =========================================
+   CORREÇÃO DO PDF (COLE NO FINAL DO ARQUIVO)
+   ========================================= */
+#bookipPreview.generating-pdf {
+    display: block !important;       /* Obriga a aparecer */
+    position: fixed !important;      /* Trava na tela */
+    top: 0 !important;               /* Cola no topo */
+    left: 0 !important;              /* Cola na esquerda */
+    width: 100% !important;          /* Ocupa largura total */
+    height: 100% !important;         /* Ocupa altura total */
+    background-color: white !important; /* Fundo BRANCO (evita transparência) */
+    z-index: 10000 !important;       /* Fica ACIMA do app */
+    overflow-y: scroll !important;   /* Permite rolar se precisar */
+}
+/* ============================================================
+   ESTILO DO POP-UP DE SUCESSO (COLE NO FINAL DO ARQUIVO)
+   ============================================================ */
+
+/* Quando o #postSaveOptions NÃO estiver escondido, ele vira um container de tela cheia */
+#postSaveOptions:not(.hidden) {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 12000 !important; /* Bem alto para ficar na frente de tudo */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 0 !important;
+    padding: 20px;
+    background: transparent; /* O fundo escuro é feito pelo backdrop abaixo */
+}
+
+/* O Fundo Escuro (Dimmer) */
+#postSaveOptions .popup-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); /* Bem escuro para focar */
+    backdrop-filter: blur(5px); /* Desfoque no fundo */
+    z-index: 1;
+    animation: fadeIn 0.3s ease;
+}
+
+/* O Cartão Central (Pop-up) */
+#postSaveOptions .popup-card {
+    position: relative;
+    z-index: 2;
+    background: #1e1e1e; /* Cinza quase preto */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 30px;
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    animation: popInElastic 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Animação de entrada elástica (Pulo) */
+@keyframes popInElastic {
+    0% { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+/* =========================================
+   ESTILO DOS BOTÕES NOVO / SEMINOVO
+   ========================================= */
+.tag-option {
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.05); /* Fundo transparente */
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);          /* Texto cinza */
+    font-weight: 500;
+    font-size: 0.75rem;
+    opacity: 0.6;                          /* Meio apagado */
+    transition: all 0.2s ease;
+}
+
+/* Quando estiver SELECIONADO */
+.tag-option.active {
+    background: var(--primary-color) !important; /* Cor do tema */
+    color: white !important;                     /* Texto branco */
+    border-color: var(--primary-color) !important;
+    opacity: 1;                                  /* Totalmente visível */
+    transform: scale(1.05);                      /* Cresce um pouquinho */
+    box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.4);
+}
+/* Botões da aba Documentos (mesmo tamanho da tela inicial) */
+.btn-document {
+    width: 100%;
+    max-width: 320px; /* MESMO padrão da tela inicial */
+    margin: 0 auto 15px auto; /* centraliza */
+    padding: 16px 24px;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+
+/* === BOTÕES DA ABA DOCUMENTOS === */
+#documentsHome .documents-buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center !important; /* MATA o stretch */
+}
+
+#documentsHome .documents-buttons .btn-menu {
+    width: 100% !important;
+    max-width: 320px !important; /* MESMO DA HOME */
+}
+
+/* =========================================
+   /* =========================================
+   ESTILO DA LISTA DE PRODUTOS (CORRIGIDO VERTICAL)
+   ========================================= */
+.bookip-item-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Centraliza verticalmente os dois lados */
+    transition: all 0.2s ease;
+}
+
+.bookip-item-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Lado Esquerdo: Texto */
+.bk-info {
+    flex: 1;
+    text-align: left;
+    padding-right: 15px; /* Mais espaço para não grudar na direita */
+    min-width: 0; /* Permite que o texto quebre linha se precisar */
+}
+
+.bk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    margin-bottom: 4px;
+    line-height: 1.2;
+    word-wrap: break-word; /* Quebra nomes muito longos */
+}
+
+.bk-details {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+/* --- MUDANÇA AQUI: Lado Direito Vertical --- */
+.bk-actions-area {
+    display: flex;
+    flex-direction: column; /* Empilha um em cima do outro */
+    align-items: flex-end; /* Alinha tudo à direita */
+    justify-content: center;
+    gap: 8px; /* Espaço entre o preço e os botões */
+    min-width: fit-content; /* Garante que não amasse */
+}
+
+.bk-price {
+    font-weight: 800;
+    color: var(--text-success); /* Verde */
+    font-size: 1.1rem;
+    white-space: nowrap; /* Preço sempre numa linha só */
+    line-height: 1;
+}
+
+.bk-buttons {
+    display: flex;
+    gap: 8px; /* Espaço entre os botões */
+}
+/* ------------------------------------------ */
+
+/* Botões Redondos (Lápis e Lixo) - Mantidos iguais */
+.btn-icon-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-icon-circle:hover { transform: scale(1.1); }
+.btn-edit-c { color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); }
+.btn-edit-c:hover { background: rgba(255, 193, 7, 0.1); }
+.btn-del-c { color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+.btn-del-c:hover { background: rgba(239, 68, 68, 0.1); }
+/* ============================================================
+   ESTILO DA BARRA DE BUSCA "GLASS" (VIDRO UNIFICADO)
+   ============================================================ */
+
+/* 1. O Container (A "Cápsula" de Vidro) */
+#bookipSearchContainer .input-group {
+    background: rgba(0, 0, 0, 0.25) !important; /* Fundo escuro transparente */
+    backdrop-filter: blur(10px) !important;      /* Desfoque de vidro */
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Borda fina */
+    border-radius: 15px !important;              /* Bem redondo */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    overflow: hidden; /* Garante que nada saia das bordas redondas */
+}
+
+/* 2. O Campo de Texto (Totalmente Transparente) */
+#bookipHistorySearch {
+    background-color: transparent !important; /* O TRUQUE: Fundo invisível */
+    border: none !important;                  /* Sem bordas cortando */
+    color: var(--text-color) !important;      /* Texto na cor do tema */
+    box-shadow: none !important;              /* Remove brilho azul ao clicar */
+    padding-left: 0 !important;               /* Cola na lupa */
+}
+
+/* 3. A Lupa e o Calendário (Ícones Transparentes) */
+#bookipSearchContainer .input-group-text {
+    background-color: transparent !important; /* Fundo invisível */
+    border: none !important;
+    color: rgba(255, 255, 255, 0.5) !important; /* Cor suave para os ícones */
+    padding-right: 10px;
+}
+
+/* Quando clica para digitar, a barra inteira brilha um pouco */
+#bookipSearchContainer .input-group:focus-within {
+    border-color: var(--primary-color) !important;
+    background: rgba(0, 0, 0, 0.35) !important;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
 }
