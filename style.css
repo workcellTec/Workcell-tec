@@ -1952,3 +1952,274 @@ body[data-color="orange"] {
     background: rgba(0, 0, 0, 0.35) !important;
     box-shadow: 0 0 15px rgba(0,0,0,0.2);
 }
+
+html, body {
+    /* 1. TRAVA O ELÁSTICO: Impede que a tela "quique" e mostre o fundo vazio */
+    overscroll-behavior-y: none;
+
+    /* 2. Garante que seu tema de fumaça cubra a tela toda (até em celulares altos) */
+    min-height: 100vh;
+    width: 100%;
+
+    /* 3. Ajustes básicos de layout (sem mexer em cores) */
+    margin: 0;
+    padding: 0;
+    scroll-behavior: smooth;
+}
+/* --- SOLUÇÃO ANTI-ELÁSTICO (NUCLEAR) --- */
+
+html, body {
+    /* 1. Trava a página inteira na tela */
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    
+    /* 2. Proíbe rolagem na raiz (mata o elástico do navegador) */
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+    
+    /* 3. Garante que o fundo do "buraco" seja da cor do seu app */
+    background-color: var(--tertiary-color) !important;
+}
+
+
+/* Agora, quem rola é SÓ o container, não a página */
+.container {
+    /* Ocupa todo o espaço disponível */
+    height: 100% !important;
+    width: 100% !important;
+    
+    /* Habilita rolagem interna */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    
+    /* Rolagem macia no iOS */
+    -webkit-overflow-scrolling: touch !important;
+    
+    /* Mantém o elástico só DENTRO do app (opcional, fica mais nativo) */
+    overscroll-behavior-y: contain; 
+    
+    /* Espaço extra no final para não cortar conteúdo */
+    padding-bottom: 120px !important; 
+}
+/* --- FUNDO TURBO: "MOVIMENTO VIVO" (Leve, mas se mexe de verdade) --- */
+
+.turbo-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: var(--tertiary-color);
+    overflow: hidden;
+    contain: strict;
+}
+
+.light-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px); /* Aumentei o blur pra ficar mais suave */
+    opacity: 0.4;
+    
+    /* Aceleração de Hardware ativada */
+    will-change: transform; 
+}
+
+/* Luz 1: A Principal (Mais agitada) */
+.orb-1 {
+    top: -20%;
+    left: -20%;
+    width: 100vw; /* Bem grande pra cobrir a tela */
+    height: 100vw;
+    background: var(--primary-color);
+    
+    /* Mudei para 8s (mais rápido) e movimento complexo */
+    animation: orbMove1 12s infinite alternate ease-in-out;
+}
+
+/* Luz 2: A Secundária (Contraste) */
+.orb-2 {
+    bottom: -20%;
+    right: -20%;
+    width: 90vw;
+    height: 90vw;
+    background: radial-gradient(circle, #4f46e5 0%, transparent 70%);
+    
+    /* Tempo diferente pra não ficarem sincronizadas */
+    animation: orbMove2 15s infinite alternate ease-in-out;
+}
+
+/* AQUI ESTÁ A MUDANÇA:
+   Antes andava 30px. Agora anda 150px a 200px (bastante chão!)
+*/
+@keyframes orbMove1 {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    100% {
+        transform: translate3d(150px, 100px, 0) scale(1.1);
+    }
+}
+
+@keyframes orbMove2 {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    100% {
+        transform: translate3d(-150px, -80px, 0) scale(1.2);
+    }
+}
+
+.container {
+    min-height: 100vh;
+    height: auto;
+    overflow-y: visible;
+}
+html, body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+}
+#documentsHome {
+    min-height: 100vh;
+}
+
+/* === CORREÇÃO DE ROLAGEM DA ABA DOCUMENTOS === */
+#contractContainer {
+    position: fixed;   /* Solta a aba da trava do corpo do site */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;      /* Ocupa a tela toda */
+    overflow-y: auto;  /* OBRIGA a barra de rolagem aparecer */
+    z-index: 50;       /* Garante prioridade */
+    padding-bottom: 150px; /* Espaço para o botão salvar */
+    
+    /* Garante rolagem macia no iPhone */
+    -webkit-overflow-scrolling: touch; 
+}
+
+/* Mantém o comportamento de esconder */
+#contractContainer.hidden {
+    display: none !important;
+}
+/* ================================================= */
+/* 👥 ESTILO NOVO DA EQUIPE (GRADE E CARTÕES)      */
+/* ================================================= */
+
+/* 1. O Container da Lista (A Grade) */
+#profilesList {
+    display: grid;
+    /* Cria colunas de no mínimo 110px. Se couber mais, ele cria mais colunas */
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+    gap: 15px; /* Espaço entre os cartões */
+    padding: 10px 5px;
+}
+
+/* 2. O Cartão Individual */
+.team-card {
+    background: var(--glass-bg); /* Fundo de vidro */
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 15px 10px;
+    
+    /* Centraliza tudo */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    
+    height: 100%; /* Garante altura igual pra todos */
+    position: relative; /* Para posicionar a lixeira no canto */
+    transition: transform 0.2s;
+}
+
+/* Efeito ao tocar */
+.team-card:active {
+    transform: scale(0.95);
+}
+
+/* A bolinha da Inicial */
+.team-avatar {
+    width: 50px; 
+    height: 50px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-weight: bold; 
+    color: #fff; 
+    font-size: 1.4rem; 
+    margin-bottom: 10px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* O Botão de Lixeira (No cantinho) */
+.btn-delete-card {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    opacity: 0.5;
+    padding: 5px;
+    color: #ff4d4d;
+}
+
+@media print {
+    body, html {
+        background: #FFF !important;
+        color: #000 !important;
+        
+        /* O SEGREDO: Destrava a altura e a rolagem para a impressora ver tudo */
+        height: auto !important;
+        overflow: visible !important;
+        position: static !important;
+    }
+
+    body::before {
+        display: none !important;
+    }
+
+    /* O restante do seu código print continua aqui... */
+    body > *:not(#contractPreview):not(#reportPreview):not(#bookipPreview) {
+        display: none !important;
+    }
+    /* ... */
+}
+/* ============================================================
+   🚀 TURBO GPU (MANTÉM O VISUAL, ACELERA O MOTOR)
+   Força o uso da placa de vídeo para os efeitos de vidro e luz
+   ============================================================ */
+
+/* 1. Otimiza os elementos de Vidro (Cards e Menu) */
+.content-card, 
+.btn-menu, 
+.admin-section, 
+.stock-item-card,
+.custom-modal-content {
+    /* Cria uma camada exclusiva na GPU para cada vidro */
+    transform: translate3d(0, 0, 0); 
+    -webkit-transform: translate3d(0, 0, 0);
+    
+    /* Avisa o navegador que esses itens são complexos */
+    will-change: backdrop-filter, transform; 
+    
+    /* Estabiliza a pintura do elemento */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* 2. Otimiza a Luz de Fundo (Para ela girar sem travar a digitação) */
+body::before {
+    /* Otimiza a animação 'moveGlow' para não recalcular a tela toda */
+    will-change: background-position;
+    transform: translateZ(0); /* Aceleração de hardware */
+}
+
+/* 3. Destrava o Teclado (O mais importante) */
+/* Isola os campos de texto para que o cursor pisque rápido */
+.form-control, .form-select {
+    transform: translateZ(0);
+    will-change: transform;
+}

@@ -6,7 +6,7 @@
     <title>Central Workcell</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000"/>
+    <meta name="theme-color" content="#0B1120"/>
         <link rel="apple-touch-icon" href="https://i.imgur.com/6Ei51Rg.png">
     <link rel="icon" type="image/png" href="https://i.imgur.com/6Ei51Rg.png">
 
@@ -518,6 +518,13 @@
     
 </head>
 <body>
+    
+<div class="turbo-bg">
+    <div class="light-orb orb-1"></div>
+    <div class="light-orb orb-2"></div>
+</div>
+
+
     <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--tertiary-color); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
         <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
             <span class="visually-hidden">Loading...</span>
@@ -525,26 +532,168 @@
         <p class="mt-3" style="color: var(--text-secondary);">Carregando sistema...</p>
     </div>
     
-        <div id="top-right-controls" class="hidden">
-        <div id="theme-palette-btn" title="Mudar Cor do Tema">
-            <i class="bi bi-palette-fill"></i>
-        </div>
 
-        <div class="toggle-switch-theme">
-            <input type="checkbox" id="theme-toggle-checkbox">
-            <label for="theme-toggle-checkbox">
-                <span><i class="bi bi-moon-fill"></i></span>
-                <span><i class="bi bi-sun-fill"></i></span>
-            </label>
-        </div>
 
-        <div id="notification-bell">
-            <i class="bi bi-bell-fill"></i>
-            <span class="notification-badge hidden"></span>
-        </div>
+
+
+
+
+<div id="top-right-controls" style="position: absolute; top: 20px; right: 20px; z-index: 1050;">
+
+    <div class="dropdown">
+        <button class="btn btn-link p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--text-color); transition: all 0.3s ease;">
+            <div style="width: 45px; height: 45px; 
+                        background: var(--input-bg);
+                        border-radius: 50%; 
+                        display: flex; align-items: center; justify-content: center; 
+                        border: 1px solid var(--glass-border); 
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                <i class="bi bi-person-fill fs-4"></i>
+            </div>
+            <span id="avatar-badge" class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle hidden" style="width: 12px; height: 12px;"></span>
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" 
+            style="background: var(--tertiary-color); 
+                   border: 1px solid var(--glass-border); 
+                   min-width: 280px; 
+                   padding: 0; 
+                   overflow: hidden;
+                   border-radius: 16px;">
+            
+            <li class="px-3 py-3 mb-1" style="border-bottom: 1px solid var(--glass-border); background: rgba(255,255,255,0.03);">
+                <small class="d-block text-secondary text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Logado como:</small>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <span id="displayProfileIcon" style="width: 8px; height: 8px; background: #00E676; border-radius: 50%; box-shadow: 0 0 10px #00E676;"></span>
+                    <span id="displayProfileName" class="fw-bold fs-5" style="color: var(--text-color);">Visitante</span>
+                </div>
+            </li>
+            
+
+
+
+                                 <li id="menu-notification-area" class="hidden" style="border-bottom: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.05);">
+                <button class="dropdown-item py-3" onclick="document.getElementById('notification-bell').click();" style="white-space: normal;">
+                    <div class="d-flex align-items-start gap-2">
+                        <div class="mt-1 position-relative">
+                            <i class="bi bi-bell-fill text-danger fs-5"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle bg-danger rounded-circle" style="width: 8px; height: 8px; box-shadow: 0 0 8px red;"></span>
+                        </div>
+                        
+                        <div style="overflow: hidden; width: 100%;">
+                            <span class="d-block fw-bold mb-1" style="font-size: 0.70rem; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px;">
+                                Nova Mensagem
+                            </span>
+                            
+                            <small class="d-block" id="menu-notification-text" 
+                                   style="font-size: 0.85rem; line-height: 1.3; opacity: 0.9; color: var(--text-color); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                Carregando...
+                            </small>
+                        </div>
+                    </div>
+                </button>
+            </li>
+            
+
+
+
+
+
+
+
+            <li class="p-2">
+                <button class="dropdown-item rounded py-2 d-flex align-items-center gap-2" 
+                        onclick="document.getElementById('theme-toggle-checkbox').click();" style="color: var(--text-color);">
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning"><i class="bi bi-moon-stars-fill"></i></div>
+                    <span>Alternar Tema</span>
+                </button>
+
+                <button class="dropdown-item rounded py-2 d-flex align-items-center gap-2 mt-1" 
+                        onclick="document.getElementById('theme-palette-btn').click();" style="color: var(--text-color);">
+                    <div class="icon-box bg-info bg-opacity-10 text-info"><i class="bi bi-palette-fill"></i></div>
+                    <span>Mudar Cores</span>
+                </button>
+                
+                <div id="installAppOption" style="display: none;">
+                    <button class="dropdown-item rounded py-2 d-flex align-items-center gap-2 mt-1" 
+                            onclick="if(window.installApp) window.installApp()" style="color: var(--text-color);">
+                        <div class="icon-box bg-success bg-opacity-10 text-success"><i class="bi bi-download"></i></div>
+                        <span>Instalar App</span>
+                    </button>
+                <li class="p-2">
+                <button class="dropdown-item rounded py-2 d-flex align-items-center gap-2" 
+                        onclick="document.getElementById('profileSelectorModal').classList.add('active');" 
+                        style="color: var(--text-color);">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <span>Trocar Usuário</span>
+                </button>
+            </li>
+
+        </ul>
     </div>
 
-    
+    <div style="display:none !important;">
+        <input type="checkbox" id="theme-toggle-checkbox">
+        <div id="theme-palette-btn"></div>
+        <div id="notification-bell"><span class="notification-badge hidden"></span></div> 
+    </div>
+
+    <style>
+        .icon-box { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        @keyframes pulseRed { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(2.5); } }
+
+        /* --- NOVA ANIMAÇÃO DO MENU --- */
+        /* Quando o menu abre (ganha a classe .show), ele executa essa animação */
+        #top-right-controls .dropdown-menu.show {
+            animation: dropdownSlideIn 0.2s ease-out forwards;
+            transform-origin: top right; /* Faz ele "nascer" a partir do botão */
+        }
+
+        @keyframes dropdownSlideIn {
+            from {
+                opacity: 0;
+                /* Começa um pouco para cima e menor */
+                transform: translateY(-15px) scale(0.95); 
+            }
+            to {
+                opacity: 1;
+                /* Termina na posição certa e tamanho normal */
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+
+    <script>
+        (function(){
+            const oldBadge = document.querySelector('#notification-bell .notification-badge');
+            const avatarBadge = document.getElementById('avatar-badge');
+            const menuArea = document.getElementById('menu-notification-area');
+            const menuText = document.getElementById('menu-notification-text');
+
+            function atualizarEstado() {
+                const temNotificacao = !oldBadge.classList.contains('hidden') && oldBadge.style.display !== 'none';
+                if (temNotificacao) {
+                    avatarBadge.classList.remove('hidden');
+                    menuArea.classList.remove('hidden');
+                    const textoSalvo = localStorage.getItem('sys_ultimo_aviso');
+                    menuText.innerText = (textoSalvo && textoSalvo.trim() !== "") ? textoSalvo : "Toque para ver os detalhes.";
+                } else {
+                    avatarBadge.classList.add('hidden');
+                    menuArea.classList.add('hidden');
+                }
+            }
+            if (oldBadge) {
+                new MutationObserver(atualizarEstado).observe(oldBadge, { attributes: true, attributeFilter: ['class', 'style'] });
+                setTimeout(atualizarEstado, 1500); 
+            }
+        })();
+    </script>
+</div>
+
+
+ 
     <div class="container text-center" id="mainMenu">
         <h2 class="mb-4">Bem-vindo(a) à Central Workcell,<br/>O que você quer fazer?</h2>
         <div class="d-grid gap-2">
@@ -569,12 +718,99 @@
             <div class="d-grid gap-2">
                 <button class="btn-menu" id="openFecharVenda"><i class="bi bi-cash-coin"></i> Fechar uma venda</button>
                 <button class="btn-menu" id="openRepassarValores"><i class="bi bi-arrow-left-right"></i> Repassar valores</button>
+
+<button class="btn-menu" id="openEmprestarValores"><i class="bi bi-people-fill"></i> Emprestar valores</button>
+
+
                 <button class="btn-menu" id="openCalcularEmprestimo"><i class="bi bi-bank"></i> Calcular Empréstimo</button>
                 <button class="btn-menu" id="openCalcularPorAparelho"><i class="bi bi-phone"></i> Calcular por aparelho</button>
+
             </div>
         </div>
 
         </div>
+
+
+
+
+<div class="container" id="emprestarValores" style="display: none;">
+    <div class="section-header">
+        <h3>Emprestar Valores</h3>
+        <button aria-label="Voltar" class="btn-back" id="backFromEmprestarValores"><i class="bi bi-arrow-left"></i></button>
+    </div>
+    <div class="content-card w-100">
+        <div class="mb-3" style="max-width: 400px; margin: 0 auto;">
+            <label class="form-label" for="emprestarNomeProduto"><i class="bi bi-tag"></i> Nome do Produto / Cliente</label>
+            <input class="form-control" id="emprestarNomeProduto" type="text" placeholder="Ex: Iphone 17 Pro Max" autocomplete="off"/>
+        </div>
+
+
+
+        <div class="mb-3" style="max-width: 400px; margin: 0 auto;">
+            <label class="form-label" for="emprestarValorBase"><i class="bi bi-wallet2"></i> Valor a Investir (R$)</label>
+            <input class="form-control form-control-lg" id="emprestarValorBase" type="number" step="0.01" min="0" placeholder="0,00"/>
+        </div>
+
+        <div class="mb-3" style="max-width: 400px; margin: 0 auto;">
+    <label class="form-label text-warning" for="emprestarEntrada"><i class="bi bi-cash-coin"></i> Entrada (Opcional)</label>
+    <input class="form-control form-control-lg border-warning" id="emprestarEntrada" type="number" step="0.01" min="0" placeholder="Valor pago na hora"/>
+    <div class="form-text text-secondary small">Este valor apenas aparece na imagem, não altera o cálculo.</div>
+</div>
+
+
+        <div class="mb-3" style="max-width: 400px; margin: 0 auto;">
+            <label class="form-label text-success fw-bold" for="emprestarLucroReais"><i class="bi bi-graph-up-arrow"></i> Lucro Desejado em 1x (R$)</label>
+            <input class="form-control form-control-lg border-success" id="emprestarLucroReais" type="number" step="0.01" min="0" placeholder="0,00"/>
+        </div>
+
+
+        <div class="row mb-3 w-100 justify-content-center">
+            <div class="col-12 col-md-6 mb-3">
+                <label class="form-label text-muted small">Maquininha para Taxas</label>
+
+<select class="form-select" id="machine5">
+    <option value="pagbank">PagBank</option>
+    <option value="infinity">InfinityPay</option>
+    <option value="valorante">Valorante</option>
+    <option value="nubank">Nubank Link</option>
+</select>
+
+
+            </div>
+            <div class="col-12 col-md-6 mb-3" id="flagDisplayContainer5" style="display: none;">
+                <label class="form-label text-muted small">Bandeira</label>
+                <button class="btn-flag-display w-100" id="flagDisplayButton5"></button>
+            </div>
+        </div>
+
+        
+        <div id="brand5Container" class="hidden" style="display:none;">
+            <select id="brand5">
+                <option value="visa">Visa</option>
+                <option value="mastercard">Mastercard</option>
+                <option value="elo">Elo</option>
+                <option value="hipercard">Hipercard</option>
+                <option value="amex">Amex</option>
+            </select>
+        </div>
+
+
+        <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+
+        <div class="w-100 d-flex flex-column align-items-center" id="resultEmprestarValores"></div>
+
+        <div class="text-center mt-3 w-100" id="exportEmprestarContainer" style="display: none;">
+            <button class="btn btn-info w-100 py-3 fw-bold" id="exportEmprestarBtn" style="max-width: 400px;">
+                <i class="bi bi-camera-fill"></i> Salvar Imagem da Tabela
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
         <div class="container" id="fecharVenda" style="display: none;">
             <div class="section-header">
                 <h3>Fechar Venda</h3>
@@ -582,7 +818,19 @@
             </div>
             <div class="content-card w-100">
                 <div class="row mb-3 w-100 justify-content-center">
-                    <div class="col-12 col-md-4 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine1"><option value="pagbank">PagBank</option><option value="infinity" selected>InfinityPay</option><option value="valorante">Valorante</option></select></div>
+                    <div class="col-12 col-md-4 mb-3"><label class="form-label">Maquininha</label>
+
+
+<select class="form-select" id="machine1">
+    <option value="pagbank">PagBank</option>
+    <option value="infinity" selected>InfinityPay</option>
+    <option value="valorante">Valorante</option>
+    <option value="nubank">Nubank Link</option>
+</select>
+
+
+
+</div>
                     <div class="col-12 col-md-4 mb-3" id="flagDisplayContainer1" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton1"></button></div>
                     <div class="col-12 col-md-4 mb-3">
                         <label for="installments1" class="form-label d-flex justify-content-between">
@@ -628,7 +876,8 @@
                     </div>
                 </div>
                 <div class="w-100 d-flex justify-content-center" id="fecharVendaInputs">
-                    <div class="mb-3" style="width: 100%; max-width: 400px;"><label class="form-label" for="fecharVendaValue" id="fecharVendaValueLabel"><i class="bi bi-currency-dollar"></i> Valor Total da Venda (R$)</label><input class="form-control form-control-lg" id="fecharVendaValue" min="0" placeholder="Digite o valor" step="0.01" type="number"/></div>
+                    <div class="mb-3" style="width: 100%; max-width: 400px;"><label class="form-label" for="fecharVendaValue" id="fecharVendaValueLabel"><i class="bi bi-currency-dollar"></i> Valor Total da Venda (R$)</label><input class="form-control form-control-lg" id="fecharVendaValue" placeholder="R$ 0,00" type="tel"/>
+</div>
                 </div>
                 <div class="w-100 d-flex flex-column justify-content-center mt-3" id="resultFecharVenda"></div>
             </div>
@@ -640,7 +889,19 @@
             </div>
             <div class="content-card w-100">
                 <div class="row mb-3 w-100 justify-content-center">
-                    <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine2"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante">Valorante</option></select></div>
+                    <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label>
+
+
+<select class="form-select" id="machine2">
+    <option value="pagbank">PagBank</option>
+    <option value="infinity">InfinityPay</option>
+    <option value="valorante">Valorante</option>
+    <option value="nubank">Nubank Link</option>
+</select>
+
+
+
+</div>
                     <div class="col-12 col-md-6 mb-3" id="flagDisplayContainer2" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton2"></button></div>
                 </div>
                 <div id="brand2Container" class="hidden"><select id="brand2"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
@@ -688,7 +949,17 @@
                     <input class="form-control form-control-lg" id="emprestimoValue" min="0" placeholder="Ex: 10000" step="0.01" type="number"/>
                 </div>
                 <div class="row mb-3 w-100 justify-content-center">
-                    <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine4"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante" selected>Valorante</option></select></div>
+                    <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label>
+
+
+<select class="form-select" id="machine4">
+    <option value="pagbank">PagBank</option>
+    <option value="infinity">InfinityPay</option>
+    <option value="valorante" selected>Valorante</option>
+    <option value="nubank">Nubank Link</option>
+</select>
+
+</div>
                     <div class="col-12 col-md-6 mb-3" id="flagDisplayContainer4" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton4"></button></div>
                 </div>
                 <div id="brand4Container" class="hidden"><select id="brand4"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
@@ -737,7 +1008,17 @@
                         </button>
                     </div>
                     <div class="row my-3 w-100 justify-content-center">
-                        <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label><select class="form-select" id="machine3"><option value="pagbank">PagBank</option><option value="infinity">InfinityPay</option><option value="valorante">Valorante</option></select></div>
+                        <div class="col-12 col-md-6 mb-3"><label class="form-label">Maquininha</label>
+
+<select class="form-select" id="machine3">
+    <option value="pagbank">PagBank</option>
+    <option value="infinity">InfinityPay</option>
+    <option value="valorante">Valorante</option>
+    <option value="nubank">Nubank Link</option>
+</select>
+
+
+</div>
                         <div class="col-12 col-md-6 mb-3" id="flagDisplayContainer3" style="display: none;"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton3"></button></div>
                     </div>
                     <div id="brand3Container" class="hidden"><select id="brand3"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
@@ -760,6 +1041,11 @@
         </div>
     </div>
     
+
+
+
+
+
        <div class="container" id="administracao" style="display: none;">
         <div class="section-header">
             <h3>Administração</h3>
@@ -875,6 +1161,12 @@
                         <input class="form-check-input visibility-toggle" type="checkbox" role="switch" id="toggle-valorante-visibility" data-machine="valorante" checked>
                         <label class="form-check-label" for="toggle-valorante-visibility">Valorante</label>
                     </div>
+
+<div class="form-check form-switch">
+    <input class="form-check-input visibility-toggle" type="checkbox" role="switch" id="toggle-nubank-visibility" data-machine="nubank" checked>
+    <label class="form-check-label" for="toggle-nubank-visibility">Nubank Link</label>
+</div>
+
                 </div>
             </div>
             <div class="admin-section">
@@ -973,11 +1265,9 @@
 
 
 
+<div id="contractContainer" class="hidden">
 
 
-
-    <div id="contractContainer" class="hidden">
-        
         <div class="container text-center" id="documentsHome">
             
             <div class="w-100 d-flex justify-content-start mb-2">
@@ -1076,6 +1366,17 @@ do que você precisa??</h2>
                 <h3>Garantia (Bookip)</h3>
                 <button aria-label="Voltar" class="btn-back" id="backFromBookipView"><i class="bi bi-arrow-left"></i></button>
             </div>
+
+<div id="bookipDraftNotice" class="alert alert-warning d-flex justify-content-between align-items-center p-2 mb-3 hidden" style="border-radius: 10px;">
+    <span class="small"><i class="bi bi-hdd-fill"></i> Há um rascunho salvo.</span>
+    <div>
+        <button class="btn btn-sm btn-success py-0" onclick="recuperarRascunhoBookip()" title="Recuperar"><i class="bi bi-arrow-counterclockwise"></i></button>
+        <button class="btn btn-sm btn-danger py-0" onclick="apagarRascunhoBookip()" title="Apagar"><i class="bi bi-trash"></i></button>
+    </div>
+</div>
+
+
+
 
             <div class="toggle-switch">
                 <input type="checkbox" id="bookipModeToggle">
@@ -1555,10 +1856,11 @@ do que você precisa??</h2>
 
             <div class="row g-2 mb-3">
                 <div class="col-6">
-                    <button id="btnPostPrint" class="btn btn-dark w-100 p-3 border-secondary">
-                        <i class="bi bi-printer-fill fs-2 d-block mb-2 text-primary"></i> 
-                        <span class="small text-light">Imprimir</span>
-                    </button>
+<button id="btnPostPrint" class="btn btn-dark w-100 p-3 border-secondary" onclick="imprimirUniversal()">
+    <i class="bi bi-printer-fill fs-2 d-block mb-2 text-primary"></i> 
+    <span class="small text-light">Imprimir</span>
+</button>
+
                 </div>
                 <div class="col-6">
                     <button id="btnPostShare" class="btn btn-dark w-100 p-3 border-secondary">
@@ -1568,19 +1870,42 @@ do que você precisa??</h2>
                 </div>
             </div>
 
-            <button id="btnNewBookipCycle" class="btn btn-outline-light w-100 py-2 rounded-pill mt-2">
-                <i class="bi bi-plus-lg"></i>  Sair e Começar Nova Garantia
-            </button>
+        <button id="btnResetSuccess" class="btn btn-outline-light w-100 py-2 rounded-pill mt-2">
+    <i class="bi bi-plus-lg"></i>  Sair e Começar Nova Garantia
+</button>
 
         </div>
     </div>
+
+
+<div class="custom-modal-overlay" id="profileSelectorModal" style="z-index: 20000; background: rgba(0,0,0,0.9);">
+    <div class="custom-modal-content" style="max-width: 400px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0">Quem é você?</h3>
+            <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="document.getElementById('profileSelectorModal').classList.remove('active')" style="width: 32px; height: 32px; padding: 0;"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <div id="profilesList" class="d-grid gap-2" style="max-height: 300px; overflow-y: auto;"></div>
+
+        <hr class="border-secondary opacity-25 my-3">
+
+        <button onclick="criarNovoPerfil()" class="btn btn-outline-success w-100 py-2 border-dashed">
+            <i class="bi bi-plus-lg"></i> Criar Novo Perfil
+        </button>
+        
+        <p class="mt-3 text-secondary small">Isso serve apenas para controle interno da equipe.</p>
+    </div>
+</div>
+
+<style> .border-dashed { border-style: dashed !important; } </style>
+
 
 
 
         <script type="application/json" id="manifest-data">
         {
             "name": "Central Workcell",
-            "short_name": "CW",
+            "short_name": "Central Workcell",
             "description": "Calculadora de taxas e gerador de contratos para facilitar suas vendas.",
             "start_url": ".",
             "display": "standalone",
@@ -1595,7 +1920,7 @@ do que você precisa??</h2>
     </script>
 
     <script type="text/plain" id="sw-script">
-        const CACHE_NAME = 'centrar-workcell-cache-v1';
+        const CACHE_NAME = 'centrar-workcell-cache-v80';
         const urlsToCache = [ '/', '/index.html', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css', 'https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js', 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js', 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js', 'https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js' ];
         self.addEventListener('install', event => { event.waitUntil( caches.open(CACHE_NAME).then(cache => { console.log('Cache aberto'); return cache.addAll(urlsToCache); }) ); });
         self.addEventListener('fetch', event => { event.respondWith( caches.match(event.request).then(response => { if (response) { return response; } return fetch(event.request).then( response => { if(!response || response.status !== 200 || response.type !== 'basic') { return response; } const responseToCache = response.clone(); caches.open(CACHE_NAME).then(cache => { cache.put(event.request, responseToCache); }); return response; } ); }) ); });
@@ -1614,11 +1939,11 @@ do que você precisa??</h2>
 
 <script>
 (function() {
-    console.log("🚀 Sistema de Navegação CSS Computado Iniciado...");
+    console.log("🚀 Sistema de Navegação CSS Computado Iniciado (Corrigido)...");
 
     // 1. GATILHO: Adiciona histórico ao clicar para abrir telas
     document.addEventListener('click', function(e) {
-        // Pega qualquer botão que pareça ser de navegação
+        // Pega qualquer botão que pareça ser de navegação ou ação
         const target = e.target.closest('.btn-menu, .btn-action-sm, #btnAdminClients');
         if (target) {
             window.history.pushState({ time: Date.now() }, "", "");
@@ -1626,18 +1951,12 @@ do que você precisa??</h2>
     }, true);
 
     // 2. FUNÇÃO INFALÍVEL PARA CHECAR VISIBILIDADE
-    // Essa função ignora se está "por baixo" ou "por cima". 
-    // Ela só retorna TRUE se o elemento estiver realmente ocupando espaço na tela.
     function isRealmenteVisivel(id) {
         const el = document.getElementById(id);
         if (!el) return false;
         
-        // Pega o estilo FINAL calculado pelo navegador (não o inline)
         const style = window.getComputedStyle(el);
         
-        // Se display for 'none', não está visível.
-        // Se visibility for 'hidden', não está visível.
-        // Se a classe 'hidden' estiver presente, não está visível (redundância de segurança).
         return style.display !== 'none' && 
                style.visibility !== 'hidden' && 
                !el.classList.contains('hidden');
@@ -1648,8 +1967,12 @@ do que você precisa??</h2>
         console.log("🔙 Voltar detectado. Analisando tela ativa...");
 
         // === NIVEL 1: TELAS FILHAS (PRIORIDADE MÁXIMA) ===
-        // Se qualquer uma dessas estiver visível, ELA manda.
-        // Ignoramos menus pais por enquanto.
+        
+        // --- CORREÇÃO FEITA AQUI: ID EXATO DO SEU HTML ---
+        if (isRealmenteVisivel('emprestarValores')) {
+            document.getElementById('backFromEmprestarValores').click(); return;
+        }
+        // -------------------------------------------------
 
         if (isRealmenteVisivel('fecharVenda')) {
             document.getElementById('backFromFecharVenda').click(); return;
@@ -1674,7 +1997,6 @@ do que você precisa??</h2>
 
 
         // === NIVEL 2: MENUS INTERMEDIÁRIOS ===
-        // Só verificamos isso se NENHUM filho acima foi encontrado.
         
         if (isRealmenteVisivel('calculatorHome')) {
             document.getElementById('backFromCalculatorHome').click(); return;
@@ -1696,8 +2018,7 @@ do que você precisa??</h2>
             document.getElementById('backFromAdmin').click(); return;
         }
 
-        // Se chegou aqui, estamos no Menu Principal ou perdidos.
-        // Garante que o Menu Principal apareça.
+        // Se chegou aqui, força o Menu Principal
         const mainMenu = document.getElementById('mainMenu');
         if (mainMenu && window.getComputedStyle(mainMenu).display === 'none') {
              if(typeof showMainSection === 'function') showMainSection('main');
@@ -1710,6 +2031,10 @@ do que você precisa??</h2>
 })();
 </script>
 
+<div id="loadingOverlay" class="d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+    <h5 class="mt-3 text-white fw-light" id="loadingText">Processando...</h5>
+</div>
 
 
 
