@@ -2,11 +2,15 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=overlays-content">
+
+
     <title>Central Workcell</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0B1120"/>
+    <meta name="theme-color" id="status-bar-color" content="#0B1120"/>
         <link rel="apple-touch-icon" href="https://i.imgur.com/6Ei51Rg.png">
     <link rel="icon" type="image/png" href="https://i.imgur.com/6Ei51Rg.png">
 
@@ -970,10 +974,18 @@
             </div>
         </div>
         <div class="container" id="calcularPorAparelho" style="display: none;">
-            <div class="section-header">
-                <h3>Calcular por Aparelho</h3>
-                <button aria-label="Voltar" class="btn-back" id="backFromCalcularPorAparelho"><i class="bi bi-arrow-left"></i></button>
-            </div>
+         <div class="section-header d-flex align-items-center justify-content-between">
+    <h3>Calcular por Aparelho</h3> <div class="d-flex gap-2">
+        <button class="btn-back" onclick="abrirHistoricoAparelho()" style="border-color: rgba(255,255,255,0.2) !important;" title="Ver Histórico">
+            <i class="bi bi-clock-history text-warning"></i>
+        </button>
+
+        <button aria-label="Voltar" class="btn-back" id="backFromCalcularPorAparelho">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+    </div>
+</div>
+
             <div class="content-card w-100">
                 <div id="aparelhoContentWrapper">
                     <div class="favoritos" id="aparelhoFavoritosContainer"></div>
@@ -1534,6 +1546,13 @@ do que você precisa??</h2>
                                 <input class="form-check-input check-pagamento" type="checkbox" value="Boleto" id="pagBoleto">
                                 <label class="form-check-label" for="pagBoleto">Boleto</label>
                             </div>
+<div class="form-check">
+    <input class="form-check-input check-pagamento" type="checkbox" value="Troca" id="pagTroca">
+    <label class="form-check-label" for="pagTroca">Troca</label>
+</div>
+
+
+
                         </div>
                     </div>
 
@@ -1851,24 +1870,18 @@ do que você precisa??</h2>
         <div class="popup-backdrop"></div> <div class="popup-card">           <div class="mb-4">
                 <i class="bi bi-check-circle-fill text-success" style="font-size: 3.5rem;"></i>
                 <h4 class="mt-2 fw-bold text-light">Sucesso!</h4>
-                <p class="text-secondary small">Documento salvo e seguro.</p>
+                <p class="text-secondary small">Garantia já salva na Nuvem.</p>
             </div>
 
             <div class="row g-2 mb-3">
-                <div class="col-6">
-<button id="btnPostPrint" class="btn btn-dark w-100 p-3 border-secondary" onclick="imprimirUniversal()">
-    <i class="bi bi-printer-fill fs-2 d-block mb-2 text-primary"></i> 
-    <span class="small text-light">Imprimir</span>
-</button>
+    <div class="col-12">
+        <button id="btnPostShare" class="btn btn-dark w-100 p-3 border-secondary">
+            <i class="bi bi-whatsapp fs-2 d-block mb-2 text-success"></i> 
+            <span class="small text-light">Gerar documento & enviar </span>
+        </button>
+    </div>
+</div>
 
-                </div>
-                <div class="col-6">
-                    <button id="btnPostShare" class="btn btn-dark w-100 p-3 border-secondary">
-                        <i class="bi bi-whatsapp fs-2 d-block mb-2 text-success"></i> 
-                        <span class="small text-light">Salvar Online</span>
-                    </button>
-                </div>
-            </div>
 
         <button id="btnResetSuccess" class="btn btn-outline-light w-100 py-2 rounded-pill mt-2">
     <i class="bi bi-plus-lg"></i>  Sair e Começar Nova Garantia
