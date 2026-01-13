@@ -21,6 +21,10 @@ let currentUserProfile = localStorage.getItem('ctwUserProfile') || '';
 // A lista de perfis agora é uma variável que vem do banco
 let teamProfilesList = {}; 
 
+// Adicione junto com suas variáveis globais
+let isSystemSwitching = false; // 🔒 Trava de segurança para o toggle
+
+
 // ============================================================
 
 // ============================================================
@@ -1593,7 +1597,8 @@ async function updateProductInDB(id, data) {
 function renderAdminProductList(filteredList = products) {
     const container = document.getElementById('productsListContainer');
     if (!container) return;
-    const tags = getTagList();
+    const tags = (typeof getTagList === 'function') ? getTagList() : [];
+
     if (filteredList.length === 0) {
         container.innerHTML = `
         <div class="text-center p-5">
@@ -1603,18 +1608,74 @@ function renderAdminProductList(filteredList = products) {
         </div>`;
     } else {
         container.innerHTML = filteredList.map(product => {
-            const tagOptions = tags.map(tag => `<option value="${escapeHtml(tag)}" ${product.tag === tag ? 'selected' : ''}>${escapeHtml(tag)}</option>`).join('');
+            const safeHtml = (text) => (typeof escapeHtml === 'function' ? escapeHtml(text) : text);
+            const tagOptions = tags.map(tag => `<option value="${safeHtml(tag)}" ${product.tag === tag ? 'selected' : ''}>${safeHtml(tag)}</option>`).join('');
+            
+            // --- CONSTRUTOR DE HISTÓRICO DUPLO ---
+            let htmlHistorico = '';
+            let iconesHeader = '';
+
+            // 1. GAVETA DE PREÇO (Ícone de Dinheiro Verde)
+            if (product.modificadoValor_Detalhe) {
+                let dataStr = '';
+                if (product.modificadoValor_Em) {
+                    const d = new Date(product.modificadoValor_Em);
+                    dataStr = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+                }
+                iconesHeader += '<i class="bi bi-cash-coin text-success me-1" title="Preço alterado"></i>';
+                
+                htmlHistorico += `
+                <div class="mt-2 p-2 rounded d-flex align-items-start gap-2" style="background-color: rgba(25, 135, 84, 0.15); border: 1px solid rgba(25, 135, 84, 0.3);">
+                    <i class="bi bi-cash-coin text-success mt-1"></i>
+                    <div style="line-height: 1.3;">
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Preço por:</span> 
+                        <strong class="text-success" style="font-size: 0.95rem;">${product.modificadoValor_Por}</strong>
+                        <div class="mt-1 text-light" style="font-size: 0.85rem; font-family: monospace; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">
+                            ${product.modificadoValor_Detalhe}
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">${dataStr}</div>
+                    </div>
+                </div>`;
+            }
+
+            // 2. GAVETA DE COR (Ícone de Paleta Amarela)
+            if (product.modificadoCor_Detalhe) {
+                let dataStr = '';
+                if (product.modificadoCor_Em) {
+                    const d = new Date(product.modificadoCor_Em);
+                    dataStr = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+                }
+                iconesHeader += '<i class="bi bi-palette-fill text-warning me-1" title="Cor alterada"></i>';
+
+                htmlHistorico += `
+                <div class="mt-2 p-2 rounded d-flex align-items-start gap-2" style="background-color: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3);">
+                    <i class="bi bi-palette-fill text-warning mt-1"></i>
+                    <div style="line-height: 1.3;">
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Cor por:</span> 
+                        <strong class="text-warning" style="font-size: 0.95rem;">${product.modificadoCor_Por}</strong>
+                        <div class="mt-1 text-light" style="font-size: 0.85rem; font-family: monospace; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">
+                            ${product.modificadoCor_Detalhe}
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">${dataStr}</div>
+                    </div>
+                </div>`;
+            }
+            // -------------------------------------
+
             return `
             <div class="admin-product-accordion" data-id="${product.id}">
                 <div class="admin-product-header">
-                    <h6 class="product-name-title mb-0">${escapeHtml(product.nome)}</h6>
-                    <i class="bi bi-chevron-down"></i>
+                    <h6 class="product-name-title mb-0">${safeHtml(product.nome)}</h6>
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">${iconesHeader}</div>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
                 </div>
                 <div class="admin-product-body">
                     <div class="admin-product-card-grid">
                         <div class="form-group full-width">
                             <label class="form-label">Nome do Produto</label>
-                            <input type="text" class="form-control" value="${escapeHtml(product.nome)}" data-field="nome">
+                            <input type="text" class="form-control" value="${safeHtml(product.nome)}" data-field="nome">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Valor</label>
@@ -1629,7 +1690,12 @@ function renderAdminProductList(filteredList = products) {
                             <select class="form-select" data-field="tag">${tagOptions}</select>
                         </div>
                     </div>
-                    <div class="admin-product-actions">
+
+                    <div class="history-section pt-2">
+                        ${htmlHistorico}
+                    </div>
+
+                    <div class="admin-product-actions mt-3">
                         <div class="form-check form-switch">
                             <input class="form-check-input ignore-toggle-switch-admin" type="checkbox" role="switch" id="ignore-admin-${product.id}" data-id="${product.id}" ${product.ignorarContagem ? 'checked' : ''}>
                             <label class="form-check-label" for="ignore-admin-${product.id}">Ignorar</label>
@@ -2905,49 +2971,83 @@ function loadTagTexts() {
     }
 }
 
-// --- FUNÇÕES DE TEMA DE COR ---
-function applyColorTheme(color) {
-    // Remove qualquer cor anterior
+// ============================================================
+// ============================================================
+// 🤖 FUNÇÃO DE TEMA (ESPECIAL PARA ANDROID)
+// ============================================================
+window.applyColorTheme = function(color) {
+    if (!color) return;
+
+    // 1. Aplica o atributo para o CSS reagir
     document.body.removeAttribute('data-color');
-    
-    // Se não for 'red' (padrão), aplica a nova cor
-    if (color && color !== 'red') {
+    if (color !== 'red') { // 'red' é o padrão, se for outro, aplica
         document.body.setAttribute('data-color', color);
     }
     
-    // Salva na memória
-    safeStorage.setItem('ctwColorTheme', color);
-    
-    // Atualiza visual dos botões no modal (Checkmark)
-    document.querySelectorAll('.theme-option-btn').forEach(btn => {
-        btn.innerHTML = ''; // Limpa ícones antigos
-        btn.classList.remove('active');
-        if (btn.dataset.color === color) {
-            btn.classList.add('active');
-            btn.innerHTML = '<i class="bi bi-check-lg"></i>';
+    // 2. Salva na memória (com segurança)
+    try {
+        if (typeof safeStorage !== 'undefined') {
+            safeStorage.setItem('ctwColorTheme', color);
+        } else {
+            localStorage.setItem('ctwColorTheme', color);
         }
-    });
+    } catch (e) { console.warn('Erro ao salvar tema:', e); }
 
-    // --- NOVA LÓGICA: PINTAR BARRA DE STATUS ---
-    const mapeamentoCores = {
-        'red': '#EF5350',
-        'blue': '#2979FF',
-        'green': '#00E676',
-        'yellow': '#FFD600',
-        'purple': '#AB47BC',
-        'orange': '#FF9100'
-    };
-
-    const corHex = mapeamentoCores[color] || '#0B1120';
-    const metaTheme = document.getElementById('status-bar-color');
-    
-    if (metaTheme) {
-        metaTheme.setAttribute('content', corHex);
-        // Aplica também ao fundo do documento para evitar o "vão branco" no scroll
-        document.documentElement.style.backgroundColor = corHex;
-        document.body.style.backgroundColor = corHex;
+    // 3. Feedback Visual nos botões
+    const btns = document.querySelectorAll('.theme-option-btn');
+    if (btns) {
+        btns.forEach(btn => {
+            btn.innerHTML = ''; 
+            btn.classList.remove('active');
+            if (btn.dataset.color === color) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="bi bi-check-lg"></i>';
+            }
+        });
     }
-}
+
+    // 4. LÓGICA "AMBIENT MODE" (Barra de Status Android)
+    // O Android precisa de um tempinho para entender que a cor do fundo mudou
+    setTimeout(() => {
+        const metaTheme = document.getElementById('status-bar-color');
+        
+        if (metaTheme) {
+            // Pega o estilo computado do corpo da página
+            const style = getComputedStyle(document.body);
+            
+            // Tenta pegar a variável --tertiary-color
+            let androidColor = style.getPropertyValue('--tertiary-color').trim();
+
+            // Se a variável estiver vazia, pega a cor de fundo bruta (background-color)
+            if (!androidColor || androidColor === 'rgba(0, 0, 0, 0)') {
+                androidColor = style.backgroundColor;
+            }
+
+            // Se ainda assim falhar, forçamos a cor padrão do seu tema (Dark Blue)
+            // Isso evita que fique branco ou preto padrão
+            if (!androidColor || androidColor === 'rgba(0, 0, 0, 0)') {
+                androidColor = '#0B1120'; 
+            }
+
+            // Aplica na Meta Tag do Android
+            metaTheme.setAttribute('content', androidColor);
+            
+            // Console log para você debugar se precisar
+            // console.log('Android Theme Applied:', androidColor);
+        }
+    }, 100); // 100ms é o tempo ideal para o motor do Chrome atualizar
+};
+
+// 5. Garante que rode ao abrir o App (Autocorreção)
+(function() {
+    // Espera 200ms para garantir que o HTML carregou
+    setTimeout(() => {
+        const salvo = localStorage.getItem('ctwColorTheme') || 'red';
+        if(window.applyColorTheme) window.applyColorTheme(salvo);
+    }, 200);
+})();
+
+
 
 
 async function main() {
@@ -3050,55 +3150,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- AJUSTE NO BOTÃO "CONFIRMAR" PARA LER O VALOR FORMATADO ---
-    
-    // ATENÇÃO: Você precisa substituir o seu listener do "confirmEditPriceBtn" antigo por este novo,
-    // pois agora ele precisa "limpar" o R$ antes de salvar no banco de dados.
-
-    // Remova o listener antigo do 'confirmEditPriceBtn' e coloque este:
-       // ATUALIZAÇÃO: BOTÃO "CONFIRMAR EDIÇÃO DE PREÇO" (Salva no Banco de Dados)
+    // ATUALIZAÇÃO: BOTÃO "CONFIRMAR EDIÇÃO DE PREÇO" (Salva na gaveta de VALOR)
     document.getElementById('confirmEditPriceBtn').addEventListener('click', async () => {
         const index = document.getElementById('editPriceProductIndex').value;
-        const itemCarrinho = carrinhoDeAparelhos[index]; // O item no carrinho
-        const productId = itemCarrinho.id; // Precisamos do ID para salvar no banco
+        if (!carrinhoDeAparelhos[index]) return;
+
+        const itemCarrinho = carrinhoDeAparelhos[index]; 
+        const productId = itemCarrinho.id; 
         
-        // Pega o valor do campo e limpa a formatação (R$)
         let rawValue = document.getElementById('editPriceInput').value;
-        rawValue = rawValue.replace(/\D/g, ""); // Remove tudo que não é número
+        rawValue = rawValue.replace(/\D/g, ""); 
         const cleanValue = parseFloat(rawValue) / 100;
 
         if (!isNaN(cleanValue) && cleanValue > 0) {
             try {
-                // 1. ATUALIZA NO BANCO DE DADOS (Oficial)
-                await updateProductInDB(productId, { valor: cleanValue });
+                // Lógica de Comparação
+                const produtoAntigo = products.find(p => p.id === productId);
+                const valorAntigo = produtoAntigo ? produtoAntigo.valor : 0;
+                
+                const detalheMsg = `Valor: de R$ ${valorAntigo.toLocaleString('pt-BR', {minimumFractionDigits: 2})} para R$ ${cleanValue.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
 
-                // 2. Atualiza o item que já está no carrinho localmente para refletir a mudança
+                // 1. ATUALIZA NO BANCO (USANDO NOMES ESPECÍFICOS PARA VALOR)
+                await updateProductInDB(productId, { 
+                    valor: cleanValue,
+                    modificadoValor_Por: currentUserProfile,      // <--- MUDOU
+                    modificadoValor_Em: new Date().toISOString(), // <--- MUDOU
+                    modificadoValor_Detalhe: detalheMsg           // <--- MUDOU
+                });
+
+                // 2. Atualiza Carrinho
                 itemCarrinho.valor = cleanValue;
 
-                // 3. Atualiza também na lista geral de produtos (na memória) para buscas futuras
-                const produtoNaMemoria = products.find(p => p.id === productId);
-                if (produtoNaMemoria) {
-                    produtoNaMemoria.valor = cleanValue;
+                // 3. Atualiza Memória (Para o Admin ver na hora)
+                if (produtoAntigo) {
+                    produtoAntigo.valor = cleanValue;
+                    produtoAntigo.modificadoValor_Por = currentUserProfile;
+                    produtoAntigo.modificadoValor_Em = new Date().toISOString();
+                    produtoAntigo.modificadoValor_Detalhe = detalheMsg;
                 }
 
-                // 4. Recalcula e redesenha a tela
+                // 4. Recalcula
                 renderCarrinho();
                 calculateAparelho();
                 
-                closePriceModal();
-                showCustomModal({ message: "Preço atualizado no sistema com sucesso!" });
+                if (typeof closePriceModal === 'function') closePriceModal();
+                else document.getElementById('editPriceModalOverlay').classList.remove('active');
+                
+                showCustomModal({ message: "Preço atualizado e registrado!" });
 
             } catch (error) {
                 console.error(error);
-                showCustomModal({ message: "Erro ao salvar no banco de dados." });
+                showCustomModal({ message: "Erro ao salvar." });
             }
         } else {
             showCustomModal({ message: "Valor inválido." });
         }
     });
 
-
-    
     
     document.getElementById('notification-bell').addEventListener('click', () => notificationOffcanvas.toggle());
     
@@ -3370,36 +3478,40 @@ document.addEventListener('DOMContentLoaded', () => {
         fab.id = 'fabCopyMulti';
         fab.className = 'btn btn-primary';
         fab.innerHTML = '<i class="bi bi-clipboard-check"></i> Copiar Seleção';
-        // CORREÇÃO: Força ele a começar invisível
-        fab.style.display = 'none'; 
+        fab.style.display = 'none'; // Começa invisível
         document.body.appendChild(fab);
         
-        // Ação do Botão Flutuante
-        fab.addEventListener('click', () => {
+        // Ação do Botão Flutuante (CORRIGIDA E COMPLETA)
+        fab.onclick = () => {
             const selectedRows = document.querySelectorAll('#resultCalcularPorAparelho .copyable-row.is-selected');
             if (selectedRows.length === 0) return;
 
-            // Coleta dados
+            // 1. Gera Texto (COM CÁLCULO DO TOTAL)
             let simulations = [];
-            selectedRows.forEach(row => {
-                const inst = row.dataset.installments;
-                const parc = parseFloat(row.dataset.parcela).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            selectedRows.forEach(r => {
+                const i = r.dataset.installments; // Ex: "10" ou "Débito"
+                const valParcela = parseFloat(r.dataset.parcela); // Ex: 100.00
                 
-                let lineText = '';
-                if (inst === 'Débito') {
-                    lineText = `Débito: ${parc}`;
+                // Formata Parcela
+                const p = valParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                
+                // Calcula Total (Parcela * Vezes)
+                const qtd = (i === 'Débito') ? 1 : parseInt(i);
+                const totalCalc = valParcela * qtd;
+                const t = totalCalc.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                if (i === 'Débito') {
+                    simulations.push(`Débito: ${p}\n_(Total: ${t})_`);
                 } else {
-                    lineText = `${inst}x de ${parc}`; 
+                    // Formato: 10x R$ 100,00 (Total: R$ 1.000,00)
+                    simulations.push(`${i}x ${p}\n_(Total: ${t})_`);
                 }
-                simulations.push(lineText);
             });
 
-            // Monta o bloco com "Ou"
-            let simulationBlock = simulations.map((text, index) => {
-                return index === 0 ? text : `Ou ${text}`;
-            }).join('\n');
+            // Junta com "Ou" e quebra de linha
+            const simulationBlock = simulations.map((t, i) => i === 0 ? t : `\nOu ${t}`).join('\n');
 
-            // Dados do Produto
+            // 2. Dados do Produto (Nome e Quantidade)
             const productCounts = carrinhoDeAparelhos.reduce((acc, product) => {
                 acc[product.nome] = (acc[product.nome] || 0) + 1;
                 return acc;
@@ -3408,7 +3520,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .map(([nome, qtd]) => qtd > 1 ? `${qtd}x ${nome}` : nome)
                 .join(' e ');
 
-            // Dados da Entrada
+            // 3. Dados da Entrada
             const entradaValue = parseFloat(document.getElementById('entradaAparelho').value) || 0;
             let entradaText = '';
             if (entradaValue > 0) {
@@ -3416,7 +3528,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 entradaText = `\n*_+${entradaFormatted} no dinheiro ou pix_*`;
             }
 
-            // Dados da Etiqueta
+            // 4. Etiqueta Personalizada
             let customText = '';
             if (carrinhoDeAparelhos.length === 1) {
                 const produtoUnico = carrinhoDeAparelhos[0];
@@ -3425,7 +3537,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Montagem Final
+            // 5. Montagem Final (Verifica ordem invertida)
             let textToCopy;
             const invertOrder = safeStorage.getItem('ctwInvertCopyOrder') === 'true';
             
@@ -3435,24 +3547,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 textToCopy = `${simulationBlock}${entradaText}\n\n${produtoNome}${customText}`;
             }
 
-            // Copiar
+            // 6. Copiar para área de transferência
             const textArea = document.createElement("textarea");
             textArea.value = textToCopy;
             document.body.appendChild(textArea);
             textArea.select();
             try {
                 document.execCommand('copy');
+                
+                // Salva no histórico se a função existir
+                if(window.salvarHistoricoAparelho) {
+                    window.salvarHistoricoAparelho(textToCopy, `Vários (${selectedRows.length}) - ${produtoNome}`);
+                }
+                
                 showCustomModal({ message: 'Simulações copiadas!' });
             } catch (err) {
                 showCustomModal({ message: 'Erro ao copiar.' });
             }
             document.body.removeChild(textArea);
             
-            // Limpa a seleção e esconde o botão
+            // Limpa a seleção visual e esconde o botão
             selectedRows.forEach(r => r.classList.remove('is-selected'));
             fab.style.display = 'none';
-        });
+        };
     }
+
+
+
 
 document.getElementById('resultCalcularPorAparelho').addEventListener('click', (e) => {
     const toggle = document.getElementById('multiSelectToggle');
@@ -3479,14 +3600,32 @@ document.getElementById('resultCalcularPorAparelho').addEventListener('click', (
                 const selectedRows = document.querySelectorAll('#resultCalcularPorAparelho .copyable-row.is-selected');
                 if (selectedRows.length === 0) return;
 
-                // 1. Gera Texto
+                // 1. Gera Texto (CORRIGIDO COM TOTAL E FORMATAÇÃO)
                 let simulations = [];
                 selectedRows.forEach(r => {
                     const i = r.dataset.installments;
-                    const p = parseFloat(r.dataset.parcela).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                    simulations.push(i === 'Débito' ? `Débito: ${p}` : `${i}x de ${p}`);
+                    const valParcela = parseFloat(r.dataset.parcela);
+                    
+                    // Formata valor da parcela
+                    const p = valParcela.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    
+                    // Calcula o total matematicamente (Parcela x Vezes)
+                    const qtd = (i === 'Débito') ? 1 : parseInt(i);
+                    const totalCalc = valParcela * qtd;
+                    const t = totalCalc.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                    if (i === 'Débito') {
+                        simulations.push(`Débito: ${p}\n_(Total: ${t})_`);
+                    } else {
+                        // Formato: 2x R$ 1.200,00
+                        //          (Total: R$ 2.400,00)
+                        simulations.push(`${i}x ${p}\n_(Total: ${t})_`);
+                    }
                 });
-                const simulationBlock = simulations.map((t, i) => i === 0 ? t : `Ou ${t}`).join('\n');
+                
+                // Adiciona uma quebra de linha extra (\n) antes do "Ou"
+                const simulationBlock = simulations.map((t, i) => i === 0 ? t : `\nOu ${t}`).join('\n');
+
                 
                 // 2. Dados
                 const productCounts = carrinhoDeAparelhos.reduce((acc, product) => { acc[product.nome] = (acc[product.nome] || 0) + 1; return acc; }, {});
@@ -4266,37 +4405,58 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
         }
     });
     document.getElementById('cancelColorPicker').addEventListener('click', () => colorPickerModal.classList.remove('active'));
-        // --- CORREÇÃO: SALVAR COR E ATUALIZAR O CARRINHO IMEDIATAMENTE ---
+    // BOTÃO "SALVAR" DENTRO DO MODAL DE CORES (Salva na gaveta de COR)
     document.getElementById('saveColorPicker').addEventListener('click', () => {
         if (currentEditingProductId) {
             const newTimestamp = Date.now();
+            const produtoAntigo = products.find(p => p.id === currentEditingProductId);
             
-            // 1. Atualiza no Banco de Dados (Para o futuro)
+            // Pega nomes das cores para o histórico
+            const coresAntigasStr = (produtoAntigo && produtoAntigo.cores && produtoAntigo.cores.length) 
+                ? produtoAntigo.cores.map(c => c.nome).join(', ') 
+                : 'Nenhuma';
+            
+            const coresNovasStr = tempSelectedColors.length > 0 
+                ? tempSelectedColors.map(c => c.nome).join(', ') 
+                : 'Nenhuma';
+
+            const detalheMsg = `Cores: [${coresAntigasStr}] para [${coresNovasStr}]`;
+
+            // 1. ATUALIZA NO BANCO (USANDO NOMES ESPECÍFICOS PARA COR)
             updateProductInDB(currentEditingProductId, { 
                 cores: tempSelectedColors,
-                lastCheckedTimestamp: newTimestamp
+                lastCheckedTimestamp: newTimestamp,
+                modificadoCor_Por: currentUserProfile,      // <--- MUDOU
+                modificadoCor_Em: new Date().toISOString(), // <--- MUDOU
+                modificadoCor_Detalhe: detalheMsg           // <--- MUDOU
             });
             
-            // 2. Atualiza o produto que JÁ ESTÁ no carrinho (Para o presente)
-            // Percorre o carrinho e atualiza todos os itens que têm esse ID
+            // 1.1 Atualiza na Memória
+            if (produtoAntigo) {
+                produtoAntigo.cores = tempSelectedColors;
+                produtoAntigo.lastCheckedTimestamp = newTimestamp;
+                produtoAntigo.modificadoCor_Por = currentUserProfile;
+                produtoAntigo.modificadoCor_Em = new Date().toISOString();
+                produtoAntigo.modificadoCor_Detalhe = detalheMsg;
+            }
+
+            // 2. Atualiza Carrinho Visual
             let houveMudancaNoCarrinho = false;
             carrinhoDeAparelhos.forEach(item => {
                 if (item.id === currentEditingProductId) {
-                    item.cores = [...tempSelectedColors]; // Copia as cores novas
+                    item.cores = [...tempSelectedColors];
                     item.lastCheckedTimestamp = newTimestamp;
                     houveMudancaNoCarrinho = true;
                 }
             });
 
-            // 3. Se mudou algo no carrinho, redesenha a tela e SALVA O RASCUNHO
             if (houveMudancaNoCarrinho) {
-                renderCarrinho();      // Atualiza o visual (ex: Preto -> Verde)
-                calculateAparelho();   // Força salvar o rascunho novo no navegador
+                renderCarrinho();      
+                calculateAparelho();   
             }
         }
         document.getElementById('colorPickerModalOverlay').classList.remove('active');
     });
-
 
     document.getElementById('boletoModeToggle').addEventListener('change', (e) => {
         const showHistory = e.target.checked;
@@ -4525,46 +4685,57 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
     });
     
     
-    //logica book
-    
-        // --- LÓGICA DE ABAS (CONTRATO vs BOOKIP) ---
-    
+// --- TOGGLE NOVO / HISTÓRICO (CORRIGIDO E SEM BUG VISUAL) ---
+const bookipToggle = document.getElementById('bookipModeToggle');
 
+if (bookipToggle) {
+    bookipToggle.addEventListener('change', (e) => {
+        const isHistoryMode = e.target.checked; // true = Histórico, false = Novo
 
+        // 1. Elementos da Aba "NOVO" (Formulário)
+        const newContent = document.getElementById('newBookipContent');
+        if (newContent) {
+            // Se estiver no histórico, ESCONDE o conteúdo novo
+            newContent.classList.toggle('hidden', isHistoryMode);
+        }
 
-    // --- TOGGLE NOVO / HISTÓRICO DO BOOKIP (CORRIGIDO) ---
-    const bookipToggle = document.getElementById('bookipModeToggle');
-    const searchContainer = document.getElementById('bookipSearchContainer');
+        // 2. Elementos da Aba "HISTÓRICO" (Lista + Busca + Filtros)
+        const historyContent = document.getElementById('historyBookipContent');
+        const searchContainer = document.getElementById('bookipSearchContainer');
+        const filterBar = document.getElementById('filterBarProfiles');
 
-    if(bookipToggle) {
-        bookipToggle.addEventListener('change', (e) => {
-            const showHistory = e.target.checked;
+        // Esses elementos só aparecem se isHistoryMode for TRUE
+        if (historyContent) historyContent.classList.toggle('hidden', !isHistoryMode);
+        if (searchContainer) searchContainer.classList.toggle('hidden', !isHistoryMode);
+        if (filterBar) filterBar.classList.toggle('hidden', !isHistoryMode);
+
+        // 3. LÓGICA DE DADOS (Mantendo a correção do Bug de Edição)
+        if (isHistoryMode) {
+            // --- Entrou no Histórico ---
+            if (typeof loadBookipHistory === 'function') loadBookipHistory();
+        } else {
+            // --- Entrou no Novo (Formulário) ---
             
-            // 1. Alterna as telas principais (Conteúdo)
-            document.getElementById('newBookipContent').classList.toggle('hidden', showHistory);
-            document.getElementById('historyBookipContent').classList.toggle('hidden', !showHistory);
-            
-            // 2. Alterna a barra de busca
-            if (searchContainer) {
-                searchContainer.classList.toggle('hidden', !showHistory);
+            // Verifica a TRAVA DO SISTEMA
+            if (window.isSystemSwitching) {
+                // Foi o botão editar que mandou vir pra cá?
+                console.log("🔒 Modo Edição: Mantendo dados.");
+                window.isSystemSwitching = false; // Destrava para o futuro
+            } else {
+                // Foi o dedo do usuário?
+                console.log("🧹 Clique Manual: Limpando tudo.");
+                if (typeof window.resetFormulariosBookip === 'function') {
+                    window.resetFormulariosBookip();
+                }
             }
+        }
+    });
+}
 
-            // 3. CORREÇÃO: Alterna também os botões de filtro (Meus Arquivos)
-            const filterBar = document.getElementById('filterBarProfiles');
-            if (filterBar) {
-                // Se for histórico, mostra (remove hidden). Se for novo, esconde (add hidden).
-                filterBar.classList.toggle('hidden', !showHistory);
-                
-                // Força visual caso a classe hidden não funcione por CSS específico
-                filterBar.style.display = showHistory ? 'flex' : 'none';
-            }
 
-            // 4. Carrega o histórico se necessário
-            if (showHistory) {
-                loadBookipHistory();
-            }
-        });
-    }
+
+
+
 
     // ============================================================
     // CORREÇÃO: LÓGICA DE BUSCA E ADIÇÃO DE ITENS NO BOOKIP
@@ -5320,26 +5491,39 @@ container.querySelectorAll('.btn-download-seguro').forEach(b => {
     }
 }
 
-    // --- FUNÇÃO AUXILIAR: CARREGAR DADOS NO FORMULÁRIO ---
-        // --- FUNÇÃO AUXILIAR: CARREGAR DADOS NO FORMULÁRIO (CORRIGIDA) ---
-
+// --- FUNÇÃO AUXILIAR: CARREGAR DADOS NO FORMULÁRIO (CORRIGIDA DE VERDADE) ---
 function carregarDadosParaEdicao(item) {
-    if(!item) return;
+    if (!item) return;
 
-    // 👇 ADICIONE ESTA LINHA: Mata o rascunho // A. PRIMEIRO: Mata o rascunho e trava a edição na memória
-    localStorage.removeItem('ctwBookipDraft_Smart_v2'); 
-    currentEditingBookipId = item.id;
-    window.currentEditingBookipId = item.id; // Garante a trava global
+    // 1. Mata o rascunho antigo
+    localStorage.removeItem('ctwBookipDraft_Smart_v2');
 
-    // B. DEPOIS: Muda para a aba "Novo"
+    // 2. PRIMEIRO: Troca a aba e deixa o sistema limpar o que quiser
     const toggle = document.getElementById('bookipModeToggle');
-    if(toggle) {
+    if (toggle && toggle.checked) {
+        window.isSystemSwitching = true; // Trava o sistema
         toggle.checked = false;
-        toggle.dispatchEvent(new Event('change'));
+        toggle.dispatchEvent(new Event('change')); // Dispara o reset()
     }
 
+    // 3. AGORA SIM: Injetamos os dados nas variáveis CERTAS (Sem 'window.')
+    // Usamos setTimeout para garantir que rodamos DEPOIS do reset da aba
+    setTimeout(() => {
+        
+        // A. ID CORRETO (Sem 'window.') - Isso corrige a Duplicação
+        // Agora o botão Salvar vai ler essa variável aqui.
+        currentEditingBookipId = item.id;
 
-        // 3. Preenche os campos do cliente
+        // B. LISTA CORRETA (Sem 'window.') - Isso corrige a Edição de Produto
+        // Agora a função de desenho vai ler essa lista aqui.
+        bookipCartList = item.items || [];
+        
+        // C. Atualiza o Visual da Lista (Agora vai funcionar pq a lista tá certa)
+        if (typeof atualizarListaVisualBookip === 'function') {
+            atualizarListaVisualBookip();
+        }
+
+        // D. Preenche os campos do Formulário
         const campos = {
             'bookipNome': item.nome,
             'bookipCpf': item.cpf,
@@ -5348,66 +5532,43 @@ function carregarDadosParaEdicao(item) {
             'bookipEmail': item.email,
             'bookipDataManual': item.dataVenda
         };
-        
+
         for (let id in campos) {
             const el = document.getElementById(id);
-            if(el) el.value = campos[id] || '';
+            if (el) el.value = campos[id] || '';
         }
 
-        // 4. Preenche a lista de itens
-        bookipCartList = item.items || [];
-        atualizarListaVisualBookip(); 
-
-        // 5. Pagamento (Checkboxes) - VERSÃO CORRIGIDA E MAIS INTELIGENTE
-        document.querySelectorAll('.check-pagamento').forEach(chk => chk.checked = false); // Limpa tudo antes
-        
+        // E. Restaura Pagamentos
+        document.querySelectorAll('.check-pagamento').forEach(chk => chk.checked = false);
         if (item.pagamento) {
-            // Divide por vírgula, ignorando se tem espaço ou não depois da vírgula
-            // Ex: Aceita "Pix, Crédito" e também "Pix,Crédito"
             const formasSalvas = item.pagamento.split(/,\s*/).map(s => s.trim().toLowerCase());
-
             document.querySelectorAll('.check-pagamento').forEach(chk => {
-                const valorCheckbox = chk.value.toLowerCase(); // Ex: "dinheiro/pix"
-                
-                // Verifica se o valor salvo bate com o checkbox
-                const deveMarcar = formasSalvas.some(salva => {
-                    // Teste 1: É exatamente igual? (ex: "crédito" == "crédito")
-                    if (salva === valorCheckbox) return true;
-                    
-                    // Teste 2: É parecido? (ex: salvou "pix", mas o checkbox é "dinheiro/pix")
-                    // Isso ajuda se você mudou os nomes dos botões recentemente
-                    if (valorCheckbox.includes(salva) && salva.length > 2) return true;
-                    
-                    return false;
-                });
-
-                if (deveMarcar) {
+                const valCheck = chk.value.toLowerCase();
+                if (formasSalvas.some(s => valCheck.includes(s) || s.includes(valCheck))) {
                     chk.checked = true;
                 }
             });
         }
 
-
-        // 6. Garantia
+        // F. Restaura Garantia
         const selectGarantia = document.getElementById('bookipGarantiaSelect');
         const inputGarantia = document.getElementById('bookipGarantiaCustomInput');
-        if(selectGarantia) {
+        if (selectGarantia) {
             const dias = parseInt(item.diasGarantia);
             const isPadrao = [30, 120, 180, 365].includes(dias);
-            if(isPadrao) {
+            if (isPadrao) {
                 selectGarantia.value = dias;
-                if(inputGarantia) inputGarantia.classList.add('hidden');
+                if (inputGarantia) inputGarantia.classList.add('hidden');
             } else {
                 selectGarantia.value = 'custom';
-                if(inputGarantia) {
+                if (inputGarantia) {
                     inputGarantia.value = dias;
                     inputGarantia.classList.remove('hidden');
                 }
             }
         }
 
-        // 7. CORREÇÃO DO ERRO: Muda o botão certo (Adicionar à Lista)
-        // Usamos o ID que o sistema realmente usa para adicionar itens
+        // G. Ajusta o Botão Salvar (Para Amarelo)
         const btnAdd = document.getElementById('btnAdicionarItemLista');
         if (btnAdd) {
             btnAdd.innerHTML = '<i class="bi bi-pencil-square"></i> Salvar Alteração';
@@ -5415,314 +5576,155 @@ function carregarDadosParaEdicao(item) {
             btnAdd.classList.add('btn-warning');
         }
 
-        showCustomModal({ message: "Dados carregados! Edite os itens ou o cliente e salve." });
-    }
+        // H. Finalização
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.isSystemSwitching = false; // Destrava
 
+        console.log("✅ Edição carregada. ID Interno:", currentEditingBookipId);
 
+    }, 50); // 50ms é o tempo para o reset passar e a gente entrar com os dados
 
-    // --- LÓGICA DE SALVAR E GARANTIA (NOVO) ---
-        // --- LÓGICA DE SALVAR E GARANTIA (NOVO) ---
-    const garantiaSelect = document.getElementById('bookipGarantiaSelect');
-    const garantiaInput = document.getElementById('bookipGarantiaCustomInput');
-    
-    if (garantiaSelect && garantiaInput) {
-        garantiaSelect.addEventListener('change', () => {
-            if (garantiaSelect.value === 'custom') {
-                // Remove a classe 'hidden' para mostrar o campo
-                garantiaInput.classList.remove('hidden');
-                garantiaInput.focus();
-            } else {
-                // Adiciona a classe 'hidden' para esconder
-                garantiaInput.classList.add('hidden');
-                garantiaInput.value = ''; // Limpa se esconder
-            }
-        });
-    }
+    showCustomModal({ message: "Dados carregados! Edite e salve." });
+}
 
-
-
-
-
-    // ============================================================
-// ============================================================
 // FLUXO DE GARANTIA LAPIDADO (SALVAR -> DEPOIS OPÇÕES)
 // ============================================================
 
 let lastSavedBookipData = null; // Guarda os dados na memória após salvar
 
-// 1. AÇÃO: CLICAR EM "FINALIZAR E SALVAR"
+// ============================================================
+// ============================================================
+// ============================================================
+// CORREÇÃO FINAL: SALVAR E ABRIR PREVIEW (SEM ERROS)
+// ============================================================
 const btnSave = document.getElementById('btnSaveBookip');
+
 if (btnSave) {
     btnSave.addEventListener('click', async () => {
-        // Validação Básica
-        if (bookipCartList.length === 0) {
-            showCustomModal({ message: "A lista está vazia! Adicione itens primeiro." });
+        
+        // 1. Validações
+        if (!bookipCartList || bookipCartList.length === 0) {
+            alert("A lista está vazia! Adicione itens primeiro.");
+            return;
+        }
+        if (!document.getElementById('bookipNome').value) {
+            alert("Preencha o nome do cliente.");
             return;
         }
 
-        // Feedback visual
+        // 2. Loading
         const originalText = btnSave.innerHTML;
         btnSave.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
         btnSave.disabled = true;
 
         try {
-            // --- BLOCO CIRÚRGICO: CAPTURAR PAGAMENTO ---
+            // 3. Prepara Dados
             const pags = [];
             document.querySelectorAll('.check-pagamento:checked').forEach(c => pags.push(c.value));
             const txtPag = pags.length > 0 ? pags.join(', ') : 'Não informado';
-            // --------------------------------------------
 
             let dias = 365;
-            const sel = document.getElementById('bookipGarantiaSelect').value;
-            if (sel === 'custom') dias = parseInt(document.getElementById('bookipGarantiaCustomInput').value) || 0;
-            else dias = parseInt(sel);
-
-            const dataManualInput = document.getElementById('bookipDataManual').value;
-            const dataFinalVenda = dataManualInput ? dataManualInput : new Date().toISOString().split('T')[0];
-
-            // =========================================================
-            // 🧠 NOVIDADE: DETECTA O TIPO DO DOCUMENTO PARA A COR
-            // =========================================================
-            let docType = 'garantia'; // O padrão é Azul (Garantia)
-            
-            // 1. Se tiver qualquer item marcado como "Situação", vira Situação (Amarelo)
-            const temSituacao = bookipCartList.some(i => i.isSituation === true);
-            
-            if (temSituacao) {
-                docType = 'situacao';
-            } 
-            // 2. Se não for situação e a chave "Modo Simples" estiver ligada, vira Recibo (Verde)
-            else if (window.isSimpleReceiptMode === true) {
-                docType = 'recibo';
+            const sel = document.getElementById('bookipGarantiaSelect');
+            if (sel && sel.value === 'custom') {
+                const customInput = document.getElementById('bookipGarantiaCustomInput');
+                dias = customInput ? (parseInt(customInput.value) || 0) : 0;
+            } else if (sel) {
+                dias = parseInt(sel.value);
             }
-            // =========================================================
 
-            // ---------------------------------------------------------
-            // CORREÇÃO: GERAÇÃO DO NÚMERO DOC (EVITA DUPLICIDADE)
-            // ---------------------------------------------------------
+            // -- Gera Número do Documento --
             const snapshot = await get(ref(db, 'bookips'));
             let docNumberFormatted = '001';
-
-            if (currentEditingBookipId) {
-                // MODO EDIÇÃO: Tenta manter o número original
-                if (snapshot.exists()) {
-                    const todos = snapshot.val();
-                    const itemAtual = todos[currentEditingBookipId];
-                    if (itemAtual && itemAtual.docNumber) {
-                        docNumberFormatted = itemAtual.docNumber;
-                    }
-                }
-            } else {
-                // MODO NOVO: Procura o MAIOR número existente e soma +1
+            
+            if (!currentEditingBookipId && snapshot.exists()) {
                 let maiorNumero = 0;
-                
-                if (snapshot.exists()) {
-                    const todos = snapshot.val();
-                    Object.values(todos).forEach(item => {
-                        const num = parseInt(item.docNumber || '0', 10);
-                        if (!isNaN(num) && num > maiorNumero) {
-                            maiorNumero = num;
-                        }
-                    });
-                }
-                
+                Object.values(snapshot.val()).forEach(item => {
+                    const num = parseInt(item.docNumber || '0', 10);
+                    if (!isNaN(num) && num > maiorNumero) maiorNumero = num;
+                });
                 docNumberFormatted = String(maiorNumero + 1).padStart(3, '0');
+            } else if (currentEditingBookipId && snapshot.exists()) {
+                 const todos = snapshot.val();
+                 if(todos[currentEditingBookipId]) docNumberFormatted = todos[currentEditingBookipId].docNumber;
             }
-            // ---------------------------------------------------------
 
-            // Objeto Final
+            // -- Objeto Final --
             const dados = {
                 docNumber: docNumberFormatted,
-                type: docType,
-                nome: document.getElementById('bookipNome').value || 'Consumidor',
-                cpf: document.getElementById('bookipCpf').value || '',
-                tel: document.getElementById('bookipTelefone').value || '',
-                end: document.getElementById('bookipEndereco').value || '',
-                email: document.getElementById('bookipEmail').value || '',
-                items: bookipCartList,
-                
-                pagamento: txtPag, // <--- ADICIONE ESTA LINHA AQUI
-                
+                nome: document.getElementById('bookipNome').value,
+                cpf: document.getElementById('bookipCpf')?.value || '',
+                tel: document.getElementById('bookipTelefone')?.value || '',
+                items: JSON.parse(JSON.stringify(bookipCartList)),
+                pagamento: txtPag,
                 diasGarantia: dias,
-                dataVenda: dataFinalVenda,
-                criadoEm: new Date().toISOString(),
-criadoPor: currentUserProfile || "Desconhecido", 
+                dataVenda: document.getElementById('bookipDataManual')?.value || new Date().toISOString(),
+                criadoEm: new Date().toISOString()
             };
 
-            // SALVA NO FIREBASE
+            // 4. Salva no Firebase
+            // SE DER ERRO AQUI, É A REGRA DO FIREBASE (VER PASSO 2)
             if (currentEditingBookipId) {
-                // Atualiza existente
                 await update(ref(db, `bookips/${currentEditingBookipId}`), dados);
                 dados.id = currentEditingBookipId;
             } else {
-                // Cria novo
                 const newRef = await push(ref(db, 'bookips'), dados);
                 dados.id = newRef.key;
             }
 
-            // SALVA CLIENTE (ROBÔ)
-            await salvarClienteAutomatico({
-                nome: dados.nome, cpf: dados.cpf, tel: dados.tel, end: dados.end, email: dados.email
-            });
-
-            // SUCESSO!
-            lastSavedBookipData = dados; // Guarda na memória
-
-            // Toca vibração se tiver no celular
-            if (navigator.vibrate) navigator.vibrate(50);
-
-            // ALTERA A TELA (Esconde Salvar -> Mostra Opções)
-            document.getElementById('saveActionContainer').classList.add('hidden');
-            document.getElementById('postSaveOptions').classList.remove('hidden');
+            // 5. GERA HTML E ABRE MODAL
+            const modal = document.getElementById('modalPreviewDocumento');
+            const content = document.getElementById('previewDocContent');
             
-            // Restaura botão salvar
+            if (modal && content) {
+                // Monta HTML...
+                let itensHtml = dados.items.map(item => `
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding:8px;">${item.desc}</td>
+                        <td style="padding:8px;text-align:center;">${item.qtd}</td>
+                        <td style="padding:8px;text-align:right;">R$ ${(parseFloat(item.valor)||0).toFixed(2)}</td>
+                    </tr>`).join('');
+
+                content.innerHTML = `
+                    <div style="padding: 40px; font-family: Courier, monospace; color: black;">
+                        <h2 style="text-align:center; font-weight:bold;">WORKCELL TECNOLOGIA</h2>
+                        <h4 style="text-align:center;">Recibo/Garantia #${dados.docNumber}</h4>
+                        <hr>
+                        <p><strong>Cliente:</strong> ${dados.nome}</p>
+                        <p><strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+                        <table style="width:100%; margin-top:20px; border-collapse: collapse;">
+                            <thead><tr style="background:#f0f0f0;"><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead>
+                            <tbody>${itensHtml}</tbody>
+                        </table>
+                        <br><p style="text-align:center;">Garantia: ${dados.diasGarantia} dias.</p>
+                    </div>
+                `;
+                modal.style.display = 'flex';
+                window.dadosDoUltimoSalvamento = dados;
+            }
+
+            // 6. Limpeza SEGURA (Sem erro de null)
+            const postSave = document.getElementById('postSaveOptions');
+            if(postSave) postSave.classList.add('hidden');
+            
+            const campoNome = document.getElementById('bookipNome');
+            if(campoNome) campoNome.value = '';
+            
+            // REMOVIDO: document.getElementById('bookipValor').value = ''; (Isso causava o erro!)
+
+            bookipCartList = [];
+            if(typeof renderBookipCart === 'function') renderBookipCart();
+            
             btnSave.innerHTML = originalText;
             btnSave.disabled = false;
 
         } catch (error) {
             console.error(error);
-            showCustomModal({ message: "Erro ao salvar: " + error.message });
+            alert("ERRO NO SISTEMA: " + error.message); // Aqui vai aparecer se for Permissão
             btnSave.innerHTML = originalText;
             btnSave.disabled = false;
         }
     });
 }
-
-
-
-// 2. AÇÃO: CLICAR EM "IMPRIMIR" (PÓS-SALVO)
-const btnPostPrint = document.getElementById('btnPostPrint');
-if (btnPostPrint) {
-    btnPostPrint.addEventListener('click', () => {
-        if (lastSavedBookipData) {
-            printBookip(lastSavedBookipData);
-        } else {
-            showCustomModal({ message: "Erro: Nenhum dado salvo encontrado." });
-        }
-    });
-}
-
-// 3. AÇÃO: CLICAR EM "COMPARTILHAR / PDF" (PÓS-SALVO)
-const btnPostShare = document.getElementById('btnPostShare');
-if (btnPostShare) {
-    btnPostShare.addEventListener('click', () => {
-        if (lastSavedBookipData) {
-            // Truque de copiar e-mail antes
-            if (lastSavedBookipData.email) {
-                navigator.clipboard.writeText(lastSavedBookipData.email).catch(()=>{});
-                showCustomModal({ message: "E-mail copiado! Gerando PDF..." });
-            }
-            
-            // Usa a função existente de PDF do histórico
-            gerarPdfDoHistorico(lastSavedBookipData, btnPostShare);
-        }
-    });
-}
-
-// ============================================================
-// ============================================================
-// 4. AÇÃO: BOTÕES DE "NOVA GARANTIA" (CORREÇÃO FINAL: VARIÁVEL DE DADOS)
-// ============================================================
-
-const botoesReset = ['btnNewBookipCycle', 'btnResetSuccess'];
-
-botoesReset.forEach(idBotao => {
-    const btn = document.getElementById(idBotao);
-    
-    if (btn) {
-        btn.onclick = function(e) {
-            if(e) e.preventDefault();
-            console.log("🔄 Reiniciando ciclo e RESETANDO botões de ação...");
-
-            // 1. Faxina de Dados (Chama a função e limpa a variável local também)
-            if(typeof window.resetFormulariosBookip === 'function') {
-                window.resetFormulariosBookip();
-            }
-            // FORÇA LIMPEZA DA VARIÁVEL LOCAL (Importante!)
-            if(typeof lastSavedBookipData !== 'undefined') {
-                lastSavedBookipData = null;
-            }
-
-            // 2. Esconde o Banner de Sucesso
-            const popup = document.getElementById('postSaveOptions');
-            if(popup) popup.classList.add('hidden');
-
-            // 3. Mostra o botão de Salvar novamente
-            const saveContainer = document.getElementById('saveActionContainer');
-            if(saveContainer) saveContainer.classList.remove('hidden');
-
-            // 4. Reset de Abas (Volta para "Novo")
-            const toggle = document.getElementById('bookipModeToggle');
-            if(toggle && toggle.checked) {
-                toggle.checked = false; 
-                toggle.dispatchEvent(new Event('change'));
-            }
-
-            // ============================================================
-            // O PULO DO GATO: RESETAR O BOTÃO "SALVAR ONLINE"
-            // (Agora lendo a variável correta: lastSavedBookipData)
-            // ============================================================
-            const btnShareAntigo = document.getElementById('btnPostShare');
-            if(btnShareAntigo) {
-                // Clona para matar eventos velhos
-                const btnShareNovo = btnShareAntigo.cloneNode(true);
-                
-                // Restaura o visual original
-                btnShareNovo.innerHTML = '<i class="bi bi-whatsapp fs-2 d-block mb-2 text-success"></i> <span class="small text-light">Salvar Online</span>';
-                btnShareNovo.className = 'btn btn-dark w-100 p-3 border-secondary';
-                btnShareNovo.disabled = false;
-                
-                // Adiciona a lógica de GERAR com a variável correta
-                btnShareNovo.onclick = function() {
-                    // CORREÇÃO AQUI: Removemos o "window." para ler a variável do módulo
-                    if (typeof lastSavedBookipData !== 'undefined' && lastSavedBookipData) {
-                        
-                        // Copia e-mail se tiver
-                        if (lastSavedBookipData.email) {
-                            navigator.clipboard.writeText(lastSavedBookipData.email).catch(()=>{});
-                            if(typeof showCustomModal === 'function') showCustomModal({ message: "E-mail copiado! Gerando PDF..." });
-                        }
-                        
-                        // GERA O PDF NOVO
-                        if(typeof gerarPdfDoHistorico === 'function') {
-                            gerarPdfDoHistorico(lastSavedBookipData, btnShareNovo);
-                        }
-                    } else {
-                        // Se cair aqui, tenta recuperar do window por segurança
-                        if(window.lastSavedBookipData) {
-                             gerarPdfDoHistorico(window.lastSavedBookipData, btnShareNovo);
-                        } else {
-                             alert("Erro: Nenhum dado salvo encontrado. Salve novamente.");
-                        }
-                    }
-                };
-
-                // Substitui o botão velho pelo novo
-                btnShareAntigo.parentNode.replaceChild(btnShareNovo, btnShareAntigo);
-            }
-
-            // (Opcional) Reseta o visual do card pai se ficou verde
-            const cardShare = document.getElementById('btnPostShare')?.closest('.col-6');
-            if(cardShare) { // Tenta pegar o novo ou o velho
-                const cardReal = document.getElementById('btnPostShare').closest('.col-6') || cardShare;
-                if (cardReal) {
-                    cardReal.style.border = ''; 
-                    cardReal.style.backgroundColor = '';
-                }
-            }
-            // Remove borda verde do card pai do botão (caso exista classe específica)
-            const parentCard = document.getElementById('btnPostShare')?.parentElement; 
-            if(parentCard) {
-                 parentCard.style.borderLeft = ""; 
-                 parentCard.style.backgroundColor = "";
-            }
-
-            // 5. Rola para o topo
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-    }
-});
-
 
 // ============================================================
 
@@ -7127,17 +7129,21 @@ setTimeout(() => {
 }, 1000); // Espera 1 segundo pra garantir que o HTML carregou
 
 // ============================================================
+// ============================================================
 // FUNÇÃO DE FAXINA (LIMPA TUDO: DADOS, VISUAL E RASCUNHO)
 // ============================================================
 window.resetFormulariosBookip = function() {
     console.log("🧹 Executando faxina completa...");
 
-    // 👇👇👇 AQUI ESTÁ O SEGREDO QUE FALTAVA 👇👇👇
-    // Isso garante que o rascunho velho morra quando você pede um novo.
+    // 👇 CORREÇÃO CRÍTICA AQUI 👇
+    // Removi o 'window.' para ele limpar a variável REAL do módulo app.js
+    currentEditingBookipId = null; 
+    // 👆 AGORA ELE LIMPA DE VERDADE 👆
+
+    // Garante que o rascunho velho morra quando você pede um novo.
     if(typeof limparRascunhoBookipDefinitivo === 'function') {
         limparRascunhoBookipDefinitivo();
     }
-    // 👆👆👆 FIM DA ADIÇÃO 👆👆👆
 
     // 1. Limpa Campos de Texto do Cliente
     const camposCliente = ['bookipNome', 'bookipCpf', 'bookipTelefone', 'bookipEndereco', 'bookipEmail', 'bookipDataManual'];
@@ -7181,7 +7187,8 @@ window.resetFormulariosBookip = function() {
         btnAdd.classList.add('btn-primary');
     }
 
-    // 7. ZERA A LISTA NA MEMÓRIA E NA TELA (O Pulo do Gato)
+    // 7. ZERA A LISTA NA MEMÓRIA E NA TELA
+    // Mesma coisa aqui: limpamos a variável direta, sem 'window' se possível, ou ambas por segurança
     if (typeof bookipCartList !== 'undefined') {
         bookipCartList = []; 
     } else {
@@ -7201,13 +7208,9 @@ window.resetFormulariosBookip = function() {
     
     const saveContainer = document.getElementById('saveActionContainer');
     if(saveContainer) saveContainer.classList.remove('hidden');
+
+    console.log("✅ Sistema limpo e pronto para novo cadastro (ID: null).");
 };
-
-
-
-
-
-
 
 
 
@@ -7590,10 +7593,14 @@ window.ativarSalvamentoAutomatico = function() {
 };
 
 // 2. EXECUTAR SALVAMENTO (Grava no LocalStorage)
-
 function executarSalvamentoReal() {
-    // 👇 ADICIONE ESTA LINHA: Se estiver editando, NÃO salva rascunho
-    if (window.currentEditingBookipId) return; 
+    
+    // 👇 CORREÇÃO 1: REMOVI O "window."
+    // Verifica a variável local. Se ela existir e não for nula, é porque estamos editando.
+    // Nesse caso, o rascunho é ignorado para não salvar por cima.
+    if (typeof currentEditingBookipId !== 'undefined' && currentEditingBookipId !== null) {
+        return; 
+    }
 
     // Pega os pagamentos
     const pags = [];
@@ -7609,12 +7616,16 @@ function executarSalvamentoReal() {
         garantia: document.getElementById('bookipGarantiaSelect')?.value,
         garantiaCustom: document.getElementById('bookipGarantiaCustomInput')?.value,
         pagamentos: pags,
-        listaProdutos: window.bookipCartList || [], 
+        
+        // 👇 CORREÇÃO 2: LISTA DE PRODUTOS
+        // Usa a variável local 'bookipCartList' em vez de 'window.bookipCartList'
+        // Isso garante que o rascunho salve os produtos que estão na memória
+        listaProdutos: typeof bookipCartList !== 'undefined' ? bookipCartList : [], 
+        
         timestamp: Date.now()
     };
 
-    // 👇 A MUDANÇA ESTÁ AQUI: Agora ele verifica TUDO 👇
-    // Se tiver Nome OU CPF OU Telefone OU Email OU Item na lista... Salva!
+    // Verifica se tem algum dado preenchido
     const temAlgumDado = dados.nome || dados.cpf || dados.tel || dados.email || dados.listaProdutos.length > 0;
 
     if (temAlgumDado) {
@@ -8193,5 +8204,174 @@ window.abrirLixeiraModal = function() {
         }).join('');
     }, { onlyOnce: true }); // Lê apenas uma vez para economizar dados
 };
+
+
+// ============================================================
+// ============================================================
+// SISTEMA DE PREVIEW AUTOMÁTICO (COLE NO FINAL DO APP.JS)
+// ============================================================
+
+// Variável para guardar os dados do documento atual
+let dadosDoUltimoSalvamento = null;
+
+// 1. Função chamada IMEDIATAMENTE após salvar
+function abrirPreviewAutomatico(dados) {
+    console.log("🚀 Abrindo preview automático...");
+    
+    // Guarda os dados na memória global
+    dadosDoUltimoSalvamento = dados;
+
+    const modal = document.getElementById('modalPreviewDocumento');
+    const content = document.getElementById('previewDocContent');
+
+    if (!modal || !content) {
+        console.error("ERRO: O Modal de preview não existe no HTML. Verifique o index.html");
+        return;
+    }
+
+    // Gera o visual do documento (Usa a mesma função do PDF)
+    if (typeof getReciboHTML === 'function') {
+        content.innerHTML = getReciboHTML(dados);
+        
+        // Ajuste de Zoom para caber na tela do celular (Responsivo)
+        if (window.innerWidth < 800) {
+            content.style.transform = "scale(0.42)"; 
+            content.style.transformOrigin = "top left";
+            content.style.marginBottom = "-500px"; 
+        } else {
+            content.style.transform = "scale(0.8)";
+            content.style.transformOrigin = "top center";
+            content.style.marginBottom = "0px";
+        }
+    }
+
+    // Mostra o Modal
+    modal.style.display = 'flex';
+}
+
+// 2. Função para Fechar
+window.fecharPreview = function() {
+    const modal = document.getElementById('modalPreviewDocumento');
+    if(modal) modal.style.display = 'none';
+    
+    // Se quiser que mostre os botões antigos ao fechar, descomente abaixo:
+    // const postSave = document.getElementById('postSaveOptions');
+    // if(postSave) postSave.classList.remove('hidden');
+};
+
+// 3. Conecta o Botão ENVIAR (Verde) do Preview
+// (Garantimos que ele só é adicionado uma vez)
+const btnEnviarPrev = document.getElementById('btnEnviarDoPreview');
+if (btnEnviarPrev) {
+    // Removemos listener antigo para não duplicar
+    const novoBtn = btnEnviarPrev.cloneNode(true);
+    btnEnviarPrev.parentNode.replaceChild(novoBtn, btnEnviarPrev);
+
+    novoBtn.addEventListener('click', function() {
+        if (!dadosDoUltimoSalvamento) return;
+        
+        // Chama a sua função poderosa de gerar PDF e compartilhar
+        if (typeof gerarPdfDoHistorico === 'function') {
+            gerarPdfDoHistorico(dadosDoUltimoSalvamento, novoBtn);
+        } else {
+            alert("Erro: Função de gerar PDF não encontrada.");
+        }
+    });
+}
+
+// ==================================================================
+// 🕵️‍♂️ SCRIPT DE DIAGNÓSTICO (COLE NO FINAL DO APP.JS)
+// ==================================================================
+console.log(">>> INICIANDO DIAGNÓSTICO DO BOTÃO SALVAR <<<");
+
+(function() {
+    const btnDiagnostico = document.getElementById('btnSaveBookip');
+    
+    // 1. VERIFICA SE O BOTÃO EXISTE
+    if (!btnDiagnostico) {
+        alert("ERRO CRÍTICO: O botão com ID 'btnSaveBookip' NÃO foi encontrado no HTML. Verifique o ID no index.html.");
+        return;
+    }
+
+    console.log("Botão encontrado. Substituindo ação de clique...");
+
+    // 2. SUBSTITUI O CLIQUE (Sobrescreve qualquer código anterior para testar)
+    btnDiagnostico.onclick = async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        alert("PASSO 1: O clique funcionou! Vamos checar os dados.");
+
+        // 3. VERIFICA VARIÁVEIS GLOBAIS
+        try {
+            if (typeof bookipCartList === 'undefined') {
+                alert("ERRO: A variável 'bookipCartList' não existe ou não está acessível.");
+                return;
+            }
+            
+            alert(`PASSO 2: Carrinho encontrado com ${bookipCartList.length} itens.`);
+            
+            if (bookipCartList.length === 0) {
+                alert("AVISO: O carrinho está vazio. Adicione um item antes de salvar.");
+                return;
+            }
+
+            // 4. VERIFICA FIREBASE IMPORTS
+            if (typeof push === 'undefined' || typeof ref === 'undefined' || typeof db === 'undefined') {
+                alert("ERRO DE IMPORTAÇÃO: As funções do Firebase (push, ref, db) não estão acessíveis aqui. Verifique os 'imports' no topo do arquivo.");
+                return;
+            }
+
+            // 5. TENTA GERAR O HTML (Teste de Preview)
+            const modal = document.getElementById('modalPreviewDocumento');
+            const content = document.getElementById('previewDocContent');
+            
+            if (!modal || !content) {
+                alert("ERRO HTML: Modal (#modalPreviewDocumento) ou Conteúdo (#previewDocContent) não existem no index.html");
+                return;
+            }
+
+            alert("PASSO 3: Tudo certo com HTML e Dados. Tentando Salvar e Abrir...");
+
+            // 6. EXECUÇÃO REAL (Tentativa Blindada)
+            btnDiagnostico.innerHTML = '⏳ Testando...';
+            
+            // Dados fictícios baseados no formulário
+            const dadosTeste = {
+                docNumber: 'TESTE-001',
+                nome: document.getElementById('bookipNome')?.value || 'Teste Cliente',
+                items: bookipCartList,
+                dataVenda: new Date().toISOString(),
+                valorTotal: 100 // Exemplo
+            };
+
+            // Simula salvamento
+            alert("PASSO 4: Enviando para Firebase...");
+            
+            // ATENÇÃO: Se der erro aqui, é permissão do Firebase ou internet
+            await push(ref(db, 'bookips_logs_erro'), { log: "Teste de Diagnostico", data: new Date().toString() });
+            
+            alert("PASSO 5: Sucesso no Firebase! Abrindo Modal...");
+
+            // Injeta HTML Manualmente
+            content.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h1>SUCESSO!</h1>
+                    <p>O sistema funcionou.</p>
+                    <p>Cliente: ${dadosTeste.nome}</p>
+                    <button onclick="document.getElementById('modalPreviewDocumento').style.display='none'" class="btn btn-danger">Fechar</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
+            
+            btnDiagnostico.innerHTML = 'Salvar';
+
+        } catch (erro) {
+            console.error(erro);
+            alert("ERRO FATAL NO JAVASCRIPT: " + erro.message);
+            btnDiagnostico.innerHTML = 'Erro';
+        }
+    };
+})();
 
         });
