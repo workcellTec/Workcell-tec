@@ -416,17 +416,27 @@ const stockContainer = document.getElementById('stockContainer');
 const adminContainer = document.getElementById('administracao');
 const topRightControls = document.getElementById('top-right-controls');
 
+
 function showMainSection(sectionId) {
     if (!isAuthReady) return;
     
-    // Desliga ouvintes antigos para economizar memória
+    // Desliga ouvintes antigos
     if (productsListener) { off(getProductsRef(), 'value', productsListener); productsListener = null; }
     if (boletosListener) { off(ref(db, 'boletos'), 'value', boletosListener); boletosListener = null; }
 
-    // 1. Pega o elemento novo (Clientes)
+    // 1. Identifica os elementos
     const clientsContainer = document.getElementById('clientsContainer');
+    
+    // SUB-MENUS DA CALCULADORA
+    const subMenusCalculadora = [
+        'fecharVenda', 
+        'repassarValores', 
+        'emprestarValores', 
+        'calcularEmprestimo', 
+        'calcularPorAparelho'
+    ];
 
-    // 2. Esconde TUDO (Adiciona classe hidden)
+    // 2. Esconde os Containers Principais
     mainMenu.classList.add('hidden');
     calculatorContainer.classList.add('hidden');
     contractContainer.classList.add('hidden');
@@ -434,10 +444,8 @@ function showMainSection(sectionId) {
     adminContainer.classList.add('hidden');
     topRightControls.classList.add('hidden');
     
-    // Esconde também o container de clientes se ele existir
     if (clientsContainer) clientsContainer.classList.add('hidden');
 
-    // 3. Garante que o display seja none visualmente
     mainMenu.style.display = 'none';
     calculatorContainer.style.display = 'none';
     contractContainer.style.display = 'none';
@@ -445,7 +453,13 @@ function showMainSection(sectionId) {
     adminContainer.style.display = 'none';
     if (clientsContainer) clientsContainer.style.display = 'none';
 
-    // 4. Mostra APENAS a seção escolhida
+    // 3. LIMPEZA DOS FANTASMAS
+    subMenusCalculadora.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+
+    // 4. Mostra a seção escolhida (COM OTIMIZAÇÃO DE PERFORMANCE)
     if (sectionId === 'main') {
         mainMenu.classList.remove('hidden');
         mainMenu.style.display = 'flex';
@@ -453,40 +467,50 @@ function showMainSection(sectionId) {
     } 
     else if (sectionId === 'calculator') {
         calculatorContainer.classList.remove('hidden');
-        calculatorContainer.style.display = 'block';
-        openCalculatorSection('calculatorHome');
+        calculatorContainer.style.display = 'block'; 
+        
+        // Joga o processamento para depois da renderização visual
+        requestAnimationFrame(() => {
+            openCalculatorSection('calculatorHome');
+        });
     } 
     else if (sectionId === 'contract') {
         contractContainer.classList.remove('hidden');
-        contractContainer.style.display = 'block'; // SÓ ISSO!
+        contractContainer.style.display = 'block';
         
         document.getElementById('documentsHome').style.display = 'flex'; 
         document.getElementById('areaContratoWrapper').style.display = 'none';
         document.getElementById('areaBookipWrapper').style.display = 'none';
     } 
-
-
-
-
     else if (sectionId === 'stock') {
         stockContainer.classList.remove('hidden');
         stockContainer.style.display = 'flex';
-        loadCheckedItems();
-        filterStockProducts();
+        
+        // OTIMIZAÇÃO: Carrega os dados pesados apenas após a tela aparecer
+        requestAnimationFrame(() => {
+            loadCheckedItems();
+            filterStockProducts();
+        });
     } 
     else if (sectionId === 'administracao') {
         adminContainer.classList.remove('hidden');
         adminContainer.style.display = 'flex';
-        filterAdminProducts();
+        
+        // OTIMIZAÇÃO: Renderiza a lista administrativa no próximo quadro
+        requestAnimationFrame(() => {
+            filterAdminProducts();
+        });
     }
-    // --- NOVO: LÓGICA DA TELA DE CLIENTES ---
     else if (sectionId === 'clients') {
         if (clientsContainer) {
             clientsContainer.classList.remove('hidden');
             clientsContainer.style.display = 'flex';
-            // Chama a função que preenche a tabela (que vamos criar no Bloco 2)
+            
+            // OTIMIZAÇÃO: Renderiza a tabela de clientes no próximo quadro
             if (typeof renderClientsTable === 'function') {
-                renderClientsTable();
+                requestAnimationFrame(() => {
+                    renderClientsTable();
+                });
             }
         }
     }
@@ -494,7 +518,6 @@ function showMainSection(sectionId) {
     currentMainSectionId = sectionId;
     safeStorage.setItem('ctwLastSection', sectionId);
 }
-
 
 function renderRatesEditor() {
     const accordionContainer = document.getElementById('ratesAccordion');
@@ -1082,9 +1105,9 @@ function renderCarrinho() {
             colorsHtml = '<span class="text-secondary small ms-1">Sem cores definidas</span>';
         }
 
-        // HTML do Card Unificado (COM O BOTÃO DE FAVORITAR)
+        // --- COLAR ISTO NO LUGAR DO ANTIGO 'const cardHtml' ---
         const cardHtml = `
-        <div class="product-action-card">
+        <div class="product-action-card" data-index="${index}">
             
             <div class="product-action-header">
                 <div class="product-action-info" style="flex: 1;">
@@ -1092,6 +1115,10 @@ function renderCarrinho() {
                     <div class="product-action-date text-start"><i class="bi bi-clock-history"></i> ${dateInfo}</div>
                 </div>
                 
+                <button class="btn-settings-toggle" title="Opções do Sistema (Valor/Cores)">
+                    <i class="bi bi-gear-fill"></i>
+                </button>
+
                 <button class="btn-remove-card" onclick="removerDoCarrinho(${index})" title="Remover item">
                     <i class="bi bi-x-lg"></i>
                 </button>
@@ -1101,13 +1128,17 @@ function renderCarrinho() {
                 ${colorsHtml}
             </div>
 
-            <div class="product-action-buttons">
-                <button class="btn-action-sm edit-price-btn" data-index="${index}">
-                    <i class="bi bi-cash-coin"></i> Editar Valor
-                </button>
-                <button class="btn-action-sm edit-colors-btn" data-id="${product.id}">
-                    <i class="bi bi-palette"></i> Editar Cores
-                </button>
+            <div class="product-admin-panel">
+                <span class="admin-warning-label"><i class="bi bi-exclamation-triangle"></i> Editar Cadastro no Sistema</span>
+                
+                <div class="product-action-buttons">
+                    <button class="btn-action-sm edit-price-btn" data-index="${index}">
+                        <i class="bi bi-cash-coin"></i> Editar Valor Base
+                    </button>
+                    <button class="btn-action-sm edit-colors-btn" data-id="${product.id}">
+                        <i class="bi bi-palette"></i> Editar Cores
+                    </button>
+                </div>
             </div>
 
             <div class="mt-2 pt-2 border-top border-secondary border-opacity-10 text-center">
@@ -3148,6 +3179,20 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (carrinhoContainer) {
         carrinhoContainer.addEventListener('click', (e) => {
+
+            // --- CÓDIGO NOVO: CLIQUE DA ENGRENAGEM ---
+            const gearBtn = e.target.closest('.btn-settings-toggle');
+            if (gearBtn) {
+                e.preventDefault();
+                const card = gearBtn.closest('.product-action-card');
+                const panel = card.querySelector('.product-admin-panel');
+                
+                // Liga/Desliga
+                panel.classList.toggle('active');
+                gearBtn.classList.toggle('active');
+                return; // Para aqui e não executa o resto
+            }
+
             // 1. Botão Editar Cores
             const colorBtn = e.target.closest('.edit-colors-btn');
             if (colorBtn) { 
@@ -3266,9 +3311,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const savedTheme = safeStorage.getItem('theme') || 'dark';
+
+    // Tema escuro e Claro
+
+    // 1. Usa a chave correta 'ctwTheme' (antes estava 'theme' e dava erro)
+    const savedTheme = safeStorage.getItem('ctwTheme') || 'dark';
+    
+    // 2. Aplica o tema visualmente no site
     applyTheme(savedTheme);
-    themeToggleCheckbox.addEventListener('change', toggleTheme);
+    
+    // 3. A CORREÇÃO MÁGICA: Sincroniza o botão
+    if (themeToggleCheckbox) {
+        // Se o tema salvo for 'light', força o botão a ficar MARCADO.
+        // Se for 'dark', força a ficar DESMARCADO.
+        themeToggleCheckbox.checked = (savedTheme === 'light');
+        
+        // Garante que o evento só seja adicionado uma vez
+        themeToggleCheckbox.removeEventListener('change', toggleTheme);
+        themeToggleCheckbox.addEventListener('change', toggleTheme);
+    }
+
 
     document.getElementById('goToCalculator').addEventListener('click', () => showMainSection('calculator'));
     document.getElementById('goToContract').addEventListener('click', () => showMainSection('contract'));
@@ -5227,6 +5289,17 @@ function loadBookipHistory() {
                  dataVisual = dataVendaObj.toLocaleDateString('pt-BR');
             }
 
+
+            // --- CIRÚRGICO: Pega a hora ---
+            let horaVisual = '';
+            if (item.criadoEm) {
+                try {
+                    const d = new Date(item.criadoEm);
+                    horaVisual = d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                } catch(e) {}
+            }
+            // ------------------------------
+
             
             const docNum = item.docNumber || '---';
 
@@ -5298,8 +5371,8 @@ function loadBookipHistory() {
             const iconBtnEnvio = foiEnviado ? 'bi-check-circle-fill text-success' : 'bi-envelope-at-fill';
             const titleBtnEnvio = foiEnviado ? 'Já enviado (Reenviar)' : 'PDF/Email';
 
-            return `
-                       <div class="accordion-item" style="${styleCard}">
+                                    return `
+            <div class="accordion-item" style="${styleCard}">
                 <h2 class="accordion-header" id="head-bk-${item.id}">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-bk-${item.id}">
                         
@@ -5312,6 +5385,10 @@ function loadBookipHistory() {
 
                         <div class="text-end ms-auto" style="min-width: 80px;">
                             <small class="d-block text-secondary" style="font-size: 0.7rem;">${dataVisual}</small>
+
+                            <small class="d-block text-secondary" style="font-size: 0.65rem; opacity: 0.8;">${horaVisual}</small>
+
+
                             <span class="badge bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-25" style="font-size: 0.65rem; font-weight: normal; letter-spacing: 0.5px;">
                                 <i class="bi bi-person me-1"></i>${item.criadoPor || 'Geral'}
                             </span>
@@ -5321,31 +5398,45 @@ function loadBookipHistory() {
                 
                 <div id="collapse-bk-${item.id}" class="accordion-collapse collapse" data-bs-parent="#bookipAccordion">
                     <div class="accordion-body">
-                        <p><strong>Cliente:</strong> ${item.nome}</p>
+                        
+                        <div class="mb-2">
+                            <strong>Cliente:</strong> ${item.nome}<br>
+                            ${item.tel ? `<small class="text-secondary"><i class="bi bi-whatsapp text-success me-1"></i> ${item.tel}</small>` : ''}
+                        </div>
+
                         <ul class="list-unstyled small mb-3">
                             ${(item.items || []).map(i => `<li>${i.qtd}x ${i.nome} - R$ ${parseFloat(i.valor).toFixed(2)}</li>`).join('')}
                         </ul>
-                        <div class="d-flex justify-content-end gap-2 mt-2">
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-2 flex-wrap">
 
+                            ${(() => {
+                                const telLimpo = (item.tel || '').replace(/\D/g, '');
+                                if (telLimpo.length >= 8) {
+                                    const numFinal = telLimpo.length <= 11 ? '55' + telLimpo : telLimpo;
+                                    return `<a href="https://wa.me/${numFinal}" target="_blank" class="btn btn-sm btn-success" title="Abrir WhatsApp"><i class="bi bi-whatsapp"></i></a>`;
+                                }
+                                return ''; 
+                            })()}
 
-
+                            <button class="btn btn-sm btn-dark btn-copy-nf" data-id="${item.id}" title="Copiar dados para NF" style="font-weight: bold;">NF</button>
 
                             <button class="btn btn-sm btn-info edit-bookip-btn" data-id="${item.id}" title="Editar"><i class="bi bi-pencil-square"></i></button>
 
                             <button class="btn btn-sm ${classBtnEnvio} email-history-btn" data-id="${item.id}" title="${titleBtnEnvio}"><i class="bi ${iconBtnEnvio}"></i></button>
 
-<button class="btn btn-sm btn-outline-primary btn-download-seguro" data-id="${item.id}" title="Baixar PDF">
-    <i class="bi bi-download"></i>
-</button>
-
-
-
+                            <button class="btn btn-sm btn-outline-primary btn-download-seguro" data-id="${item.id}" title="Baixar PDF">
+                                <i class="bi bi-download"></i>
+                            </button>
 
                             <button class="btn btn-sm btn-outline-danger delete-bookip-btn" data-id="${item.id}" title="Apagar"><i class="bi bi-trash"></i></button>
                         </div>
                     </div>
                 </div>
             </div>`;
+
+
+
         }).join('') + `</div>`;
 
         if (temMais) {
@@ -5379,6 +5470,70 @@ container.querySelectorAll('.delete-bookip-btn').forEach(b => b.addEventListener
         onCancel: ()=>{}
     });
 }));
+
+
+        // --- LÓGICA DO BOTÃO NF (COM NOTIFICAÇÃO NATIVA) ---
+        container.querySelectorAll('.btn-copy-nf').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const id = e.target.closest('button').dataset.id;
+                const item = listaCompletaCache.find(i => i.id === id);
+
+                if (item) {
+                    let textoNF = `Gerar NF\n`;
+                    textoNF += `Nome: ${item.nome || ''}\n`;
+                    textoNF += `CPF: ${item.cpf || 'Não informado'}\n`;
+                    
+                    // Prioriza celular, se não tiver tenta telefone fixo
+                    textoNF += `Numero: ${item.tel || item.telefone || 'Não informado'}\n`; 
+                    
+                    // Usa endereço completo se tiver
+                    const enderecoCompleto = item.end ? item.end : (item.cep ? `CEP: ${item.cep}` : 'Não informado');
+                    textoNF += `Endereço/Cep: ${enderecoCompleto}\n\n`; 
+
+                    textoNF += `--- ITENS ---\n`;
+                    
+                    let totalGeralNota = 0;
+
+                    if (item.items && item.items.length > 0) {
+                        item.items.forEach((prod, index) => {
+                            const qtd = parseInt(prod.qtd) || 1;
+                            const valorUnit = parseFloat(prod.valor) || 0;
+                            const valorTotalItem = qtd * valorUnit;
+                            
+                            totalGeralNota += valorTotalItem;
+
+                            let linhaProduto = '';
+                            if (qtd > 1) {
+                                // Se for mais de 1: Mostra (Unitário) e Total
+                                linhaProduto = `${qtd}x ${prod.nome} (R$ ${valorUnit.toFixed(2)} un.) ➤ R$ ${valorTotalItem.toFixed(2)}`;
+                            } else {
+                                // Se for apenas 1: Mostra direto o valor
+                                linhaProduto = `${qtd}x ${prod.nome} - R$ ${valorTotalItem.toFixed(2)}`;
+                            }
+
+                            textoNF += `Produto: ${linhaProduto}\n`;
+                            textoNF += `Cor: ${prod.cor || 'Padrão'}\n`;
+                            textoNF += `Imei/Obs: ${prod.obs || '---'}\n`; 
+                            
+                            if (index < item.items.length - 1) textoNF += `\n`; 
+                        });
+                    }
+                    
+                    textoNF += `----------------\n`;
+                    textoNF += `Valor Total: R$ ${totalGeralNota.toFixed(2)}\n`;
+                    textoNF += `Forma de pagamento: ${item.pagamento || 'Não informado'}`;
+
+                    navigator.clipboard.writeText(textoNF).then(() => {
+                        // AQUI ESTÁ A CORREÇÃO: Usando sua função nativa
+                        if (typeof showCustomModal === 'function') {
+                            showCustomModal({ message: "Dados para NF Copiados com sucesso! 📋" });
+                        } else {
+                            alert(" Dados para NF Copiados!"); // Fallback só por segurança
+                        }
+                    });
+                }
+            });
+        });
 
 
 
