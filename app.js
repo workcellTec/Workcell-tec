@@ -2308,91 +2308,177 @@ function clearContractDraft(clearStorage = true) {
     }
 }
 
+
 function populatePreview() {
-    document.getElementById('contractPreview').innerHTML = `
-    <h4>CONTRATO DE COMPRA E VENDA DE SMARTPHONE</h4>
-    <p>Pelo presente instrumento particular, as partes a seguir identificadas firmam o presente CONTRATO DE COMPRA E VENDA, mediante as cláusulas e condições abaixo:</p>
-    <div class="section-title" style="text-transform: none; text-align: left;">VENDEDOR</div>
-    <p>Workcell Tecnologia LTDA – CNPJ nº 50.299.715/0001-65, com sede em Av. Goiás, n° 4118 - loja 05 posto - St. Crimeia Oeste, Goiânia - GO, 74563-220.</p>
-    <div class="section-title" style="text-transform: none; text-align: left;">COMPRADOR</div>
-    <p style="margin-bottom: 24pt;">
-    Nome: <span id="previewNome"></span><br>
-    CPF: <span id="previewCpf"></span> RG: <span id="previewRg"></span><br>
-    Endereço: <span id="previewEndereco"></span>
-    </p>
-    <div class="section-title">CLÁUSULA 1 – DO OBJETO</div>
-    <p>O presente contrato tem por objeto a venda do(s) smartphone(s) descrito(s) abaixo:</p>
-    <p style="margin-bottom: 24pt;">
-    Modelo: <span id="previewModelo"></span><br>
-    IMEI(s): <span id="previewImei"></span><br>
-    Valor total: R$ <span id="previewValorTotal"></span>
-    </p>
-    <div class="section-title">CLÁUSULA 2 – DO PAGAMENTO</div>
-    <p>2.1 O valor total da compra é de R$ <span id="previewValorTotal2"></span> (<span id="previewValorExtenso"></span>), sendo pago da seguinte forma:</p>
-    <p id="clausulaPagamentoB"></p>
-    <p style="margin-bottom: 24pt;">
-    2.2 O não pagamento de qualquer parcela na data de vencimento acarretará:<br>
-    Multa de 2% (dois por cento) sobre o valor da parcela em atraso;<br>
-    Juros de mora de 1% (um por cento) ao mês;<br>
-    Correção monetária conforme índice legal aplicável.
-    </p>
-    <div class="section-title">CLÁUSULA 3 – DA PROPRIEDADE</div>
-    <p>3.1 A propriedade do smartphone somente será transferida ao COMPRADOR após a quitação integral de todas as parcelas.</p>
-    <p>3.2 Em caso de inadimplência, o COMPRADOR será notificado pelo VENDEDOR e terá o prazo de 5 (cinco) dias corridos para regularizar o pagamento.</p>
-    <p style="margin-bottom: 24pt;">3.3 Caso não haja a regularização no prazo informado, o VENDEDOR poderá proceder ao bloqueio remoto do aparelho, impedindo seu uso até a quitação ou negociação da dívida, sem prejuízo da cobrança das parcelas vencidas e demais encargos previstos neste contrato.</p>
-    <div class="section-title">CLÁUSULA 4 – DAS GARANTIAS</div>
-    <p>4.1 O aparelho possui garantia legal de 1 (um) ano para qualquer defeito de fabricação pelo fabricante, contados a partir da entrega do produto.</p>
-    <p style="margin-bottom: 24pt;">4.2 A garantia não cobre mau uso, quedas, molhar, oxidação ou violação do aparelho.</p>
-    <div class="section-title">CLÁUSULA 5 – DA RESCISÃO</div>
-    <p style="margin-bottom: 24pt;">5.1 O não cumprimento de qualquer obrigação contratual poderá resultar na rescisão imediata deste contrato, com a cobrança das parcelas vencidas e vincendas, além das penalidades cabíveis.</p>
-    <div class="section-title">CLÁUSULA 6 – DO FORO</div>
-    <p>As partes elegem o foro da comarca de Goiânia para dirimir quaisquer dúvidas oriundas deste contrato.</p>
-    <p style="margin-top: 24pt;">E por estarem de acordo, firmam o presente contrato em 2 (duas) vias de igual teor.</p>
-    <p style="margin-top: 40pt;">Local e data: <span id="previewLocalData"></span></p>
-    <div style="text-align: center; margin-top: 40pt;">
-    <div class="signature-line" style="margin-bottom: 5px;"></div>
-    <p style="margin-bottom: 5pt; margin-top:0;">Assinatura VENDEDOR</p>
-    </div>
-    <div style="text-align: center; margin-top: 20pt;">
-    <div class="signature-line" style="margin-bottom: 5px;"></div>
-    <p style="margin-bottom: 5pt; margin-top:0;">Assinatura COMPRADOR</p>
-    </div>
-    `;
-    document.getElementById('previewNome').textContent = document.getElementById('compradorNome').value;
-    document.getElementById('previewCpf').textContent = document.getElementById('compradorCpf').value;
-    document.getElementById('previewRg').textContent = document.getElementById('compradorRg').value;
-    document.getElementById('previewEndereco').textContent = document.getElementById('compradorEndereco').value;
-    document.getElementById('previewModelo').textContent = document.getElementById('produtoModelo').value;
-    document.getElementById('previewImei').textContent = document.getElementById('produtoImei').value;
-    
-    const total = parseFloat(document.getElementById('valorTotal').value) || 0;
-    document.getElementById('previewValorTotal').textContent = formatCurrency(total);
-    document.getElementById('previewValorTotal2').textContent = formatCurrency(total);
-    document.getElementById('previewValorExtenso').textContent = numeroPorExtenso(total, 'moeda');
-    
-    const entrada = parseFloat(document.getElementById('valorEntrada').value) || 0;
-    const numParcelas = parseInt(document.getElementById('numeroParcelas').value, 10) || 0;
-    const tipoParcela = document.getElementById('tipoParcela').value;
-    const primeiroVencimento = document.getElementById('primeiroVencimento').value;
-    const saldo = total - entrada;
-    const valorParcela = numParcelas > 0 ? saldo / numParcelas : 0;
-    
-    let textoClausulaB = `a) Entrada no valor de R$ ${formatCurrency(entrada)}, paga no ato da assinatura deste contrato;<br>
-    b) O saldo restante de R$ ${formatCurrency(saldo)}, dividido em ${numeroPorExtenso(numParcelas)} (${numParcelas}) parcelas ${tipoParcela} de R$ ${formatCurrency(valorParcela)}, a serem pagas através de boleto bancário emitido pelo VENDEDOR`;
-    
-    if (primeiroVencimento) {
-        const [ano, mes, dia] = primeiroVencimento.split('-');
-        const dataFormatada = `${dia}/${mes}/${ano}`;
-        textoClausulaB += `, com o primeiro vencimento em ${dataFormatada}.`;
-    } else {
-        textoClausulaB += '.';
+    try {
+        const previewContainer = document.getElementById('contractPreview');
+        if (!previewContainer) return; 
+
+        // 1. MONTA O TEXTO DO CONTRATO
+        previewContainer.innerHTML = `
+            <h4 style="text-align: center; font-weight: bold;">CONTRATO PARTICULAR DE LOCAÇÃO DE BEM MÓVEL (SMARTPHONE)<br>COM OPÇÃO DE AQUISIÇÃO, GARANTIAS E CONFISSÃO DE DÍVIDA</h4>
+
+            <p>Pelo presente instrumento particular, as partes abaixo identificadas:</p>
+
+            <p><strong>LOCADORA:</strong><br>
+            WHORKCELL TECNOLOGIA E SERVIÇOS LTDA, pessoa jurídica de direito privado, inscrita no CNPJ nº 50.299.715/0001-65, com sede em Av. Goiás, nº 4118, sala 05, St. Crimeia Oeste, Goiânia – GO, doravante denominada simplesmente LOCADORA.</p>
+
+            <p><strong>LOCATÁRIO:</strong><br>
+            Nome: <strong id="prevNome"></strong><br>
+            CPF: <strong id="prevCPF"></strong><br>
+            RG: <strong id="prevRG"></strong><br>
+            Endereço: <strong id="prevEndereco"></strong><br>
+            Telefone/WhatsApp: <strong id="prevTelefone"></strong><br>
+            Doravante denominado simplesmente LOCATÁRIO.</p>
+
+            <p>As partes têm entre si justo e contratado o que segue:</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 1 – DO OBJETO</div>
+            <p>1.1. O presente contrato tem por objeto a locação de bem móvel consistente em aparelho celular com as seguintes características:<br>
+            Marca/Modelo: <strong id="prevModelo"></strong><br>
+            IMEI: <strong id="prevIMEI"></strong><br>
+            Estado: <strong id="prevEstado"></strong><br>
+            Acessórios inclusos: <strong id="prevAcessorios"></strong></p>
+            <p>1.2. O bem permanecerá, durante toda a vigência contratual, como propriedade exclusiva da LOCADORA, não se operando qualquer transferência dominial até eventual aquisição final.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 2 – DA NATUREZA JURÍDICA</div>
+            <p>2.1. As partes reconhecem expressamente que o presente instrumento configura contrato de locação de bem móvel, nos termos dos artigos 565 e seguintes do Código Civil Brasileiro.<br>
+            2.2. O presente contrato não constitui compra e venda parcelada, financiamento ou operação de crédito.<br>
+            2.3. A eventual transferência de propriedade somente ocorrerá após a quitação integral das obrigações assumidas pelo LOCATÁRIO.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 3 – DO PRAZO</div>
+            <p>3.1. O prazo da locação é de <strong id="prevPrazo"></strong> meses, iniciando-se na data de assinatura deste instrumento.<br>
+            3.2. O contrato poderá ser rescindido antecipadamente nas hipóteses previstas neste instrumento.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 4 – DO PREÇO E FORMA DE PAGAMENTO</div>
+            <p>4.1. Pela locação do bem, o LOCATÁRIO pagará à LOCADORA:<br>
+            Entrada: R$ <strong id="prevEntrada"></strong> e <strong id="prevQtdParcelas"></strong> parcelas mensais de R$ <strong id="prevValorParcela"></strong>.<br>
+            4.2. O pagamento será realizado mediante boleto bancário com vencimento todo dia <strong id="prevVencimento"></strong> de cada mês.<br>
+            4.3. O não recebimento do boleto não exime o LOCATÁRIO da obrigação de pagamento na data de vencimento.<br>
+            4.4. O atraso implicará incidência de multa, juros e correção monetária conforme legislação vigente.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 5 – DA POSSE E CONDIÇÃO DE FIEL DEPOSITÁRIO</div>
+            <p>5.1. O LOCATÁRIO recebe o bem na qualidade de possuidor direto e fiel depositário, obrigando-se a zelar pela sua guarda, conservação e integridade.<br>
+            5.2. O LOCATÁRIO compromete-se a restituir o bem sempre que solicitado pela LOCADORA nas hipóteses previstas neste contrato.<br>
+            5.3. A não devolução injustificada do bem poderá caracterizar ilícito civil e, quando cabível, ilícito penal.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 6 – DAS OBRIGAÇÕES DO LOCATÁRIO</div>
+            <p>O LOCATÁRIO obriga-se a:<br>
+            I – Utilizar o aparelho de forma adequada e exclusivamente para fins lícitos;<br>
+            II – Não alienar, ceder, emprestar, sublocar ou transferir o bem a terceiros;<br>
+            III – Não oferecer o bem em garantia ou penhor;<br>
+            IV – Não adulterar IMEI, hardware ou software para ocultar identificação;<br>
+            V – Comunicar imediatamente à LOCADORA qualquer perda, furto, roubo ou dano relevante;<br>
+            VI – Manter seus dados cadastrais atualizados.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 7 – RESPONSABILIDADE POR PERDA, ROUBO OU DANOS</div>
+            <p>7.1. O LOCATÁRIO responderá integralmente pela perda, furto, roubo ou danos ao aparelho.<br>
+            7.2. Tais eventos não extinguem a obrigação de pagamento das parcelas restantes.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 8 – DO BLOQUEIO REMOTO E MONITORAMENTO</div>
+            <p>8.1. O LOCATÁRIO autoriza expressamente a instalação e utilização de sistemas de segurança, rastreamento e bloqueio remoto do aparelho.<br>
+            8.2. Em caso de inadimplência, a LOCADORA poderá restringir funcionalidades do dispositivo, independentemente de autorização judicial.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 9 – DA INADIMPLÊNCIA</div>
+            <p>9.1. O atraso superior a 1 dia implicará mora automática do LOCATÁRIO.<br>
+            9.2. Em caso de inadimplemento, a LOCADORA poderá:<br>
+            I – Considerar rescindido o contrato;<br>
+            II – Exigir a devolução imediata do bem;<br>
+            III – Realizar bloqueio remoto do aparelho;<br>
+            IV – Promover a inscrição do nome do LOCATÁRIO nos órgãos de proteção ao crédito;<br>
+            V – Protestar o débito;<br>
+            VI – Promover cobrança judicial ou extrajudicial.<br>
+            9.3. As parcelas pagas não serão devolvidas, por corresponderem à contraprestação pelo uso do bem.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 10 – DA CONFISSÃO DE DÍVIDA</div>
+            <p>10.1. O LOCATÁRIO reconhece a certeza, liquidez e exigibilidade das obrigações financeiras decorrentes deste contrato.<br>
+            10.2. O presente instrumento constitui título executivo extrajudicial, nos termos do artigo 784 do Código de Processo Civil.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 11 – DA BUSCA E APREENSÃO</div>
+            <p>11.1. Em caso de inadimplemento e não devolução voluntária do bem, a LOCADORA poderá promover a retomada do aparelho pelas vias judiciais cabíveis.<br>
+            11.2. O LOCATÁRIO compromete-se a informar a localização do bem sempre que solicitado.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 12 – DA OPÇÃO DE AQUISIÇÃO</div>
+            <p>12.1. Após a quitação integral de todas as parcelas, o LOCATÁRIO poderá exercer a opção de aquisição <br> definitiva do bem.<br>
+            12.2. A transferência da propriedade será formalizada mediante termo de quitação emitido pela LOCADORA.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 13 – DA PROTEÇÃO DE DADOS (LGPD)</div>
+            <p>13.1. O LOCATÁRIO autoriza o tratamento de seus dados pessoais pela LOCADORA para execução deste contrato, análise de crédito e cobrança, nos termos da Lei nº 13.709/2018.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 14 – DA IRREVOGABILIDADE E IRRETRATABILIDADE</div>
+            <p>14.1. O presente contrato é celebrado em caráter irrevogável e irretratável, obrigando as partes e seus sucessores.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 15 – DA ASSINATURA DIGITAL</div>
+            <p>15.1. As partes reconhecem como válida a assinatura eletrônica ou digital realizada por plataformas certificadas, produzindo os mesmos efeitos jurídicos da assinatura manuscrita.</p>
+
+            <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 16 – DO FORO</div>
+            <p>16.1. Fica eleito o foro da comarca de Goiânia - Goiás, renunciando a qualquer outro  por mais <br> privilegiado que seja.</p>
+
+            <p style="font-weight: bold;">DECLARAÇÃO FINAL</p>
+            <p>O LOCATÁRIO declara ter recebido o aparelho em perfeito estado de funcionamento, com todos os acessórios informados, e que leu, compreendeu e concorda integralmente com todas as cláusulas deste contrato.</p>
+
+            <br>
+            <p style="text-align: center;">Goiânia - GO, <strong id="prevDataAtual"></strong></p>
+
+            <br><br>
+            <p style="text-align: center;">_________________________________________________________________<br>
+            <strong>LOCADORA:</strong> WORKCELL TECNOLOGIA E SERVIÇOS LTDA – CNPJ: 50.299.715/0001-65</p>
+
+            <br><br>
+            <p style="text-align: center;">_________________________________________________________________<br>
+            <strong>LOCATÁRIO:</strong> <strong id="prevAssinaturaNome"></strong><br>
+            CPF: <strong id="prevAssinaturaCPF"></strong></p>
+        `;
+
+        // 2. CONECTA O QUE FOI DIGITADO COM OS "IDs ORIGINAIS"
+        const safeSet = (idSpan, idInput) => {
+            const span = document.getElementById(idSpan);
+            const input = document.getElementById(idInput);
+            if (span && input) {
+                span.textContent = input.value;
+            }
+        };
+
+        const dataDeHoje = new Date().toLocaleDateString('pt-BR');
+        const spanData = document.getElementById('prevDataAtual');
+        if (spanData) spanData.textContent = dataDeHoje;
+
+        // Puxando dos IDs originais que o seu JS gosta:
+        safeSet('prevNome', 'compradorNome');
+        safeSet('prevAssinaturaNome', 'compradorNome');
+        safeSet('prevCPF', 'compradorCpf');
+        safeSet('prevAssinaturaCPF', 'compradorCpf');
+        safeSet('prevRG', 'compradorRg');
+        safeSet('prevEndereco', 'compradorEndereco');
+        safeSet('prevTelefone', 'compradorTelefone');
+        safeSet('prevModelo', 'produtoModelo');
+        safeSet('prevIMEI', 'produtoImei');
+        
+        // Puxando dos campos novos que criei pra você
+        safeSet('prevEstado', 'aparelhoEstado');
+        safeSet('prevAcessorios', 'aparelhoAcessorios');
+        safeSet('prevPrazo', 'contratoPrazo');
+        
+        // Puxando das finanças usando seus IDs
+        safeSet('prevEntrada', 'valorEntrada');
+        safeSet('prevQtdParcelas', 'numeroParcelas');
+        safeSet('prevValorParcela', 'valorParcela');
+        
+        // Extrai apenas o dia (ex: 10) da data completa que o usuário selecionar
+        const dataVenc = document.getElementById('primeiroVencimento')?.value;
+        let diaVenc = "";
+        if (dataVenc) {
+            const parts = dataVenc.split('-');
+            if(parts.length === 3) diaVenc = parts[2];
+        }
+        const spanVenc = document.getElementById('prevVencimento');
+        if (spanVenc) spanVenc.textContent = diaVenc;
+
+    } catch (error) {
+        console.error("Erro no contrato:", error);
     }
-    document.getElementById('clausulaPagamentoB').innerHTML = textoClausulaB;
-    
-    const today = new Date();
-    const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
-    document.getElementById('previewLocalData').textContent = `Goiânia, ${today.toLocaleDateString('pt-BR', dateOptions)}`;
 }
+
 
 // --- CARREGAR CONFIGURAÇÕES (ATUALIZADO) ---
 // --- CARREGAR CONFIGURAÇÕES (ATUALIZADO COM IMAGENS) ---
@@ -4453,7 +4539,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
             contractForm.reportValidity();
             return;
         }
-        
+
         const boletosRef = ref(db, 'boletos');
         const boletoData = {
             compradorNome: document.getElementById('compradorNome').value,
@@ -4472,18 +4558,61 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
             primeiroVencimento: document.getElementById('primeiroVencimento').value,
             criadoEm: new Date().toISOString()
         };
-        
-        push(boletosRef, boletoData)
-            .then(() => {
-                showCustomModal({ message: 'Contrato salvo no banco de dados!' });
-                populatePreview();
-                document.body.classList.add('print-only-contract');
-                window.print();
-            })
-            .catch((error) => {
-                console.error("Erro ao salvar contrato: ", error);
-                showCustomModal({ message: `Falha ao salvar o contrato: ${error.message}` });
-            });
+
+        // Popula o conteúdo do contrato
+        populatePreview();
+
+        // Cria um elemento temporário com o HTML do contrato estilizado
+        const tempDiv = document.createElement('div');
+        tempDiv.style.cssText = 'font-family: Times New Roman, serif; font-size: 10pt; line-height: 1.5; color: #000; background: #fff; padding: 20px; width: 750px; box-sizing: border-box;';
+        tempDiv.innerHTML = document.getElementById('contractPreview').innerHTML;
+
+        // Corrige o título
+        const titulo = tempDiv.querySelector('h4');
+        if (titulo) {
+            titulo.style.cssText = 'font-size: 10.5pt; font-weight: bold; color: #000; text-align: center; margin-bottom: 16pt; line-height: 1.4;';
+        }
+
+        // Evita corte de palavras em todos os elementos
+        tempDiv.querySelectorAll('p, div, strong, span') .forEach(el => {
+            el.style.wordBreak = 'keep-all';
+            el.style.overflowWrap = 'break-word';
+            el.style.pageBreakInside = 'avoid';
+        });
+
+        // Garante que os campos strong tenham o valor correto
+        tempDiv.querySelectorAll('strong[id]').forEach(el => {
+            const original = document.getElementById(el.id);
+            if (original) el.textContent = original.textContent;
+        });
+
+        const nomeCliente = document.getElementById('compradorNome').value || 'contrato';
+        const nomeArquivo = 'Contrato-' + nomeCliente.split(' ')[0] + '.pdf';
+
+        const opt = {
+            margin: [10, 10, 10, 10],
+            filename: nomeArquivo,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        showCustomModal({ message: 'Gerando PDF, aguarde...' });
+
+        html2pdf().set(opt).from(tempDiv).save().then(() => {
+            // Salva no Firebase após gerar o PDF
+            push(boletosRef, boletoData)
+                .then(() => {
+                    showCustomModal({ message: 'PDF gerado e contrato salvo!' });
+                })
+                .catch((error) => {
+                    console.error("Erro ao salvar contrato: ", error);
+                    showCustomModal({ message: 'PDF gerado! (Falha ao salvar no banco: ' + error.message + ')' });
+                });
+        }).catch((error) => {
+            console.error("Erro ao gerar PDF:", error);
+            showCustomModal({ message: 'Erro ao gerar PDF: ' + error.message });
+        });
     });
 
     document.getElementById('exportRepassarBtn').addEventListener('click', () => {
@@ -6509,29 +6638,30 @@ setupProductTags();
 
     // 1. Função que troca as telas (Menu -> Contrato -> Garantia)
     window.openDocumentsSection = function(subSectionId) {
-        // Pega os elementos da tela
         const docHome = document.getElementById('documentsHome');
         const areaContrato = document.getElementById('areaContratoWrapper');
         const areaBookip = document.getElementById('areaBookipWrapper');
 
-        // Esconde tudo primeiro (para não ficar um em cima do outro)
-        if(docHome) docHome.style.display = 'none';
-        if(areaContrato) areaContrato.style.display = 'none';
-        if(areaBookip) areaBookip.style.display = 'none';
+        // Esconde tudo (adiciona hidden E zera style)
+        [docHome, areaContrato, areaBookip].forEach(el => {
+            if (el) { el.classList.add('hidden'); el.style.display = ''; }
+        });
 
-        // Mostra só o que você escolheu
         if (subSectionId === 'home') {
-            if(docHome) docHome.style.display = 'flex'; // Mostra o Menu
+            if (docHome) { docHome.classList.remove('hidden'); docHome.style.display = 'flex'; }
         } 
         else if (subSectionId === 'contrato') {
-            if(areaContrato) {
+            if (areaContrato) {
+                areaContrato.classList.remove('hidden');
                 areaContrato.style.display = 'block';
-                // Carrega o rascunho (se tiver)
-                if(typeof loadContractDraft === 'function') loadContractDraft(); 
+                if (typeof loadContractDraft === 'function') loadContractDraft();
             }
         } 
         else if (subSectionId === 'bookip') {
-            if(areaBookip) areaBookip.style.display = 'block';
+            if (areaBookip) {
+                areaBookip.classList.remove('hidden');
+                areaBookip.style.display = 'block';
+            }
         }
     };
 
@@ -8408,5 +8538,25 @@ window.abrirLixeiraModal = function() {
         }).join('');
     }, { onlyOnce: true }); // Lê apenas uma vez para economizar dados
 };
+
+// ============================================================
+// CORREÇÃO: LÓGICA DO SELECT DE GARANTIA (Manual vs Padrão)
+// ============================================================
+const selectGarantia = document.getElementById('bookipGarantiaSelect');
+const inputGarantiaManual = document.getElementById('bookipGarantiaCustomInput');
+
+if (selectGarantia && inputGarantiaManual) {
+    selectGarantia.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            // Se escolheu Manual, mostra o campo e já coloca o cursor lá
+            inputGarantiaManual.classList.remove('hidden');
+            inputGarantiaManual.focus();
+        } else {
+            // Se escolheu outra coisa, esconde o campo
+            inputGarantiaManual.classList.add('hidden');
+            inputGarantiaManual.value = ''; // Opcional: limpa o valor
+        }
+    });
+}
 
         });
