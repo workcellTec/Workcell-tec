@@ -292,6 +292,7 @@ let boletosListener = null;
 let installmentNotificationsListener = null;
 let generalNotificationsListener = null;
 let currentMainSectionId = 'main';
+let currentEditingBoletoId = null;
 let emprestimoLucroPercentual = 15;
 let onlyShowIgnored = false;
 let checkedItems = {};
@@ -2548,50 +2549,197 @@ function renderBoletosHistory(data) {
         historyContainer.innerHTML = `<div class="text-center p-5">...</div>`;
         return;
     }
-    
+
     historyContainer.innerHTML = `<div class="accordion w-100 history-accordion" id="boletosAccordion">${boletosArray.map(boleto => {
         const telefoneLimpo = boleto.compradorTelefone ? boleto.compradorTelefone.replace(/\D/g, '') : '';
         const whatsappLink = telefoneLimpo ? `https://wa.me/55${telefoneLimpo}` : '';
-        const telefoneHtml = whatsappLink ? `<a href="${whatsappLink}" target="_blank" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> ${escapeHtml(boleto.compradorTelefone)}</a>` : '(Não informado)';
+        const telefoneHtml = whatsappLink ? `<a href="${whatsappLink}" target="_blank" class="btn btn-sm btn-success py-0"><i class="bi bi-whatsapp"></i> ${escapeHtml(boleto.compradorTelefone)}</a>` : '(Não informado)';
         return `
         <div class="accordion-item">
             <h2 class="accordion-header" id="heading-${boleto.id}">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${boleto.id}" aria-expanded="false" aria-controls="collapse-${boleto.id}">
-                    ${escapeHtml(boleto.compradorNome)} - ${new Date(boleto.criadoEm).toLocaleDateString('pt-BR')}
+                    ${escapeHtml(boleto.compradorNome)} — ${new Date(boleto.criadoEm).toLocaleDateString('pt-BR')}
                 </button>
             </h2>
             <div id="collapse-${boleto.id}" class="accordion-collapse collapse" aria-labelledby="heading-${boleto.id}" data-bs-parent="#boletosAccordion">
                 <div class="accordion-body">
-                    <p><strong>Comprador:</strong> ${escapeHtml(boleto.compradorNome)}<br>
-                    <strong>CPF:</strong> ${escapeHtml(boleto.compradorCpf)}<br>
-                    <strong>Telefone:</strong> ${telefoneHtml}</p>
-                    <p><strong>Produto:</strong> ${escapeHtml(boleto.produtoModelo)}<br>
-                    <strong>IMEI:</strong> ${escapeHtml(boleto.produtoImei)}</p>
-                    <p><strong>Valor Total:</strong> R$ ${escapeHtml(boleto.valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2}))}<br>
-                    <strong>Entrada:</strong> R$ ${escapeHtml(boleto.valorEntrada.toLocaleString('pt-BR', {minimumFractionDigits: 2}))}<br>
-                    <strong>Parcelas:</strong> ${boleto.numeroParcelas}x de R$ ${boleto.valorParcela}</p>
-                    <hr style="border-color: var(--glass-border);">
-                    <div class="text-end">
+                    <p class="mb-1"><strong>Comprador:</strong> ${escapeHtml(boleto.compradorNome)}</p>
+                    <p class="mb-1"><strong>CPF:</strong> ${escapeHtml(boleto.compradorCpf || '—')}</p>
+                    <p class="mb-2"><strong>Telefone:</strong> ${telefoneHtml}</p>
+                    <p class="mb-1"><strong>Produto:</strong> ${escapeHtml(boleto.produtoModelo || '—')}</p>
+                    <p class="mb-2"><strong>IMEI:</strong> ${escapeHtml(boleto.produtoImei || '—')}</p>
+                    <p class="mb-1"><strong>Valor Total:</strong> R$ ${Number(boleto.valorTotal||0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                    <p class="mb-1"><strong>Entrada:</strong> R$ ${Number(boleto.valorEntrada||0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                    <p class="mb-2"><strong>Parcelas:</strong> ${boleto.numeroParcelas}x de R$ ${boleto.valorParcela}</p>
+                    <hr style="border-color: var(--glass-border); margin: 8px 0;">
+                    <div class="d-flex gap-2 flex-wrap justify-content-end">
+                        <button class="btn btn-sm btn-primary editar-boleto-btn" data-id="${boleto.id}"><i class="bi bi-pencil-fill"></i> Editar</button>
+                        <button class="btn btn-sm btn-success reenviar-boleto-btn" data-id="${boleto.id}"><i class="bi bi-share-fill"></i> Reenviar</button>
                         <button class="btn btn-sm btn-outline-danger delete-boleto-btn" data-id="${boleto.id}"><i class="bi bi-trash"></i> Excluir</button>
                     </div>
                 </div>
             </div>
         </div>`
     }).join('')}</div>`;
-    
+
+    // --- EDITAR ---
+    historyContainer.querySelectorAll('.editar-boleto-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const boletoId = e.currentTarget.dataset.id;
+            const boleto = boletosArray.find(b => b.id === boletoId);
+            if (!boleto) return;
+
+            // Guarda ID no campo hidden do formulário (mais seguro que variável JS)
+            const hiddenId = document.getElementById('editingBoletoId');
+            if (hiddenId) hiddenId.value = boletoId;
+            window.currentEditingBoletoId = boletoId; // mantém compatibilidade
+
+            // Preenche o formulário
+            document.getElementById('compradorNome').value = boleto.compradorNome || '';
+            document.getElementById('compradorCpf').value = boleto.compradorCpf || '';
+            document.getElementById('compradorRg').value = boleto.compradorRg || '';
+            document.getElementById('compradorTelefone').value = boleto.compradorTelefone || '';
+            document.getElementById('compradorEndereco').value = boleto.compradorEndereco || '';
+            document.getElementById('produtoModelo').value = boleto.produtoModelo || '';
+            document.getElementById('produtoImei').value = boleto.produtoImei || '';
+            document.getElementById('valorTotal').value = boleto.valorTotal || '';
+            document.getElementById('valorEntrada').value = boleto.valorEntrada || '';
+            document.getElementById('numeroParcelas').value = boleto.numeroParcelas || '';
+            document.getElementById('tipoParcela').value = boleto.tipoParcela || 'mensais';
+            document.getElementById('primeiroVencimento').value = boleto.primeiroVencimento || '';
+            document.getElementById('valorTotal').dispatchEvent(new Event('input'));
+
+            // Troca para aba "Novo" SEM disparar o change (evita re-render do histórico)
+            const toggle = document.getElementById('boletoModeToggle');
+            if (toggle && toggle.checked) {
+                toggle.checked = false;
+                // Troca as divs manualmente sem chamar loadBoletosHistory
+                const newContent = document.getElementById('newBoletoContent');
+                const histContent = document.getElementById('historyBoletoContent');
+                if (newContent) newContent.classList.remove('hidden');
+                if (histContent) histContent.classList.add('hidden');
+            }
+
+            // Atualiza o botão para indicar edição
+            const btnImprimir = document.getElementById('btnImprimir');
+            if (btnImprimir) {
+                btnImprimir.innerHTML = '<i class="bi bi-save-fill"></i> Salvar Alterações';
+                btnImprimir.classList.remove('btn-primary');
+                btnImprimir.classList.add('btn-warning');
+            }
+
+            // Banner de alerta de edição
+            let banner = document.getElementById('editingBannerBoleto');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'editingBannerBoleto';
+                banner.style.cssText = 'background:#f0ad4e;color:#000;padding:8px 12px;border-radius:8px;margin-bottom:10px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;';
+                const form = document.getElementById('contractForm');
+                if (form) form.parentNode.insertBefore(banner, form);
+            }
+            banner.innerHTML = '<span>✏️ Editando contrato de <strong>' + escapeHtml(boleto.compradorNome || '') + '</strong></span>' +
+                '<button type="button" onclick="cancelarEdicaoBoleto()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;">✕</button>';
+            banner.style.display = 'flex';
+        });
+    });
+
+    // --- REENVIAR ---
+    historyContainer.querySelectorAll('.reenviar-boleto-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const boletoId = e.currentTarget.dataset.id;
+            const boleto = boletosArray.find(b => b.id === boletoId);
+            if (!boleto) return;
+
+            // Preenche o preview com os dados do boleto
+            document.getElementById('compradorNome').value = boleto.compradorNome || '';
+            document.getElementById('compradorCpf').value = boleto.compradorCpf || '';
+            document.getElementById('compradorRg').value = boleto.compradorRg || '';
+            document.getElementById('compradorTelefone').value = boleto.compradorTelefone || '';
+            document.getElementById('compradorEndereco').value = boleto.compradorEndereco || '';
+            document.getElementById('produtoModelo').value = boleto.produtoModelo || '';
+            document.getElementById('produtoImei').value = boleto.produtoImei || '';
+            document.getElementById('valorTotal').value = boleto.valorTotal || '';
+            document.getElementById('valorEntrada').value = boleto.valorEntrada || '';
+            document.getElementById('numeroParcelas').value = boleto.numeroParcelas || '';
+            document.getElementById('tipoParcela').value = boleto.tipoParcela || 'mensais';
+            document.getElementById('primeiroVencimento').value = boleto.primeiroVencimento || '';
+
+            populatePreview();
+
+            const tempDiv = document.createElement('div');
+            tempDiv.style.cssText = 'font-family: Times New Roman, serif; font-size: 10pt; line-height: 1.5; color: #000; background: #fff; padding: 20px; width: 750px; box-sizing: border-box;';
+            tempDiv.innerHTML = document.getElementById('contractPreview').innerHTML;
+
+            const titulo = tempDiv.querySelector('h4');
+            if (titulo) titulo.style.cssText = 'font-size: 10.5pt; font-weight: bold; color: #000; text-align: center; margin-bottom: 16pt; line-height: 1.4;';
+
+            tempDiv.querySelectorAll('p, div, strong, span').forEach(el => {
+                el.style.wordBreak = 'keep-all';
+                el.style.overflowWrap = 'break-word';
+                el.style.pageBreakInside = 'avoid';
+            });
+
+            const nomeArq = 'Contrato-' + (boleto.compradorNome || 'cliente').split(' ')[0] + '.pdf';
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: nomeArq,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            showCustomModal({ message: 'Gerando PDF, aguarde...' });
+
+            html2pdf().set(opt).from(tempDiv).output('blob').then(async function(pdfBlob) {
+                const file = new File([pdfBlob], nomeArq, { type: 'application/pdf' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Contrato Workcell Tecnologia',
+                            text: 'Olá ' + (boleto.compradorNome || 'Cliente') + ', segue seu contrato em anexo.'
+                        });
+                    } catch(err) {
+                        if (err.name !== 'AbortError') {
+                            const url = URL.createObjectURL(pdfBlob);
+                            const a = document.createElement('a');
+                            a.href = url; a.download = nomeArq; a.click();
+                            URL.revokeObjectURL(url);
+                        }
+                    }
+                } else {
+                    const url = URL.createObjectURL(pdfBlob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = nomeArq; a.click();
+                    URL.revokeObjectURL(url);
+                }
+            }).catch(err => showCustomModal({ message: 'Erro ao gerar PDF: ' + err.message }));
+        });
+    });
+
+    // --- EXCLUIR ---
     historyContainer.querySelectorAll('.delete-boleto-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const boletoId = e.currentTarget.dataset.id;
+            const boleto = boletosArray.find(b => b.id === boletoId);
+            const nomeCliente = boleto ? boleto.compradorNome : 'este registro';
             showCustomModal({
-                message: "Tem certeza que deseja excluir este registro do histórico? Esta ação não pode ser desfeita.",
+                message: 'Tem certeza que deseja excluir o contrato de ' + escapeHtml(nomeCliente) + '? Esta ação NÃO pode ser desfeita.',
                 confirmText: "Sim, Excluir",
                 onConfirm: async () => {
-                    try {
-                        await remove(ref(db, `boletos/${boletoId}`));
-                        showCustomModal({ message: "Registro excluído com sucesso." });
-                    } catch (error) {
-                        showCustomModal({ message: `Erro ao excluir: ${error.message}` });
-                    }
+                    showCustomModal({
+                        message: 'CONFIRMAÇÃO FINAL: Apagar o contrato de ' + escapeHtml(nomeCliente) + ' permanentemente?',
+                        confirmText: "Apagar Definitivamente",
+                        onConfirm: async () => {
+                            try {
+                                await remove(ref(db, 'boletos/' + boletoId));
+                                showCustomModal({ message: "Registro excluído com sucesso." });
+                            } catch (error) {
+                                showCustomModal({ message: 'Erro ao excluir: ' + error.message });
+                            }
+                        },
+                        onCancel: () => {}
+                    });
                 },
                 onCancel: () => {}
             });
@@ -4599,17 +4747,68 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
 
         showCustomModal({ message: 'Gerando PDF, aguarde...' });
 
-        html2pdf().set(opt).from(tempDiv).save().then(() => {
-            // Salva no Firebase após gerar o PDF
-            push(boletosRef, boletoData)
-                .then(() => {
-                    showCustomModal({ message: 'PDF gerado e contrato salvo!' });
-                })
-                .catch((error) => {
-                    console.error("Erro ao salvar contrato: ", error);
-                    showCustomModal({ message: 'PDF gerado! (Falha ao salvar no banco: ' + error.message + ')' });
+        html2pdf().set(opt).from(tempDiv).output('blob').then(async function(pdfBlob) {
+            // Salva ou atualiza no Firebase
+            // Lê o ID do campo hidden (mais confiável que variável JS)
+            const hiddenIdEl = document.getElementById('editingBoletoId');
+            const editId = (hiddenIdEl && hiddenIdEl.value) ? hiddenIdEl.value : window.currentEditingBoletoId;
+
+            if (editId) {
+                // EDITANDO registro existente - atualiza sem criar novo
+                update(ref(db, 'boletos/' + editId), boletoData).catch(function(e) {
+                    console.error("Erro ao atualizar contrato: ", e);
                 });
-        }).catch((error) => {
+                // Reseta estado de edição
+                if (hiddenIdEl) hiddenIdEl.value = '';
+                window.currentEditingBoletoId = null;
+                const btnImprimir2 = document.getElementById('btnImprimir');
+                if (btnImprimir2) {
+                    btnImprimir2.innerHTML = '<i class="bi bi-printer"></i> Imprimir e Salvar';
+                    btnImprimir2.classList.remove('btn-warning');
+                    btnImprimir2.classList.add('btn-primary');
+                }
+                const banner2 = document.getElementById('editingBannerBoleto');
+                if (banner2) banner2.style.display = 'none';
+            } else {
+                // NOVO registro
+                push(boletosRef, boletoData).catch(function(error) {
+                    console.error("Erro ao salvar contrato: ", error);
+                });
+            }
+
+            const nomeCliente2 = document.getElementById('compradorNome').value || 'Cliente';
+            const file = new File([pdfBlob], nomeArquivo, { type: 'application/pdf' });
+
+            // Tenta compartilhar (celular)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Contrato Workcell Tecnologia',
+                        text: 'Olá ' + nomeCliente2 + ', segue seu contrato em anexo.'
+                    });
+                    showCustomModal({ message: 'Contrato compartilhado e salvo! ✅' });
+                } catch(e) {
+                    if (e.name !== 'AbortError') {
+                        const url = URL.createObjectURL(pdfBlob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = nomeArquivo;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        showCustomModal({ message: 'Contrato salvo! ✅' });
+                    }
+                }
+            } else {
+                const url = URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = nomeArquivo;
+                a.click();
+                URL.revokeObjectURL(url);
+                showCustomModal({ message: 'Contrato salvo! ✅' });
+            }
+        }).catch(function(error) {
             console.error("Erro ao gerar PDF:", error);
             showCustomModal({ message: 'Erro ao gerar PDF: ' + error.message });
         });
@@ -6283,6 +6482,83 @@ window.preencherCliente = function(id, idListaParaFechar) {
 // Inicia a função
 ativarAutocomplete();
 
+// ============================================================
+// AUTOCOMPLETE PARA O FORMULÁRIO DE BOLETO/CONTRATO
+// ============================================================
+function ativarAutocompleteBoleto() {
+    var campos = [
+        { idInput: 'compradorNome', tipo: 'nome' },
+        { idInput: 'compradorCpf',  tipo: 'cpf' },
+        { idInput: 'compradorTelefone', tipo: 'tel' }
+    ];
+
+    campos.forEach(function(campo) {
+        var input = document.getElementById(campo.idInput);
+        if (!input) return;
+
+        var listaId = 'sug-boleto-' + campo.idInput;
+        var listaUl = document.getElementById(listaId);
+        if (!listaUl) {
+            listaUl = document.createElement('ul');
+            listaUl.id = listaId;
+            listaUl.className = 'list-group position-absolute w-100 shadow';
+            listaUl.style.cssText = 'z-index:9999;display:none;max-height:200px;overflow-y:auto;';
+            input.parentNode.style.position = 'relative';
+            input.parentNode.appendChild(listaUl);
+        }
+
+        input.addEventListener('input', function(e) {
+            var termo = e.target.value.toLowerCase().trim();
+            var termoLimpo = termo.replace(/[^a-z0-9]/g, '');
+            listaUl.style.display = 'none';
+            listaUl.innerHTML = '';
+            if (termoLimpo.length < 2) return;
+
+            var cache = window.dbClientsCache || [];
+            var encontrados = cache.filter(function(c) {
+                var nomeDb = (c.nome || '').toLowerCase();
+                var cpfDb = (c.cpf || '').replace(/[^0-9]/g, '');
+                var telDb = (c.tel || '').replace(/[^0-9]/g, '');
+                if (campo.tipo === 'nome') return nomeDb.includes(termo);
+                if (campo.tipo === 'cpf') return cpfDb.includes(termoLimpo);
+                if (campo.tipo === 'tel') return telDb.includes(termoLimpo);
+                return false;
+            });
+
+            if (encontrados.length > 0) {
+                listaUl.innerHTML = encontrados.slice(0, 5).map(function(c) {
+                    return '<li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" style="cursor:pointer;" onclick="preencherClienteBoleto(\'' + c.id + '\',\'' + listaId + '\')">' +
+                        '<div><strong>' + escapeHtml(c.nome) + '</strong><br><small class="text-secondary">' + (c.cpf || 'S/ CPF') + ' — ' + (c.tel || 'S/ Tel') + '</small></div>' +
+                        '<i class="bi bi-box-arrow-in-down-left text-primary"></i></li>';
+                }).join('');
+                listaUl.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target !== input) listaUl.style.display = 'none';
+        });
+    });
+}
+
+window.preencherClienteBoleto = function(id, idLista) {
+    var cliente = (window.dbClientsCache || []).find(function(c) { return c.id === id; });
+    if (!cliente) return;
+    var set = function(elId, val) { var el = document.getElementById(elId); if (el) el.value = val || ''; };
+    set('compradorNome', cliente.nome);
+    set('compradorCpf', cliente.cpf);
+    set('compradorTelefone', cliente.tel);
+    set('compradorEndereco', cliente.end);
+    if (idLista) { var l = document.getElementById(idLista); if (l) l.style.display = 'none'; }
+    // Feedback visual
+    ['compradorNome','compradorCpf','compradorTelefone'].forEach(function(fid) {
+        var el = document.getElementById(fid);
+        if (el) { el.classList.add('is-valid'); setTimeout(function() { el.classList.remove('is-valid'); }, 1200); }
+    });
+};
+
+// Inicia quando a aba de contrato for aberta
+setTimeout(ativarAutocompleteBoleto, 800);
 
 
 // 1. Variável Global (Janela para os dados)
@@ -6762,6 +7038,21 @@ function printBookip(dados) {
 }
 
 
+// Cancela edição de boleto sem perder dados
+window.cancelarEdicaoBoleto = function() {
+    const hiddenIdEl = document.getElementById('editingBoletoId');
+    if (hiddenIdEl) hiddenIdEl.value = '';
+    window.currentEditingBoletoId = null;
+    const btn = document.getElementById('btnImprimir');
+    if (btn) {
+        btn.innerHTML = '<i class="bi bi-printer"></i> Imprimir e Salvar';
+        btn.classList.remove('btn-warning');
+        btn.classList.add('btn-primary');
+    }
+    const banner = document.getElementById('editingBannerBoleto');
+    if (banner) banner.style.display = 'none';
+};
+
 // GERADOR DE PDF (DESIGN VERDE + MODO SITUAÇÃO LIMPO)
 // ============================================================
 // ============================================================
@@ -7053,7 +7344,7 @@ async function gerarPdfDoHistorico(dados, botao, apenasBaixar = false) {
 
         // --- B. RENDERIZA COMO IMAGEM (CAPTURA) ---
         window.scrollTo(0,0);
-        await new Promise(r => setTimeout(r, 800)); // Tempo para carregar imagens/fontes
+        await new Promise(r => setTimeout(r, 2000)); // Tempo para carregar imagens/fontes
 
         // 🔥 ESCALA 2 + PNG = O equilíbrio perfeito para Android (Nitidez sem travar)
         const fullCanvas = await html2canvas(containerTemp, {
@@ -7066,54 +7357,77 @@ async function gerarPdfDoHistorico(dados, botao, apenasBaixar = false) {
         // --- C. PAGINAÇÃO MANUAL (CORREÇÃO DE CORTE + TARJA BRANCA) ---
         const pdfRatio = 297 / 210; 
         const pageHeightPixels = Math.floor(fullCanvas.width * pdfRatio);
-        const margemSeguranca = 100; 
+        const margemSeguranca = 100;
         const contentHeightPerPage = pageHeightPixels - (margemSeguranca * 2) - 15;
         const totalHeight = fullCanvas.height;
         let currentHeight = 0;
         let pageCount = 1;
-        
+
         const printContainer = document.createElement('div');
-        printContainer.style.width = '794px'; 
-        
+        printContainer.style.width = '794px';
+
+        // Função que procura uma linha branca próxima ao corte ideal
+        // para não cortar no meio de uma linha de texto
+        function encontrarCorteSeguro(canvas, corteIdeal, margem) {
+            var ctx2 = canvas.getContext('2d');
+            var largura = canvas.width;
+            // Procura até 80px acima do corte ideal por uma linha quase branca
+            var melhor = corteIdeal;
+            for (var y = corteIdeal; y > corteIdeal - 80; y--) {
+                var pixels = ctx2.getImageData(0, y, largura, 1).data;
+                var ehBranco = true;
+                for (var p = 0; p < pixels.length; p += 4) {
+                    // Se algum pixel não for quase branco (>240), não é linha branca
+                    if (pixels[p] < 240 || pixels[p+1] < 240 || pixels[p+2] < 240) {
+                        ehBranco = false;
+                        break;
+                    }
+                }
+                if (ehBranco) { melhor = y; break; }
+            }
+            return melhor;
+        }
+
         while (currentHeight < totalHeight) {
-            const pageCanvas = document.createElement('canvas');
+            var pageCanvas = document.createElement('canvas');
             pageCanvas.width = fullCanvas.width;
             pageCanvas.height = pageHeightPixels;
-            const ctx = pageCanvas.getContext('2d');
-            
-            // Fundo branco
+            var ctx = pageCanvas.getContext('2d');
+
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
 
-            const heightLeft = totalHeight - currentHeight;
-            const sliceHeight = Math.min(contentHeightPerPage, heightLeft);
-            const ajusteVisual = (pageCount > 1) ? 60 : 0; 
+            var heightLeft = totalHeight - currentHeight;
+            var corteIdeal = Math.min(contentHeightPerPage, heightLeft);
 
-            // Desenha o pedaço da página
-            ctx.drawImage(
-                fullCanvas, 
-                0, currentHeight, fullCanvas.width, sliceHeight, // Origem
-                0, margemSeguranca + ajusteVisual, fullCanvas.width, sliceHeight // Destino
-            );
-
-            // 👇 TARJA BRANCA DE LIMPEZA (Remove "sujeira" de letras cortadas do topo) 👇
-            if (pageCount > 1) {
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, margemSeguranca + ajusteVisual - 2, pageCanvas.width, 5);
+            // Se não é a última página, tenta encontrar um corte em linha branca
+            var sliceHeight = corteIdeal;
+            if (heightLeft > corteIdeal) {
+                sliceHeight = encontrarCorteSeguro(fullCanvas, currentHeight + corteIdeal, margemSeguranca) - currentHeight;
+                if (sliceHeight <= 0) sliceHeight = corteIdeal;
             }
 
-            // Converte para Imagem PNG (Texto Nítido)
-            const imgSlice = document.createElement('img');
+            var margemTopo = (pageCount > 1) ? margemSeguranca + 40 : margemSeguranca;
 
-            // Procure a linha do imgSlice.src e troque por esta:
-imgSlice.src = pageCanvas.toDataURL('image/jpeg', 0.95); // <--- JPEG 0.95 (Leve e nítido)
+            ctx.drawImage(
+                fullCanvas,
+                0, currentHeight, fullCanvas.width, sliceHeight,
+                0, margemTopo, fullCanvas.width, sliceHeight
+            );
 
+            // Tarja branca no topo para limpar qualquer resíduo
+            if (pageCount > 1) {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, pageCanvas.width, margemTopo - 2);
+            }
 
-            imgSlice.style.width = '100%'; 
+            var imgSlice = document.createElement('img');
+            imgSlice.src = pageCanvas.toDataURL('image/jpeg', 0.95);
+            imgSlice.style.width = '100%';
             imgSlice.style.display = 'block';
-            
-            const pageDiv = document.createElement('div');
-            pageDiv.style.cssText = "position: relative; width: 100%; margin: 0; padding: 0; page-break-after: always;";
+
+            var pageDiv = document.createElement('div');
+            pageDiv.style.cssText = 'position: relative; width: 100%; margin: 0; padding: 0; page-break-after: always;';
             pageDiv.appendChild(imgSlice);
             printContainer.appendChild(pageDiv);
 
