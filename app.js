@@ -7747,12 +7747,39 @@ window.processarTextoZap = function() {
         else if (!endereco.includes(cepEncontrado)) endereco += ` (${cepEncontrado})`;
     }
 
+    // Data de Nascimento
+    // Tenta extrair via rótulo
+    let dataNasc = extrair('Data de Nascimento') || extrair('Nascimento') || extrair('Nasc') || extrair('Data Nasc') || extrair('Dt Nasc') || extrair('Aniversário');
+    
+    // Se não achou por rótulo, procura padrão de data no texto (DD/MM/AAAA ou DD-MM-AAAA)
+    if (!dataNasc) {
+        const mData = texto.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})\b/);
+        if (mData) dataNasc = mData[0];
+    }
+    
+    // Converte para formato YYYY-MM-DD que o input type="date" exige
+    let dataNascISO = '';
+    if (dataNasc) {
+        // Limpa e tenta parse
+        const partes = dataNasc.replace(/[\/-]/g, '/').split('/');
+        if (partes.length === 3) {
+            const [d, m, a] = partes.map(p => p.trim().replace(/\D/g,''));
+            if (d && m && a && a.length === 4) {
+                dataNascISO = a + '-' + m.padStart(2,'0') + '-' + d.padStart(2,'0');
+            }
+        }
+    }
+
     // Preenche
     if (nome) document.getElementById('bookipNome').value = nome;
     if (cpf) document.getElementById('bookipCpf').value = cpf;
     if (tel) document.getElementById('bookipTelefone').value = tel;
     if (email) document.getElementById('bookipEmail').value = email;
     if (endereco.length > 5) document.getElementById('bookipEndereco').value = endereco;
+    if (dataNascISO) {
+        const nascEl = document.getElementById('bookipNascimento');
+        if (nascEl) nascEl.value = dataNascISO;
+    }
 
     // Fecha janela
     document.getElementById('containerModalZap').remove();
