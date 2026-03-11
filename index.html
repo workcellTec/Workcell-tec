@@ -1146,7 +1146,11 @@ do que você precisa??</h2>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">🎂 Data de Nascimento</label>
-                            <input type="date" class="form-control" id="bookipNascimento">
+                            <input type="hidden" id="bookipNascimento">
+                            <button type="button" id="bookipNascimentoBtn" class="rep-datetime-btn" style="width:100%;font-size:.82rem;padding:10px 12px;" onclick="window._abrirBirthdayPicker('bookipNascimento','bookipNascimentoBtn','bookipNascimentoLabel')">
+                                <i class="bi bi-calendar-heart" style="color:var(--primary-color);font-size:.9rem;flex-shrink:0;"></i>
+                                <span id="bookipNascimentoLabel" style="flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Definir data</span>
+                            </button>
                         </div>
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Endereço / CEP</label>
@@ -1499,7 +1503,7 @@ do que você precisa??</h2>
                     <div class="col-6 mb-2">
                         <label class="form-label small">🎂 Aniversário</label>
                         <input type="hidden" id="editClientBirthdate">
-                        <button type="button" id="editClientBirthdateBtn" class="rep-datetime-btn" style="width:100%;font-size:.8rem;padding:9px 10px;" onclick="window._abrirBirthdayPicker()">
+                        <button type="button" id="editClientBirthdateBtn" class="rep-datetime-btn" style="width:100%;font-size:.8rem;padding:9px 10px;" onclick="window._abrirBirthdayPicker('editClientBirthdate','editClientBirthdateBtn','editClientBirthdateLabel')">
                             <i class="bi bi-calendar-heart" style="color:var(--primary-color);font-size:.9rem;"></i>
                             <span id="editClientBirthdateLabel" style="flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Definir data</span>
                         </button>
@@ -1819,7 +1823,7 @@ do que você precisa??</h2>
                 import('./ambilight.js'),
                 import('./Favorites.js'),
                 import('./repairs.js?v=2').then(m => { window._repairsModule = m; }),
-                import('./bookip.js'),
+                import('./Bookip.js'),
             ]);
         }
         // Módulos carregam assim que o DOM está pronto
@@ -2261,6 +2265,22 @@ do que você precisa??</h2>
 </div>
 
 <!-- ─── MODAL: CONFIRMAR EXCLUSÃO ─── -->
+<!-- Overlay: Desfazer Etapa -->
+<div class="rep-modal-overlay" id="repUndoOverlay">
+    <div class="rep-modal rep-modal-sm">
+        <div class="rep-modal-header">
+            <span>↩️ Desfazer Etapa</span>
+        </div>
+        <div class="rep-modal-body">
+            <p id="repUndoMsg" style="margin:0;font-size:.9rem;line-height:1.5;"></p>
+        </div>
+        <div class="rep-modal-footer">
+            <button class="rep-btn rep-btn-ghost" id="repUndoNo">Cancelar</button>
+            <button class="rep-btn rep-btn-yellow" id="repUndoYes"><i class="bi bi-arrow-counterclockwise"></i> Desfazer</button>
+        </div>
+    </div>
+</div>
+
 <div class="rep-modal-overlay" id="repConfirmOverlay">
     <div class="rep-modal rep-modal-sm">
         <div class="rep-modal-header">
@@ -2604,57 +2624,87 @@ do que você precisa??</h2>
 <!-- ═══════════════════════════════════════
      CUSTOM BIRTHDAY PICKER — Clientes
 ═══════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════
+     BIRTHDAY PICKER v2 — grade mês + grade ano
+═══════════════════════════════════════ -->
+
+<!-- PICKER PRINCIPAL -->
 <div id="ctwBirthdayPicker" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;">
     <div style="width:100%;max-width:480px;background:var(--bg-color,#0b1325);border:1px solid var(--glass-border);border-bottom:none;border-radius:22px 22px 0 0;padding:0 0 28px;animation:dtPickerUp .28s cubic-bezier(.34,1.2,.64,1) both;">
-
-        <!-- Handle -->
         <div style="display:flex;justify-content:center;padding:10px 0 4px;">
             <div style="width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);"></div>
         </div>
-
-        <!-- Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;">
             <span style="font-weight:700;font-size:1rem;color:var(--text-color);">🎂 Data de Aniversário</span>
             <button onclick="window._fecharBirthdayPicker()" style="background:none;border:none;color:var(--text-secondary);font-size:1.2rem;cursor:pointer;padding:4px;">✕</button>
         </div>
 
-        <!-- Seletor Dia / Mês / Ano em colunas -->
-        <div style="display:flex;gap:10px;padding:0 20px 20px;align-items:flex-end;">
+        <!-- Linha principal: DIA | MÊS (clicável) | ANO (clicável) -->
+        <div style="display:flex;gap:10px;padding:0 20px 20px;align-items:center;">
 
-            <!-- DIA -->
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;">
-                <button onclick="window._bdAjustar('dia',1)" class="bd-arrow-btn">▲</button>
-                <div id="bdDiaDisplay" style="font-size:2rem;font-weight:700;color:var(--text-color);width:100%;text-align:center;background:rgba(var(--primary-color-rgb),.1);border:1px solid rgba(var(--primary-color-rgb),.3);border-radius:12px;padding:10px 0;">01</div>
-                <button onclick="window._bdAjustar('dia',-1)" class="bd-arrow-btn">▼</button>
-                <span style="font-size:.65rem;color:var(--text-secondary);font-weight:600;letter-spacing:.05em;">DIA</span>
+            <!-- DIA — toque abre grade -->
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <div style="height:36px;"></div>
+                <div id="bdDiaDisplay" class="bd-display-box bd-tappable" style="font-size:1.8rem;width:100%;" onclick="window._bdAbrirGradeDia()">
+                    <span>01</span><i class="bi bi-chevron-down" style="font-size:.65rem;opacity:.5;margin-left:3px;"></i>
+                </div>
+                <div style="height:36px;"></div>
+                <span class="bd-col-label">DIA <span style="opacity:.5;font-size:.55rem;">↓ toque</span></span>
             </div>
 
-            <!-- MÊS -->
-            <div style="flex:2;display:flex;flex-direction:column;align-items:center;gap:8px;">
-                <button onclick="window._bdAjustar('mes',1)" class="bd-arrow-btn">▲</button>
-                <div id="bdMesDisplay" style="font-size:1.15rem;font-weight:700;color:var(--text-color);width:100%;text-align:center;background:rgba(var(--primary-color-rgb),.1);border:1px solid rgba(var(--primary-color-rgb),.3);border-radius:12px;padding:10px 6px;">Janeiro</div>
-                <button onclick="window._bdAjustar('mes',-1)" class="bd-arrow-btn">▼</button>
-                <span style="font-size:.65rem;color:var(--text-secondary);font-weight:600;letter-spacing:.05em;">MÊS</span>
+            <!-- MÊS — toque abre grade -->
+            <div style="flex:2;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <div style="height:36px;"></div>
+                <div id="bdMesDisplay" class="bd-display-box bd-tappable" style="font-size:1.05rem;width:100%;" onclick="window._bdAbrirGradeMes()">
+                    <span>Janeiro</span><i class="bi bi-chevron-down" style="font-size:.65rem;opacity:.5;margin-left:4px;"></i>
+                </div>
+                <div style="height:36px;"></div>
+                <span class="bd-col-label">MÊS <span style="opacity:.5;font-size:.55rem;">↓ toque</span></span>
             </div>
 
-            <!-- ANO -->
-            <div style="flex:1.2;display:flex;flex-direction:column;align-items:center;gap:8px;">
-                <button onclick="window._bdAjustar('ano',1)" class="bd-arrow-btn">▲</button>
-                <div id="bdAnoDisplay" style="font-size:1.4rem;font-weight:700;color:var(--text-color);width:100%;text-align:center;background:rgba(var(--primary-color-rgb),.1);border:1px solid rgba(var(--primary-color-rgb),.3);border-radius:12px;padding:10px 0;">2000</div>
-                <button onclick="window._bdAjustar('ano',-1)" class="bd-arrow-btn">▼</button>
-                <span style="font-size:.65rem;color:var(--text-secondary);font-weight:600;letter-spacing:.05em;">ANO</span>
+            <!-- ANO — toque abre grade -->
+            <div style="flex:1.3;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <div style="height:36px;"></div>
+                <div id="bdAnoDisplay" class="bd-display-box bd-tappable" style="font-size:1.35rem;width:100%;" onclick="window._bdAbrirGradeAno()">
+                    <span>2000</span><i class="bi bi-chevron-down" style="font-size:.65rem;opacity:.5;margin-left:2px;"></i>
+                </div>
+                <div style="height:36px;"></div>
+                <span class="bd-col-label">ANO <span style="opacity:.5;font-size:.55rem;">↓ toque</span></span>
             </div>
         </div>
 
-        <!-- Botões de ação -->
+        <!-- Botões -->
         <div style="display:flex;gap:10px;padding:0 20px;">
-            <button onclick="window._bdLimpar()" style="flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--text-secondary);font-weight:600;font-size:.85rem;cursor:pointer;">
-                🗑️ Limpar
-            </button>
-            <button onclick="window._bdConfirmar()" style="flex:2;padding:12px;border-radius:12px;background:var(--primary-color);border:none;color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;">
-                ✓ Confirmar
-            </button>
+            <button onclick="window._bdLimpar()" style="flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--text-secondary);font-weight:600;font-size:.85rem;cursor:pointer;">🗑️ Limpar</button>
+            <button onclick="window._bdConfirmar()" style="flex:2;padding:12px;border-radius:12px;background:var(--primary-color);border:none;color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;">✓ Confirmar</button>
         </div>
+    </div>
+</div>
+
+<!-- GRADE DE DIAS -->
+<div id="ctwBdDiaGrid" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div style="width:calc(100% - 40px);max-width:380px;background:var(--bg-color,#0b1325);border:1px solid var(--glass-border);border-radius:20px;padding:20px;animation:dtPickerUp .2s ease both;">
+        <div style="font-weight:700;font-size:.95rem;color:var(--text-color);margin-bottom:14px;text-align:center;">Selecione o dia</div>
+        <div id="bdDiaGridItems" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;"></div>
+        <button onclick="document.getElementById('ctwBdDiaGrid').style.display='none'" style="width:100%;margin-top:14px;padding:10px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--text-secondary);font-weight:600;cursor:pointer;">Cancelar</button>
+    </div>
+</div>
+
+<!-- GRADE DE MESES -->
+<div id="ctwBdMesGrid" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div style="width:calc(100% - 40px);max-width:380px;background:var(--bg-color,#0b1325);border:1px solid var(--glass-border);border-radius:20px;padding:20px;animation:dtPickerUp .2s ease both;">
+        <div style="font-weight:700;font-size:.95rem;color:var(--text-color);margin-bottom:14px;text-align:center;">Selecione o mês</div>
+        <div id="bdMesGridItems" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+        <button onclick="document.getElementById('ctwBdMesGrid').style.display='none'" style="width:100%;margin-top:14px;padding:10px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--text-secondary);font-weight:600;cursor:pointer;">Cancelar</button>
+    </div>
+</div>
+
+<!-- GRADE DE ANOS -->
+<div id="ctwBdAnoGrid" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div style="width:calc(100% - 40px);max-width:380px;background:var(--bg-color,#0b1325);border:1px solid var(--glass-border);border-radius:20px;padding:20px;animation:dtPickerUp .2s ease both;">
+        <div style="font-weight:700;font-size:.95rem;color:var(--text-color);margin-bottom:14px;text-align:center;">Selecione o ano</div>
+        <div id="bdAnoGridItems" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:52vh;overflow-y:auto;"></div>
+        <button onclick="document.getElementById('ctwBdAnoGrid').style.display='none'" style="width:100%;margin-top:14px;padding:10px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--text-secondary);font-weight:600;cursor:pointer;">Cancelar</button>
     </div>
 </div>
 
@@ -2669,41 +2719,120 @@ do que você precisa??</h2>
     cursor: pointer;
     font-size: 1rem;
     font-family: 'Poppins', sans-serif;
-    transition: background .12s;
 }
 .bd-arrow-btn:active { background: rgba(var(--primary-color-rgb),.2); }
+.bd-display-box {
+    font-weight: 700;
+    color: var(--text-color);
+    text-align: center;
+    background: rgba(var(--primary-color-rgb),.1);
+    border: 1px solid rgba(var(--primary-color-rgb),.3);
+    border-radius: 12px;
+    padding: 10px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.bd-tappable { cursor: pointer; transition: background .15s; }
+.bd-tappable:active { background: rgba(var(--primary-color-rgb),.22); }
+.bd-col-label { font-size:.62rem; color:var(--text-secondary); font-weight:600; letter-spacing:.06em; }
+.bd-grade-btn {
+    padding: 10px 4px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,.04);
+    color: var(--text-color);
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    transition: background .12s;
+}
+.bd-grade-btn:active, .bd-grade-btn.bd-sel {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    border-color: var(--primary-color) !important;
+}
 </style>
 
 <script>
 (function() {
     var MESES_BD = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    var MESES_CURTOS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
     var _bd = { dia: 1, mes: 0, ano: 2000 };
+    var _bdTarget = { inputId: '', btnId: '', labelId: '' };
     function pad(n) { return String(n).padStart(2,'0'); }
 
     function _bdRender() {
-        document.getElementById('bdDiaDisplay').textContent = pad(_bd.dia);
-        document.getElementById('bdMesDisplay').textContent = MESES_BD[_bd.mes];
-        document.getElementById('bdAnoDisplay').textContent = _bd.ano;
+        document.getElementById('bdDiaDisplay').innerHTML = pad(_bd.dia) + '<i class="bi bi-chevron-down" style="font-size:.65rem;opacity:.5;margin-left:3px;"></i>';
+        document.getElementById('bdMesDisplay').innerHTML = MESES_BD[_bd.mes] + '<i class="bi bi-chevron-down" style="font-size:.65rem;opacity:.5;margin-left:4px;"></i>';
+        document.getElementById('bdAnoDisplay').innerHTML = _bd.ano + '<i class="bi bi-chevron-down" style="font-size:.65rem;opacity:.5;margin-left:2px;"></i>';
     }
 
-    function _bdMaxDia() {
-        return new Date(_bd.ano, _bd.mes + 1, 0).getDate();
-    }
+    function _bdMaxDia() { return new Date(_bd.ano, _bd.mes + 1, 0).getDate(); }
 
-    window._bdAjustar = function(campo, delta) {
-        if (campo === 'dia') {
-            _bd.dia = ((_bd.dia - 1 + delta + _bdMaxDia()) % _bdMaxDia()) + 1;
-        } else if (campo === 'mes') {
-            _bd.mes = (_bd.mes + delta + 12) % 12;
-            if (_bd.dia > _bdMaxDia()) _bd.dia = _bdMaxDia();
-        } else if (campo === 'ano') {
-            _bd.ano = Math.max(1920, Math.min(new Date().getFullYear(), _bd.ano + delta));
+    // Grade de dias — respeita o mês atual
+    window._bdAbrirGradeDia = function() {
+        var max = _bdMaxDia();
+        var grid = document.getElementById('bdDiaGridItems');
+        var html = '';
+        for (var d = 1; d <= max; d++) {
+            html += '<button class="bd-grade-btn' + (d === _bd.dia ? ' bd-sel' : '') + '" onclick="window._bdSelecionarDia(' + d + ')">' + d + '</button>';
         }
-        _bdRender();
+        grid.innerHTML = html;
+        document.getElementById('ctwBdDiaGrid').style.display = 'flex';
     };
 
-    window._abrirBirthdayPicker = function() {
-        var val = document.getElementById('editClientBirthdate').value;
+    window._bdSelecionarDia = function(d) {
+        _bd.dia = d;
+        _bdRender();
+        document.getElementById('ctwBdDiaGrid').style.display = 'none';
+    };
+
+    // Grade de meses
+    window._bdAbrirGradeMes = function() {
+        var grid = document.getElementById('bdMesGridItems');
+        grid.innerHTML = MESES_CURTOS.map(function(m, i) {
+            return '<button class="bd-grade-btn' + (i === _bd.mes ? ' bd-sel' : '') + '" onclick="window._bdSelecionarMes(' + i + ')">' + m + '</button>';
+        }).join('');
+        document.getElementById('ctwBdMesGrid').style.display = 'flex';
+    };
+
+    window._bdSelecionarMes = function(i) {
+        _bd.mes = i;
+        if (_bd.dia > _bdMaxDia()) _bd.dia = _bdMaxDia();
+        _bdRender();
+        document.getElementById('ctwBdMesGrid').style.display = 'none';
+    };
+
+    // Grade de anos
+    window._bdAbrirGradeAno = function() {
+        var anoAtual = new Date().getFullYear();
+        var grid = document.getElementById('bdAnoGridItems');
+        var html = '';
+        for (var a = anoAtual; a >= 1930; a--) {
+            html += '<button class="bd-grade-btn' + (a === _bd.ano ? ' bd-sel' : '') + '" onclick="window._bdSelecionarAno(' + a + ')">' + a + '</button>';
+        }
+        grid.innerHTML = html;
+        document.getElementById('ctwBdAnoGrid').style.display = 'flex';
+        // Scroll até o ano selecionado
+        setTimeout(function() {
+            var sel = grid.querySelector('.bd-sel');
+            if (sel) sel.scrollIntoView({ block: 'center' });
+        }, 60);
+    };
+
+    window._bdSelecionarAno = function(a) {
+        _bd.ano = a;
+        if (_bd.dia > _bdMaxDia()) _bd.dia = _bdMaxDia();
+        _bdRender();
+        document.getElementById('ctwBdAnoGrid').style.display = 'none';
+    };
+
+    window._abrirBirthdayPicker = function(inputId, btnId, labelId) {
+        _bdTarget = { inputId: inputId, btnId: btnId, labelId: labelId };
+        var val = document.getElementById(inputId) && document.getElementById(inputId).value;
         if (val) {
             var p = val.split('-');
             _bd.ano = parseInt(p[0]); _bd.mes = parseInt(p[1]) - 1; _bd.dia = parseInt(p[2]);
@@ -2719,19 +2848,28 @@ do que você precisa??</h2>
     };
 
     window._bdLimpar = function() {
-        document.getElementById('editClientBirthdate').value = '';
-        document.getElementById('editClientBirthdateLabel').textContent = 'Definir data';
-        document.getElementById('editClientBirthdateBtn').style.borderColor = '';
+        document.getElementById(_bdTarget.inputId).value = '';
+        document.getElementById(_bdTarget.labelId).textContent = 'Definir data';
+        document.getElementById(_bdTarget.btnId).style.borderColor = '';
         window._fecharBirthdayPicker();
     };
 
     window._bdConfirmar = function() {
         var iso = _bd.ano + '-' + pad(_bd.mes + 1) + '-' + pad(_bd.dia);
-        document.getElementById('editClientBirthdate').value = iso;
-        document.getElementById('editClientBirthdateLabel').textContent =
+        document.getElementById(_bdTarget.inputId).value = iso;
+        document.getElementById(_bdTarget.labelId).textContent =
             pad(_bd.dia) + ' de ' + MESES_BD[_bd.mes] + ' de ' + _bd.ano;
-        document.getElementById('editClientBirthdateBtn').style.borderColor = 'var(--primary-color)';
+        document.getElementById(_bdTarget.btnId).style.borderColor = 'var(--primary-color)';
         window._fecharBirthdayPicker();
+    };
+
+    window._bdSetValor = function(inputId, btnId, labelId, isoVal) {
+        if (!isoVal) return;
+        document.getElementById(inputId).value = isoVal;
+        var p = isoVal.split('-');
+        var label = pad(parseInt(p[2])) + ' de ' + MESES_BD[parseInt(p[1])-1] + ' de ' + p[0];
+        document.getElementById(labelId).textContent = label;
+        document.getElementById(btnId).style.borderColor = 'var(--primary-color)';
     };
 
     document.getElementById('ctwBirthdayPicker').addEventListener('click', function(e) {
