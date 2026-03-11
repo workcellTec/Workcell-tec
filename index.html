@@ -11,8 +11,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" id="status-bar-color" content="#0B1120"/>
-        <link rel="apple-touch-icon" href="https://i.imgur.com/6Ei51Rg.png">
-    <link rel="icon" type="image/png" href="https://i.imgur.com/6Ei51Rg.png">
+        <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -25,10 +25,11 @@
 
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- html2pdf: lazy loaded via app.js quando necessário -->
+
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js" defer></script>
+    <!-- html2canvas: lazy loaded via app.js quando necessário -->
     
 
     
@@ -46,6 +47,16 @@
 </head>
 <body>
     
+<!-- ⚡ TELA DE TRANSIÇÃO DOS FAVORITOS -->
+<div id="favTransitionOverlay" class="fav-transition-overlay hidden">
+    <div class="fav-transition-circle">
+        <div class="fav-transition-ring fav-tr-ring1"></div>
+        <div class="fav-transition-ring fav-tr-ring2"></div>
+        <div class="fav-transition-emoji" id="favTransitionEmoji">📱</div>
+    </div>
+    <div class="fav-transition-label" id="favTransitionLabel">Abrindo...</div>
+</div>
+
 <div class="turbo-bg">
     <div class="light-orb orb-1"></div>
     <div class="light-orb orb-2"></div>
@@ -53,10 +64,33 @@
 
 
     <div id="loadingOverlay" class="loading-overlay-full">
-        <div class="spinner-border text-primary spinner-large" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div class="ctw-boot-screen">
+
+            <!-- Título -->
+            <div class="ctw-boot-title">
+                <span class="ctw-boot-central">CENTRAL</span>
+                <span class="ctw-boot-workcell">WORKCELL</span>
+            </div>
+
+            <!-- Círculo com carrossel de emojis -->
+            <div class="ctw-carousel-wrap">
+                <div class="ctw-carousel-circle">
+                    <!-- Janela onde os emojis aparecem -->
+                    <div class="ctw-carousel-window">
+                        <div class="ctw-carousel-track" id="carouselTrack"></div>
+                    </div>
+                    <!-- Borda do círculo com gradiente giratório -->
+                    <div class="ctw-carousel-border"></div>
+                </div>
+            </div>
+
+            <!-- Legenda do item atual -->
+            <div class="ctw-carousel-label" id="carouselLabel">Calculadora de taxas</div>
+
+            <!-- Mensagem de status -->
+            <div class="ctw-boot-msg" id="bootMsg">Preparando tudo pra você...</div>
+
         </div>
-        <p class="mt-3 text-secondary-custom">Carregando sistema...</p>
     </div>
     
 
@@ -65,7 +99,27 @@
 
 
 
+<!-- TOP BAR v2 — pill com busca + nome (só no estilo 2.0) -->
+<div id="ctwTopBar">
+    <!-- Cabeçalho: título + saudação -->
+    <div class="ctw-top-header">
+        <div class="ctw-top-header-eyebrow">Central Workcell 2.0</div>
+        <div class="ctw-top-header-title">Bem‑vindo(a), <span id="ctwTopHeaderName">visitante</span></div>
+        <div class="ctw-top-header-sub">O que você quer fazer?</div>
+    </div>
+    <!-- Pill de busca -->
+    <div class="ctw-top-pill">
+        <button class="ctw-top-search" id="ctwTopSearchBtn" aria-label="Busca global">
+            <i class="bi bi-search"></i>
+            <span>Buscar em tudo...</span>
+        </button>
+    </div>
+</div>
+
 <div id="top-right-controls" class="top-right-controls-pos">
+    <button id="globalSearchBtn" class="gs-trigger-btn" title="Busca global">
+        <i class="bi bi-search"></i>
+    </button>
 
     <div class="dropdown">
         <button class="btn btn-link p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" class="btn-link-custom">
@@ -97,15 +151,30 @@ class="dropdown-menu-custom">
                             <span class="position-absolute top-0 start-100 translate-middle bg-danger rounded-circle" class="notification-badge-small"></span>
                         </div>
                         
-                        <div class="notification-text-container">
+                        <div class="notification-text-container" style="max-width:210px;">
                             <span class="d-block fw-bold mb-1" class="notification-title-text">
                                 Nova Mensagem
                             </span>
                             
-                            <small class="d-block" id="menu-notification-text" 
-                                   class="notification-text-clamped">
-                                Carregando...
-                            </small>
+                            <small id="menu-notification-text" style="
+                                display: -webkit-box;
+                                -webkit-line-clamp: 2;
+                                -webkit-box-orient: vertical;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                white-space: normal;
+                                line-height: 1.4;
+                                word-break: break-word;
+                            ">Carregando...</small>
+
+                            <small style="
+                                display: block;
+                                margin-top: 4px;
+                                color: var(--primary-color, #00e5ff);
+                                font-size: .65rem;
+                                font-weight: 600;
+                                letter-spacing: .3px;
+                            ">Toque para ver completa →</small>
                         </div>
                     </div>
                 </button>
@@ -130,6 +199,14 @@ class="dropdown-menu-custom">
                     <div class="icon-box bg-info bg-opacity-10 text-info"><i class="bi bi-palette-fill"></i></div>
                     <span>Mudar Cores</span>
                 </button>
+                <button class="dropdown-item rounded py-2 d-flex align-items-center gap-2 mt-1 text-color-custom"
+                        onclick="window.toggleNotifPref()">
+                    <div class="icon-box bg-danger bg-opacity-10 text-danger"><i class="bi bi-bell-fill"></i></div>
+                    <div style="display:flex;flex-direction:column;gap:1px;">
+                        <span>Notificações</span>
+                        <small id="notifPrefLabel" style="font-size:.62rem;opacity:.6;">Carregando...</small>
+                    </div>
+                </button>
                 
                 <div id="installAppOption" class="hidden-inline">
                     <button class="dropdown-item rounded py-2 d-flex align-items-center gap-2 mt-1 text-color-custom" 
@@ -147,6 +224,33 @@ class="dropdown-menu-custom">
                 </button>
             </li>
 
+                <li class="p-2" id="style20MenuItem">
+                <button class="dropdown-item rounded py-2 d-flex align-items-center gap-2 mt-1 text-color-custom"
+                        onclick="window.ativarEstilo20()">
+                    <div class="icon-box text-warning" style="background:rgba(255,193,7,0.12);">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:1px;">
+                        <span id="style20MenuLabel">Testar novo estilo 2.0</span>
+                        <small style="font-size:.6rem;color:var(--text-secondary);font-weight:400;" id="style20MenuSub">Novo layout visual</small>
+                    </div>
+                </button>
+            </li>
+
+            <!-- Sair — versão clássica -->
+            <li class="p-2">
+                <button class="dropdown-item rounded py-2 d-flex align-items-center gap-2 mt-1"
+                        onclick="window.sairDoPerfil()"
+                        style="color:#ef4444;">
+                    <div class="icon-box" style="background:rgba(239,68,68,.15);color:#ef4444;">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:1px;">
+                        <span style="font-weight:600;">Sair</span>
+                        <small style="font-size:.6rem;opacity:.6;">Trocar ou bloquear usuário</small>
+                    </div>
+                </button>
+            </li>
         </ul>
     </div>
 
@@ -157,6 +261,18 @@ class="dropdown-menu-custom">
     </div>
 
 
+    <script>
+        // Fix: viewport height para teclado mobile (evita fundo aparecer quando teclado abre)
+        (function() {
+            function setVH() {
+                var vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) * 0.01;
+                document.documentElement.style.setProperty('--vh', vh + 'px');
+            }
+            setVH();
+            if (window.visualViewport) window.visualViewport.addEventListener('resize', setVH);
+            else window.addEventListener('resize', setVH);
+        })();
+    </script>
     <script>
         (function(){
             const oldBadge = document.querySelector('#notification-bell .notification-badge');
@@ -187,14 +303,67 @@ class="dropdown-menu-custom">
 
  
     <div class="container text-center" id="mainMenu">
-        <h2 class="mb-4">Bem-vindo(a) à Central Workcell,<br/>O que você quer fazer?</h2>
-        <div class="d-grid gap-2">
+        <h2 class="mb-4" id="mainMenuTitle">Bem-vindo(a) à Central Workcell,<br/>O que você quer fazer?</h2>
+
+        <!-- ⭐ FAVORITOS -->
+        <div class="fav-section" id="favSection">
+            <div class="fav-header">
+                <span class="fav-title">⭐ Favoritos</span>
+                <button class="fav-edit-btn" id="favEditBtn" title="Personalizar">
+                    <i class="bi bi-pencil-fill"></i>
+                </button>
+            </div>
+            <div class="fav-stories-wrap" id="favStoriesWrap"></div>
+        </div>
+
+        <!-- Modal edição -->
+        <div class="fav-modal-overlay hidden" id="favModalOverlay">
+            <div class="fav-modal">
+                <div class="fav-modal-header">
+                    <span>Escolha até 5 favoritos</span>
+                    <button class="fav-modal-close" id="favModalClose"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <div class="fav-modal-grid" id="favModalGrid"></div>
+                <button class="fav-modal-save" id="favModalSave">Salvar</button>
+            </div>
+        </div>
+
+        <!-- ESTILO CLÁSSICO (lista) -->
+        <div class="d-grid gap-2" id="menuClassic">
             <button class="btn-menu" id="goToCalculator"><i class="bi bi-calculator-fill"></i> Calculadora de Taxa</button>
             <button class="btn-menu" id="goToContract"><i class="bi bi-file-earmark-text-fill"></i> Documentos</button>
             <button class="btn-menu" id="goToStock"><i class="bi bi-box-seam"></i> Controle de Estoque</button>
-                        
             <button class="btn-menu" id="goToAdmin"><i class="bi bi-gear"></i> Administração</button>
+            <button class="btn-menu" id="goToRepairs"><i class="bi bi-wrench-adjustable-circle-fill"></i> Gerenc. de Consertos</button>
+        </div>
 
+        <!-- ESTILO 2.0 (grid de cards) — oculto por padrão -->
+        <div class="ctw-card-grid ctw-menu-hide" id="menuCards">
+            <button class="ctw-card c-blue" id="goToCalculator2">
+                <div class="ctw-card-icon"><i class="bi bi-calculator-fill"></i></div>
+                <span class="ctw-card-title">Calculadora</span>
+                <span class="ctw-card-sub">de Taxa</span>
+            </button>
+            <button class="ctw-card c-cyan" id="goToContract2">
+                <div class="ctw-card-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+                <span class="ctw-card-title">Documentos</span>
+                <span class="ctw-card-sub">& Garantias</span>
+            </button>
+            <button class="ctw-card c-orange" id="goToStock2">
+                <div class="ctw-card-icon"><i class="bi bi-box-seam"></i></div>
+                <span class="ctw-card-title">Estoque</span>
+                <span class="ctw-card-sub">de produtos</span>
+            </button>
+            <button class="ctw-card c-purple" id="goToAdmin2">
+                <div class="ctw-card-icon"><i class="bi bi-gear"></i></div>
+                <span class="ctw-card-title">Administração</span>
+                <span class="ctw-card-sub">& equipe</span>
+            </button>
+            <button class="ctw-card c-teal ctw-card-full" id="goToRepairs2">
+                <div class="ctw-card-icon"><i class="bi bi-wrench-adjustable-circle-fill"></i></div>
+                <span class="ctw-card-title">Consertos</span>
+                <span class="ctw-card-sub">Gerenciamento</span>
+            </button>
         </div>
     </div>
     
@@ -207,16 +376,45 @@ class="dropdown-menu-custom">
             </div>
 
             <h2 class="mb-4">Calculadora de Taxas,<br/>O que você quer fazer?</h2>
-            <div class="d-grid gap-2">
+            <!-- ESTILO CLÁSSICO -->
+            <div class="d-grid gap-2" id="calcMenuClassic">
                 <button class="btn-menu" id="openFecharVenda"><i class="bi bi-cash-coin"></i> Fechar uma venda</button>
                 <button class="btn-menu" id="openRepassarValores"><i class="bi bi-arrow-left-right"></i> Repassar valores</button>
-
-<button class="btn-menu" id="openEmprestarValores"><i class="bi bi-people-fill"></i> Emprestar valores</button>
-
-
+                <button class="btn-menu" id="openEmprestarValores"><i class="bi bi-people-fill"></i> Emprestar valores</button>
                 <button class="btn-menu" id="openCalcularEmprestimo"><i class="bi bi-bank"></i> Calcular Empréstimo</button>
                 <button class="btn-menu" id="openCalcularPorAparelho"><i class="bi bi-phone"></i> Calcular por aparelho</button>
-
+            </div>
+            <!-- ESTILO 2.0 — grid 3+2 -->
+            <div class="ctw-card-grid ctw-grid-5 ctw-menu-hide" id="calcMenuCards">
+                <div class="ctw-grid-row3">
+                    <button class="ctw-card c-green" id="openFecharVenda2">
+                        <div class="ctw-card-icon"><i class="bi bi-cash-coin"></i></div>
+                        <span class="ctw-card-title">Fechar</span>
+                        <span class="ctw-card-sub">Venda</span>
+                    </button>
+                    <button class="ctw-card c-blue" id="openRepassarValores2">
+                        <div class="ctw-card-icon"><i class="bi bi-arrow-left-right"></i></div>
+                        <span class="ctw-card-title">Repassar</span>
+                        <span class="ctw-card-sub">Valores</span>
+                    </button>
+                    <button class="ctw-card c-cyan" id="openEmprestarValores2">
+                        <div class="ctw-card-icon"><i class="bi bi-people-fill"></i></div>
+                        <span class="ctw-card-title">Emprestar</span>
+                        <span class="ctw-card-sub">Valores</span>
+                    </button>
+                </div>
+                <div class="ctw-grid-row2">
+                    <button class="ctw-card c-orange" id="openCalcularEmprestimo2">
+                        <div class="ctw-card-icon"><i class="bi bi-bank"></i></div>
+                        <span class="ctw-card-title">Calcular</span>
+                        <span class="ctw-card-sub">Empréstimo</span>
+                    </button>
+                    <button class="ctw-card c-purple" id="openCalcularPorAparelho2">
+                        <div class="ctw-card-icon"><i class="bi bi-phone"></i></div>
+                        <span class="ctw-card-title">Por</span>
+                        <span class="ctw-card-sub">Aparelho</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -575,6 +773,11 @@ class="dropdown-menu-custom">
                     </button>
                 </div>
 
+                <div class="col d-grid">
+                    <button type="button" class="btn btn-outline-warning" onclick="window.abrirGerenciarPerfis()">
+                        <i class="bi bi-people-fill"></i> Perfis e Usuários
+                    </button>
+                </div>
                 <div class="col-12 d-grid mt-2">
                     <button type="button" class="btn btn-outline-primary" data-admin-section="adminSettingsContent"><i class="bi bi-receipt"></i> Config. Recibo & Garantia</button>
                 </div>
@@ -782,20 +985,38 @@ class="dropdown-menu-custom">
 do que você precisa??</h2>
             
             
-            <div class="d-grid gap-2">
+            <!-- ESTILO CLÁSSICO -->
+            <div class="d-grid gap-2" id="docsMenuClassic">
                 <button class="btn-menu" id="openContratoView"><i class="bi bi-file-text-fill"></i> Contratos P/Boleto </button>
                 <button class="btn-menu" id="openBookipView"><i class="bi bi-receipt"></i> Garantias (Bookip)</button>
-
-<button class="btn-menu" onclick="window.abrirReciboSimples()">
-    <i class="bi bi-receipt"></i> Novo Recibo
-</button>
-
-
-  <button class="btn-menu" disabled style="opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); background-color: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1);">
-      
-
+                <button class="btn-menu" onclick="window.abrirReciboSimples()"><i class="bi bi-receipt"></i> Novo Recibo</button>
+                <button class="btn-menu" disabled style="opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); background-color: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1);">
                     <i class="bi bi-clipboard-check-fill"></i> Ord. Serviços
                     <span style="font-size: 0.75rem; margin-left: auto; color: var(--text-secondary);">(Em breve)</span>
+                </button>
+            </div>
+            <!-- ESTILO 2.0 -->
+            <div class="ctw-card-grid ctw-menu-hide" id="docsMenuCards">
+                <button class="ctw-card c-blue" id="openContratoView2">
+                    <div class="ctw-card-icon"><i class="bi bi-file-text-fill"></i></div>
+                    <span class="ctw-card-title">Contrato</span>
+                    <span class="ctw-card-sub">/ Boleto</span>
+                </button>
+                <button class="ctw-card c-cyan" id="openBookipView2">
+                    <div class="ctw-card-icon"><i class="bi bi-receipt"></i></div>
+                    <span class="ctw-card-title">Garantia</span>
+                    <span class="ctw-card-sub">Bookip</span>
+                </button>
+                <button class="ctw-card c-green" id="openReciboView2">
+                    <div class="ctw-card-icon"><i class="bi bi-receipt-cutoff"></i></div>
+                    <span class="ctw-card-title">Recibo</span>
+                    <span class="ctw-card-sub">Simples</span>
+                </button>
+                <button class="ctw-card c-disabled" disabled>
+                    <span class="ctw-card-soon">Em breve</span>
+                    <div class="ctw-card-icon"><i class="bi bi-clipboard-check-fill"></i></div>
+                    <span class="ctw-card-title">Ord.</span>
+                    <span class="ctw-card-sub">Serviços</span>
                 </button>
             </div>
 
@@ -1063,6 +1284,46 @@ do que você precisa??</h2>
                     </div>
 
                     <div class="text-center mt-4">
+
+                        <!-- FOTO DO PRODUTO (Imgur) -->
+                        <div class="bookip-photo-section" id="bookipPhotoSection">
+                            <!-- Input câmera (abre câmera diretamente) -->
+                            <input type="file" id="bookipPhotoInputCamera" accept="image/*" capture="environment" style="display:none">
+                            <!-- Input galeria (abre armazenamento) -->
+                            <input type="file" id="bookipPhotoInputGallery" accept="image/*" style="display:none">
+
+                            <!-- Preview da foto -->
+                            <div id="bookipPhotoPreview" class="bookip-photo-preview hidden">
+                                <img id="bookipPhotoImg" src="" alt="Foto do produto">
+                                <button class="bookip-photo-remove" id="bookipPhotoRemove" type="button" title="Remover foto">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </button>
+                                <div class="bookip-photo-preview-label">Toque para trocar</div>
+                            </div>
+
+                            <!-- Dois botões lado a lado -->
+                            <div style="display:flex;gap:10px;justify-content:center;">
+                                <button type="button" class="bookip-photo-btn" id="bookipPhotoBtnCamera" style="flex:1;max-width:160px;">
+                                    <div class="bookip-photo-btn-icon">
+                                        <i class="bi bi-camera-fill"></i>
+                                    </div>
+                                    <div class="bookip-photo-btn-text">
+                                        <span>Tirar foto</span>
+                                        <small>Abre a câmera</small>
+                                    </div>
+                                </button>
+                                <button type="button" class="bookip-photo-btn" id="bookipPhotoBtnGallery" style="flex:1;max-width:160px;">
+                                    <div class="bookip-photo-btn-icon">
+                                        <i class="bi bi-image-fill"></i>
+                                    </div>
+                                    <div class="bookip-photo-btn-text">
+                                        <span id="bookipPhotoBtnLabel">Da galeria</span>
+                                        <small>Foto existente</small>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
                         <div id="bookipActionsArea">
                             <div id="saveActionContainer">
                                 <button class="btn btn-success w-100 py-3 fw-bold" id="btnSaveBookip">
@@ -1133,7 +1394,7 @@ do que você precisa??</h2>
             <button aria-label="Voltar" class="btn-back" id="backFromStock"><i class="bi bi-arrow-left"></i></button>
         </div>
         <div class="content-card w-100">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
                 <input class="form-control" id="stockSearchInput" placeholder="Filtrar produtos..." style="flex: 1; min-width: 180px;" type="text">
                 <div class="btn-group">
                     <button class="btn btn-outline-secondary btn-sm" id="toggleIgnoredBtn" title="Mostrar produtos ignorados"><i class="bi bi-eye-slash-fill"></i></button>
@@ -1141,6 +1402,7 @@ do que você precisa??</h2>
                     <button class="btn btn-info btn-sm" id="generateReportBtn"><i class="bi bi-printer"></i> Relatório</button>
                 </div>
             </div>
+            <div id="stockNotFoundHint"></div>
             <div id="stockProgressContainer" class="mb-3" style="background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 15px; border: 1px solid var(--glass-border);">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <small class="text-secondary" style="font-weight: 500;"><i class="bi bi-clipboard-check"></i> Progresso da Contagem</small>
@@ -1234,6 +1496,10 @@ do que você precisa??</h2>
                         <label class="form-label small">Telefone</label>
                         <input type="tel" class="form-control" id="editClientTel">
                     </div>
+                    <div class="col-6 mb-2">
+                        <label class="form-label small">🎂 Aniversário</label>
+                        <input type="date" class="form-control" id="editClientBirthdate">
+                    </div>
                 </div>
 
                 <div class="mb-2">
@@ -1244,6 +1510,14 @@ do que você precisa??</h2>
                 <div class="mb-3">
                     <label class="form-label small">Email</label>
                     <input type="email" class="form-control" id="editClientEmail">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small">👤 Atribuído ao usuário</label>
+                    <select class="form-select" id="editClientAtribuido">
+                        <option value="">— Nenhum (notifica todos) —</option>
+                    </select>
+                    <div class="form-text" style="font-size:.7rem;opacity:.6;">Aniversários deste cliente só notificam este usuário</div>
                 </div>
 
                 <div class="d-grid gap-2">
@@ -1280,6 +1554,50 @@ do que você precisa??</h2>
             <div class="d-flex gap-2 justify-content-center mt-3">
                 <button class="btn btn-secondary" id="cancelEditPriceBtn">Cancelar</button>
                 <button class="btn btn-primary" id="confirmEditPriceBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Nome do Produto -->
+    <div class="custom-modal-overlay" id="editNameModalOverlay">
+        <div class="custom-modal-content">
+            <h4>Editar Nome do Produto</h4>
+            <p class="text-warning small mb-3"><i class="bi bi-exclamation-triangle"></i> Atenção: Isso altera o nome oficial no sistema.</p>
+            <input class="form-control form-control-lg mb-3" id="editNameInput" type="text" placeholder="Nome do produto"/>
+            <input type="hidden" id="editNameProductId"/>
+            <input type="hidden" id="editNameProductIndex"/>
+            <div class="d-flex gap-2 justify-content-center mt-3">
+                <button class="btn btn-secondary" id="cancelEditNameBtn">Cancelar</button>
+                <button class="btn btn-primary" id="confirmEditNameBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Adicionar Produto Rápido -->
+    <div class="custom-modal-overlay" id="quickAddModalOverlay">
+        <div class="custom-modal-content" style="max-width: 400px;">
+            <h4><i class="bi bi-plus-circle me-2"></i>Adicionar Produto</h4>
+            <p class="text-secondary small mb-3">Preencha as informações e o produto será salvo no sistema.</p>
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary" style="letter-spacing:.5px;">NOME</label>
+                <input class="form-control" id="quickAddProductName" type="text" placeholder="Nome do produto"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary" style="letter-spacing:.5px;">VALOR BASE (R$)</label>
+                <input class="form-control" id="quickAddProductValue" type="text" inputmode="numeric" placeholder="R$ 0,00"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary" style="letter-spacing:.5px;">QUANTIDADE EM ESTOQUE</label>
+                <input class="form-control" id="quickAddProductQty" type="number" min="0" value="1"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary" style="letter-spacing:.5px;">CORES DISPONÍVEIS</label>
+                <div id="quickAddColorPalette" class="quick-add-palette"></div>
+                <div id="quickAddSelectedColors" class="quick-add-selected mt-2"></div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-secondary flex-fill" id="cancelQuickAddBtn">Cancelar</button>
+                <button class="btn btn-primary flex-fill" id="confirmQuickAddBtn"><i class="bi bi-check-lg me-1"></i>Adicionar</button>
             </div>
         </div>
     </div>
@@ -1406,10 +1724,11 @@ do que você precisa??</h2>
 
 <div class="custom-modal-overlay" id="profileSelectorModal" style="z-index: 20000; background: rgba(0,0,0,0.9);">
     <div class="custom-modal-content" class="max-width-400">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
             <h3 class="m-0">Quem é você?</h3>
-            <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="document.getElementById('profileSelectorModal').classList.remove('active')" style="width: 32px; height: 32px; padding: 0;"><i class="bi bi-x-lg"></i></button>
+            <button class="btn btn-sm btn-outline-secondary rounded-circle" id="profileModalCloseBtn" onclick="document.getElementById('profileSelectorModal').classList.remove('active')" style="width: 32px; height: 32px; padding: 0;"><i class="bi bi-x-lg"></i></button>
         </div>
+        <p class="text-secondary small mb-3">Selecione seu perfil para continuar.</p>
         
         <div id="profilesList" class="d-grid gap-2" style="max-height: 300px; overflow-y: auto;"></div>
 
@@ -1438,8 +1757,9 @@ do que você precisa??</h2>
             "theme_color": "#000000",
             "orientation": "portrait-primary",
             "icons": [
-                { "src": "https://i.imgur.com/6Ei51Rg.png", "type": "image/png", "sizes": "192x192" },
-                { "src": "https://i.imgur.com/6Ei51Rg.png", "type": "image/png", "sizes": "512x512" }
+                { "src": "icon-192.png",  "type": "image/png", "sizes": "192x192",  "purpose": "any maskable" },
+                { "src": "icon-512.png",  "type": "image/png", "sizes": "512x512",  "purpose": "any maskable" },
+                { "src": "icon-1024.png", "type": "image/png", "sizes": "1024x1024","purpose": "any maskable" }
             ]
         }
     </script>
@@ -1450,6 +1770,34 @@ do que você precisa??</h2>
         self.addEventListener('install', event => { event.waitUntil( caches.open(CACHE_NAME).then(cache => { console.log('Cache aberto'); return cache.addAll(urlsToCache); }) ); });
         self.addEventListener('fetch', event => { event.respondWith( caches.match(event.request).then(response => { if (response) { return response; } return fetch(event.request).then( response => { if(!response || response.status !== 200 || response.type !== 'basic') { return response; } const responseToCache = response.clone(); caches.open(CACHE_NAME).then(cache => { cache.put(event.request, responseToCache); }); return response; } ); }) ); });
         self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]; event.waitUntil( caches.keys().then(cacheNames => { return Promise.all( cacheNames.map(cacheName => { if (cacheWhitelist.indexOf(cacheName) === -1) { return caches.delete(cacheName); } }) ); }) ); });
+
+        // 🔔 Recebe mensagem do app e exibe notificação nativa
+        self.addEventListener('message', event => {
+            if (event.data && event.data.tipo === 'MOSTRAR_NOTIFICACAO') {
+                const { titulo, corpo, tag } = event.data;
+                self.registration.showNotification(titulo, {
+                    body: corpo,
+                    icon: '/icon-192.png',
+                    badge: '/icon-192.png',
+                    tag: tag || 'ctw-notif',
+                    renotify: false,
+                    vibrate: [200, 100, 200]
+                });
+            }
+        });
+
+        // Ao clicar na notificação, abre/foca o app
+        self.addEventListener('notificationclick', event => {
+            event.notification.close();
+            event.waitUntil(
+                clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+                    for (const client of clientList) {
+                        if ('focus' in client) return client.focus();
+                    }
+                    if (clients.openWindow) return clients.openWindow('/');
+                })
+            );
+        });
     </script>
     
 
@@ -1457,10 +1805,30 @@ do que você precisa??</h2>
 
 
 
-<script src="app.js?v=999" type="module"></script>
+<script src="app.js?v=1001" type="module" defer></script>
+    <!-- Módulos independentes — carregam em paralelo após app.js -->
+    <script type="module" defer>
+        // Carrega módulos após o app estar pronto
+        async function loadModules() {
+            await Promise.all([
+                import('./notifications.js'),
+                import('./ambilight.js'),
+                import('./Favorites.js'),
+                import('./repairs.js?v=2').then(m => { window._repairsModule = m; }),
+                import('./bookip.js'),
+            ]);
+        }
+        // Módulos carregam assim que o DOM está pronto
+        // Cada módulo espera internamente pelas dependências que precisa
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadModules);
+        } else {
+            loadModules();
+        }
+    </script>
 
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
 <script>
 (function() {
@@ -1562,6 +1930,370 @@ do que você precisa??</h2>
 </div>
 
 
+
+
+<!-- Overlay de Navegação da Busca Global (Sherlock) -->
+<div id="gsNavOverlay" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(7,13,26,0.97);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+    <div style="font-size:3.5rem;animation:sherlockBob 1s ease-in-out infinite alternate;">🔍</div>
+    <div style="font-family:Poppins,sans-serif;font-size:1rem;font-weight:600;color:#00e5ff;letter-spacing:2px;text-transform:uppercase;" id="gsNavMsg">Encontrando...</div>
+    <div style="display:flex;gap:6px;margin-top:4px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#00e5ff;animation:dotPulse 1.2s ease-in-out infinite;animation-delay:0s;display:block;"></span>
+        <span style="width:8px;height:8px;border-radius:50%;background:#00e5ff;animation:dotPulse 1.2s ease-in-out infinite;animation-delay:0.2s;display:block;"></span>
+        <span style="width:8px;height:8px;border-radius:50%;background:#00e5ff;animation:dotPulse 1.2s ease-in-out infinite;animation-delay:0.4s;display:block;"></span>
+    </div>
+</div>
+<style>
+@keyframes sherlockBob { from { transform: translateY(0) rotate(-8deg); } to { transform: translateY(-10px) rotate(8deg); } }
+@keyframes dotPulse { 0%,80%,100% { opacity:0.2; transform:scale(0.8); } 40% { opacity:1; transform:scale(1.2); } }
+</style>
+
+<!-- BUSCA GLOBAL -->
+<div id="gsOverlay" class="gs-overlay gs-hidden">
+    <div class="gs-backdrop" id="gsBackdrop"></div>
+    <div class="gs-panel">
+        <div class="gs-header">
+            <div class="gs-input-wrap">
+                <i class="bi bi-search gs-icon-sm"></i>
+                <input type="text" id="gsInput" placeholder="Buscar clientes, contratos, garantias..." autocomplete="off" autocorrect="off" spellcheck="false">
+                <button class="gs-clear gs-hidden" id="gsClearBtn"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <button class="gs-cancel-btn" id="gsCancelBtn">Cancelar</button>
+        </div>
+        <div class="gs-filters" id="gsFilters">
+            <button class="gs-filter active" data-filter="all">Tudo</button>
+            <button class="gs-filter" data-filter="cliente">👥 Clientes</button>
+            <button class="gs-filter" data-filter="bookip">📒 Bookips</button>
+            <button class="gs-filter" data-filter="boleto">📋 Contratos</button>
+            <button class="gs-filter" data-filter="conserto">🔧 Consertos</button>
+        </div>
+        <div class="gs-status-bar" id="gsStatus">Digite para buscar</div>
+        <div class="gs-results" id="gsResults"></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     BOTTOM NAV — Estilo 2.0
+     Só aparece quando ctwMenuStyle === 'v2'
+═══════════════════════════════════════════════ -->
+<nav id="ctwBottomNav" class="ctw-bottom-nav ctw-menu-hide" aria-label="Navegação principal">
+    <!-- Casa -->
+    <button class="ctw-nav-btn" id="ctwNavHome" title="Início">
+        <span class="ctw-nav-icon"><i class="bi bi-house-fill"></i></span>
+        <span class="ctw-nav-label">Início</span>
+    </button>
+
+    <!-- Sino -->
+    <button class="ctw-nav-btn" id="ctwNavBell" title="Notificações">
+        <span class="ctw-nav-icon">
+            <i class="bi bi-bell-fill"></i>
+            <span class="ctw-nav-badge" id="ctwNavBellBadge" style="display:none;"></span>
+        </span>
+        <span class="ctw-nav-label">Alertas</span>
+    </button>
+
+    <!-- Perfil -->
+    <button class="ctw-nav-btn" id="ctwNavProfile" title="Perfil">
+        <span class="ctw-nav-icon"><i class="bi bi-person-fill"></i></span>
+        <span class="ctw-nav-label" id="ctwNavProfileLabel">Perfil</span>
+    </button>
+</nav>
+
+<!-- Profile Sheet (abre para cima, só v2) -->
+<div id="ctwProfileSheet" class="ctw-sheet-backdrop" style="display:none;" aria-hidden="true">
+    <div class="ctw-sheet" role="dialog" aria-modal="true">
+        <!-- Handle -->
+        <div class="ctw-sheet-handle"></div>
+
+        <!-- Header usuário -->
+        <div class="ctw-sheet-user">
+            <div class="ctw-sheet-avatar" id="ctwSheetAvatar" onclick="document.getElementById('avatarPhotoInput').click()" style="cursor:pointer;overflow:hidden;position:relative;" title="Toque para trocar foto">
+                <img id="avatarPhotoImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;">
+                <i class="bi bi-person-fill" id="avatarPhotoIcon"></i>
+                <div id="avatarPhotoHint" style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:.45rem;text-align:center;padding:2px 0;color:#fff;border-radius:0 0 50% 50%;">📷</div>
+            </div>
+            <input type="file" id="avatarPhotoInput" accept="image/*" style="display:none;">
+            <div>
+                <div class="ctw-sheet-user-role">Logado como</div>
+                <div class="ctw-sheet-user-name" id="ctwSheetProfileName">Visitante</div>
+            </div>
+        </div>
+
+        <div class="ctw-sheet-divider"></div>
+
+        <!-- Ações -->
+        <div class="ctw-sheet-actions">
+            <button class="ctw-sheet-item" onclick="document.getElementById('theme-toggle-checkbox').click(); window.closeCtwSheet();">
+                <div class="ctw-sheet-item-icon bg-warn"><i class="bi bi-moon-stars-fill"></i></div>
+                <span>Alternar Tema</span>
+            </button>
+            <button class="ctw-sheet-item" onclick="document.getElementById('theme-palette-btn').click(); window.closeCtwSheet();">
+                <div class="ctw-sheet-item-icon bg-info"><i class="bi bi-palette-fill"></i></div>
+                <span>Mudar Cores</span>
+            </button>
+            <button class="ctw-sheet-item" onclick="window.toggleNotifPref(); window.closeCtwSheet();">
+                <div class="ctw-sheet-item-icon" style="background:rgba(239,68,68,.12);color:#ef4444;"><i class="bi bi-bell-fill"></i></div>
+                <div style="display:flex;flex-direction:column;gap:1px;text-align:left;">
+                    <span>Notificações</span>
+                    <small id="notifPrefLabelSheet" style="font-size:.6rem;opacity:.6;">Carregando...</small>
+                </div>
+            </button>
+            <button class="ctw-sheet-item" onclick="document.getElementById('profileSelectorModal').classList.add('active'); window.closeCtwSheet();">
+                <div class="ctw-sheet-item-icon bg-primary"><i class="bi bi-people-fill"></i></div>
+                <span>Trocar Usuário</span>
+            </button>
+            <button class="ctw-sheet-item" onclick="window.ativarEstilo20(); window.closeCtwSheet();">
+                <div class="ctw-sheet-item-icon bg-stars"><i class="bi bi-stars"></i></div>
+                <div style="display:flex;flex-direction:column;gap:1px;text-align:left;">
+                    <span id="ctwSheetStyleLabel">Voltar ao estilo clássico</span>
+                    <small style="font-size:.6rem;opacity:.6;" id="ctwSheetStyleSub">Layout em lista original</small>
+                </div>
+            </button>
+
+            <!-- Sair -->
+            <button class="ctw-sheet-item" onclick="window.closeCtwSheet(); setTimeout(window.sairDoPerfil, 320);" style="margin-top:4px;">
+                <div class="ctw-sheet-item-icon" style="background:rgba(239,68,68,.15);color:#ef4444;">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:1px;text-align:left;">
+                    <span style="color:#ef4444;font-weight:600;">Sair</span>
+                    <small style="font-size:.6rem;opacity:.6;">Trocar ou bloquear usuário</small>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     GERENCIAMENTO DE CONSERTOS
+════════════════════════════════════════════════════════════ -->
+<div class="container hidden" id="repairsContainer" style="display:none;">
+
+    <!-- Header -->
+    <div class="section-header">
+        <h3><i class="bi bi-wrench-adjustable-circle-fill"></i> Consertos</h3>
+        <button aria-label="Voltar" class="btn-back" id="backFromRepairs">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="rep-stats-bar">
+        <div class="rep-stat rep-stat-gray">
+            <span class="rep-stat-num" id="repStat_preparacao">0</span>
+            <span class="rep-stat-lbl">Levar Técnico</span>
+        </div>
+        <div class="rep-stat rep-stat-yellow">
+            <span class="rep-stat-num" id="repStat_reparo">0</span>
+            <span class="rep-stat-lbl">Em Reparo</span>
+        </div>
+        <div class="rep-stat rep-stat-red">
+            <span class="rep-stat-num" id="repStat_atrasados">0</span>
+            <span class="rep-stat-lbl">Tempo Esgotado</span>
+        </div>
+        <div class="rep-stat rep-stat-orange">
+            <span class="rep-stat-num" id="repStat_proximos">0</span>
+            <span class="rep-stat-lbl">Prox. Prazo</span>
+        </div>
+        <div class="rep-stat rep-stat-green">
+            <span class="rep-stat-num" id="repStat_finais">0</span>
+            <span class="rep-stat-lbl">Loja Reparado</span>
+        </div>
+    </div>
+
+    <!-- Search + New -->
+    <div class="rep-toolbar">
+        <div class="rep-search-wrap">
+            <i class="bi bi-search rep-search-icon"></i>
+            <input type="text" id="repSearchInput" class="rep-search-input" placeholder="Buscar cliente ou defeito...">
+        </div>
+        <button class="rep-btn rep-btn-primary" id="repNewBtn">
+            <i class="bi bi-plus-lg"></i> Novo
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="rep-filters">
+        <button class="rep-filter-btn rep-filter-active" data-rep-filter="all">Todos</button>
+        <button class="rep-filter-btn" data-rep-filter="levar_tecnico">Levar Técnico</button>
+        <button class="rep-filter-btn" data-rep-filter="em_reparo">Em Reparo</button>
+        <button class="rep-filter-btn" data-rep-filter="finalizados_loja">Finalizados Loja</button>
+        <button class="rep-filter-btn" data-rep-filter="proximo">Prox. Prazo</button>
+        <button class="rep-filter-btn" data-rep-filter="tempo_esgotado">Tempo Esgotado</button>
+        <button class="rep-filter-btn" data-rep-filter="entregue">Finalizado/Entregue!</button>
+    </div>
+
+    <!-- List -->
+    <div id="repairsList" class="rep-list"></div>
+
+</div>
+
+<!-- ─── MODAL: NOVO / EDITAR CONSERTO ─── -->
+<div class="rep-modal-overlay" id="repFormOverlay">
+    <div class="rep-modal" id="repFormModal">
+        <div class="rep-modal-header">
+            <span id="repFormTitle">Novo Conserto</span>
+            <button class="rep-modal-close" id="repFormClose"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="rep-modal-body">
+            <input type="hidden" id="repFormId">
+
+            <div class="rep-field">
+                <label><i class="bi bi-person-fill"></i> Nome do Cliente *</label>
+                <input type="text" id="repFormNome" class="form-control" placeholder="Ex: João Silva" autocomplete="off">
+            </div>
+            <div class="rep-field">
+                <label><i class="bi bi-telephone-fill"></i> Número do Cliente</label>
+                <input type="tel" id="repFormTel" class="form-control" placeholder="(11) 99999-9999" autocomplete="off">
+            </div>
+            <div class="rep-field">
+                <label><i class="bi bi-exclamation-triangle-fill"></i> Descrição do Defeito *</label>
+                <textarea id="repFormDefeito" class="form-control" rows="3" placeholder="Ex: Tela quebrada, não liga..."></textarea>
+            </div>
+            <div class="rep-field">
+                <label><i class="bi bi-calendar-event-fill"></i> Data para Entrega ao Cliente</label>
+                <input type="date" id="repFormPrazo" class="form-control">
+            </div>
+            <div class="rep-field">
+                <label><i class="bi bi-clock-fill"></i> Horário limite para entrega</label>
+                <input type="time" id="repFormHora" class="form-control">
+                <small style="opacity:.55;font-size:.7rem;">Menos de 8h do prazo = alerta Prox. Prazo</small>
+            </div>
+
+            <!-- Valor cobrado do cliente -->
+            <div class="rep-field">
+                <label><i class="bi bi-cash-coin"></i> Valor Cobrado do Cliente</label>
+                <div class="input-group">
+                    <span class="input-group-text">R$</span>
+                    <input type="number" id="repFormValor" class="form-control" placeholder="0,00" step="0.01" min="0">
+                </div>
+            </div>
+
+            <!-- Foto do aparelho — silhueta grande empurra conteúdo acima do teclado -->
+            <div class="rep-field">
+                <label><i class="bi bi-camera-fill"></i> Foto do Aparelho</label>
+                <input type="file" id="repFormPhotoInputCamera"  accept="image/*" capture="environment" style="display:none;">
+                <input type="file" id="repFormPhotoInputGallery" accept="image/*" style="display:none;">
+
+                <!-- Silhueta: visível enquanto não há foto -->
+                <div id="repFormPhotoPlaceholder" class="rep-photo-placeholder">
+                    <div class="rep-photo-silhouette">
+                        <i class="bi bi-phone" style="font-size:3.5rem;"></i>
+                        <i class="bi bi-camera" style="font-size:1.4rem;position:absolute;bottom:8px;right:-4px;"></i>
+                    </div>
+                    <span class="rep-photo-hint">Foto do aparelho</span>
+                    <div class="rep-photo-btns" style="margin-top:12px;">
+                        <button class="rep-btn rep-btn-ghost rep-btn-sm" id="repFormPhotoBtnCamera" type="button">
+                            <i class="bi bi-camera-fill"></i> Câmera
+                        </button>
+                        <button class="rep-btn rep-btn-ghost rep-btn-sm" id="repFormPhotoBtnGallery" type="button">
+                            <i class="bi bi-image-fill"></i> <span id="repFormPhotoBtnLabel">Galeria</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preview: visível depois que foto é escolhida -->
+                <div id="repFormPhotoPreview" style="display:none;position:relative;">
+                    <img id="repFormPhotoImg" src="" alt="preview" style="width:100%;height:260px;object-fit:cover;border-radius:14px;display:block;">
+                    <button id="repFormPhotoRemove" type="button" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:50%;width:30px;height:30px;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="rep-modal-footer">
+            <button class="rep-btn rep-btn-ghost" id="repFormCancel">Cancelar</button>
+            <button class="rep-btn rep-btn-primary" id="repFormSaveBtn"><i class="bi bi-check-lg"></i> Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL: MUDANÇA DE ETAPA (foto obrigatória) ─── -->
+<div class="rep-modal-overlay" id="repStepOverlay">
+    <div class="rep-modal" id="repStepModal">
+        <div class="rep-modal-header">
+            <span id="repStepTitle">Registrar etapa</span>
+            <button class="rep-modal-close" id="repStepClose"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="rep-modal-body">
+            <div id="repStepPhotoNotice" class="rep-photo-notice">
+                <i class="bi bi-camera-fill"></i>
+                A foto é <strong>obrigatória</strong> para avançar o status.
+            </div>
+            <div class="rep-photo-btns" style="margin-bottom:12px;">
+                <input type="file" id="repStepPhotoInputCamera"  accept="image/*" capture="environment" style="display:none;">
+                <input type="file" id="repStepPhotoInputGallery" accept="image/*" style="display:none;">
+                <button class="rep-btn rep-btn-primary rep-btn-sm" id="repStepPhotoBtnCamera">
+                    <i class="bi bi-camera-fill"></i> Câmera
+                </button>
+                <button class="rep-btn rep-btn-ghost rep-btn-sm" id="repStepPhotoBtnGallery">
+                    <i class="bi bi-image-fill"></i> <span id="repStepPhotoBtnLabel">Galeria</span>
+                </button>
+            </div>
+            <div id="repStepPhotoPreview" style="display:none;">
+                <img id="repStepPhotoImg" src="" alt="preview" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;">
+            </div>
+        </div>
+        <div class="rep-modal-footer">
+            <button class="rep-btn rep-btn-ghost" id="repStepCancel">Cancelar</button>
+            <button class="rep-btn rep-btn-primary" id="repStepSaveBtn" disabled>Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL: CONFIRMAR EXCLUSÃO ─── -->
+<div class="rep-modal-overlay" id="repConfirmOverlay">
+    <div class="rep-modal rep-modal-sm">
+        <div class="rep-modal-header">
+            <span>Confirmar exclusão</span>
+        </div>
+        <div class="rep-modal-body">
+            <p id="repConfirmMsg" style="margin:0;font-size:.9rem;line-height:1.5;"></p>
+        </div>
+        <div class="rep-modal-footer">
+            <button class="rep-btn rep-btn-ghost" id="repConfirmNo">Cancelar</button>
+            <button class="rep-btn rep-btn-danger" id="repConfirmYes"><i class="bi bi-trash-fill"></i> Excluir</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── BANNER: EXPERIMENTAR LAYOUT 2.0 ─── -->
+<div id="v2PromoBanner" class="v2-promo-overlay" style="display:none;" aria-modal="true" role="dialog">
+    <div class="v2-promo-card">
+        <!-- Ícone topo -->
+        <div class="v2-promo-icon-wrap">
+            <div class="v2-promo-icon-ring">
+                <i class="bi bi-stars"></i>
+            </div>
+        </div>
+
+        <!-- Badge novidade -->
+        <span class="v2-promo-badge">✨ Novidade</span>
+
+        <!-- Título -->
+        <h3 class="v2-promo-title">Layout 2.0 disponível!</h3>
+
+        <!-- Descrição -->
+        <p class="v2-promo-desc">
+            Seu app foi atualizado com um novo visual moderno — navegação flutuante, acesso rápido e uma experiência muito mais limpa.
+        </p>
+
+        <!-- Nota rodapé -->
+        <p class="v2-promo-note">
+            <i class="bi bi-arrow-left-right"></i>
+            Você pode voltar ao layout clássico a qualquer momento em
+            <strong>Perfil → Voltar ao estilo clássico</strong>
+        </p>
+
+        <!-- Botões -->
+        <div class="v2-promo-actions">
+            <button class="v2-promo-btn-no"  id="v2PromoBtnNo">Agora não</button>
+            <button class="v2-promo-btn-yes" id="v2PromoBtnYes">
+                <i class="bi bi-lightning-charge-fill"></i> Experimentar!
+            </button>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
