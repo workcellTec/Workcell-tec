@@ -333,9 +333,11 @@ window._showPasswordModal = function(userName, onConfirm) {
         ov.remove();
         onConfirm(val);
     }
-    document.getElementById('_profilePwdConfirm').addEventListener('click', doConfirm);
-    document.getElementById('_profilePwdCancel').addEventListener('click', function() { ov.remove(); });
-    if(input) input.addEventListener('keydown', function(e) { if(e.key === 'Enter') doConfirm(); });
+    var _pwdConfBtn = document.getElementById('_profilePwdConfirm');
+    var _pwdCancBtn = document.getElementById('_profilePwdCancel');
+    if (_pwdConfBtn) _pwdConfBtn?.addEventListener('click', doConfirm);
+    if (_pwdCancBtn) _pwdCancBtn?.addEventListener('click', function() { ov.remove(); });
+    if(input) input?.addEventListener('keydown', function(e) { if(e.key === 'Enter') doConfirm(); });
 };
 
 
@@ -604,6 +606,8 @@ function showMainSection(sectionId) {
     if (clientsContainer) clientsContainer.classList.add('hidden');
     const repairsContainer = document.getElementById('repairsContainer');
     if (repairsContainer) { repairsContainer.classList.add('hidden'); repairsContainer.style.display = 'none'; }
+    const reposicaoContainer = document.getElementById('reposicaoContainer');
+    if (reposicaoContainer) { reposicaoContainer.classList.add('hidden'); reposicaoContainer.style.display = 'none'; }
 
     mainMenu.style.display = 'none';
     calculatorContainer.style.display = 'none';
@@ -684,6 +688,13 @@ function showMainSection(sectionId) {
             clientsContainer.classList.remove('hidden');
             clientsContainer.style.display = 'flex';
             
+            // Ranking clientes estrelas — tenta agora e re-tenta se cache ainda carregando
+            setTimeout(() => {
+                window._renderRankingEstrelas();
+                // Re-tenta após 2s caso o cache ainda estivesse vazio
+                setTimeout(window._renderRankingEstrelas, 2000);
+            }, 300);
+            setTimeout(()=>{window._renderRankingEstrelas?.();setTimeout(()=>window._renderRankingEstrelas?.(),2000);},300);
             // OTIMIZAÇÃO: Renderiza a tabela de clientes no próximo quadro
             if (typeof renderClientsTable === 'function') {
                 requestAnimationFrame(() => {
@@ -691,6 +702,20 @@ function showMainSection(sectionId) {
                 });
             }
         }
+    }
+
+    else if (sectionId === 'reposicao') {
+        const _rc = document.getElementById('reposicaoContainer');
+        if (_rc) { _rc.classList.remove('hidden'); _rc.style.display = 'flex'; }
+        // Reinicia o listener (igual ao repairs) — garante que dados aparecem sempre
+        function _tryInitRepo(attempts) {
+            if (window._reposicaoModule) {
+                window._reposicaoModule.startListener();
+            } else if (attempts > 0) {
+                setTimeout(() => _tryInitRepo(attempts - 1), 300);
+            }
+        }
+        _tryInitRepo(10);
     }
 
     currentMainSectionId = sectionId;
@@ -804,11 +829,11 @@ function renderDefaultSettingsPanel(container) {
         }
     };
 
-    machineSelect.addEventListener('change', updateBrands);
+    machineSelect?.addEventListener('change', updateBrands);
     updateBrands(); // Roda ao abrir
 
     // 3. Botão Salvar
-    saveBtn.addEventListener('click', () => {
+    saveBtn?.addEventListener('click', () => {
         const machine = machineSelect.value;
         const brand = (machine !== 'pagbank') ? brandSelect.value : '';
         
@@ -906,10 +931,11 @@ function openCalculatorSection(sectionId) {
 
     // Mapeamento de qual select pertence a qual seção
     const sectionMap = {
-        'fecharVenda': { m: 'machine1', b: 'brand1', init: () => { updateInstallmentsOptions(); updateFecharVendaUI(); } },
-        'repassarValores': { m: 'machine2', b: 'brand2', init: () => updateRepassarValoresUI() },
+        'fecharVenda':        { init: () => { if (typeof window._initFecharVenda === 'function') window._initFecharVenda(); } },
+        'repassarValores':    { m: 'machine2', b: 'brand2', init: () => updateRepassarValoresUI() },
         'calcularEmprestimo': { m: 'machine4', b: 'brand4', init: () => updateCalcularEmprestimoUI() },
-        'calcularPorAparelho': { m: 'machine3', b: 'brand3', init: () => updateCalcularPorAparelhoUI() }
+        'calcularPorAparelho':{ m: 'machine3', b: 'brand3', init: () => updateCalcularPorAparelhoUI() },
+        'emprestarValores':   { m: 'machine5', b: 'brand5', init: () => calculateEmprestarValores() },
     };
 
     const config = sectionMap[sectionId];
@@ -931,7 +957,7 @@ function openCalculatorSection(sectionId) {
         config.init();
 
         // C. Correção Final: Se não for PagBank, garante que o botão da bandeira mostre o ícone certo
-        if (defaultMachine && defaultMachine !== 'pagbank' && defaultBrand) {
+        if (config.m && defaultMachine && defaultMachine !== 'pagbank' && defaultBrand) {
             const sectionNum = config.m.replace('machine', '');
             // Pequeno delay para garantir que o DOM atualizou
             setTimeout(() => {
@@ -947,6 +973,7 @@ function openCalculatorSection(sectionId) {
 function renderQuickInstallmentButtons() {
     const container = document.getElementById('quickInstallmentsContainer');
     const installmentsSlider = document.getElementById("installments1");
+    if (!container || !installmentsSlider) return;
     const maxInstallments = parseInt(installmentsSlider.max);
     const quickValues = [8, 10, 12, 18];
     container.innerHTML = '';
@@ -956,7 +983,7 @@ function renderQuickInstallmentButtons() {
             btn.className = 'quick-installment-btn';
             btn.textContent = `${value}x`;
             btn.dataset.value = value;
-            btn.addEventListener('click', () => {
+            btn?.addEventListener('click', () => {
                 installmentsSlider.value = value;
                 installmentsSlider.dispatchEvent(new Event('input', { bubbles: true }));
             });
@@ -967,6 +994,7 @@ function renderQuickInstallmentButtons() {
 
 function updateQuickButtonsActiveState() {
     const installmentsSlider = document.getElementById("installments1");
+    if (!installmentsSlider) return;
     const currentValue = installmentsSlider.value;
     document.querySelectorAll('.quick-installment-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.value === currentValue);
@@ -975,7 +1003,9 @@ function updateQuickButtonsActiveState() {
 
 function updateInstallmentsOptions() {
     const installmentsSlider = document.getElementById("installments1");
-    const machine = document.getElementById("machine1").value;
+    const machine1El = document.getElementById("machine1");
+    if (!installmentsSlider || !machine1El) return;
+    const machine = machine1El.value;
     
     // Verifica se as taxas já carregaram
     if (!areRatesLoaded) {
@@ -1009,6 +1039,7 @@ function updateInstallmentsOptions() {
 
 
 function toggleEntradaAVistaUI() {
+    if (!document.getElementById('vendaModeToggle')) return;
     const isProdutoMode = document.getElementById('vendaModeToggle').checked, isEntradaChecked = document.getElementById('entradaAVistaCheckbox').checked;
     const entradaContainer = document.getElementById('entradaAVistaContainer'), finalValueContainer = document.getElementById('fecharVendaInputs'), entradaToggleContainer = document.getElementById('entradaAVistaToggleContainer');
     entradaToggleContainer.classList.toggle('hidden', !isProdutoMode || fecharVendaPrecoBase <= 0);
@@ -1018,6 +1049,7 @@ function toggleEntradaAVistaUI() {
 }
 
 function updateFecharVendaUI() {
+    if (!document.getElementById('machine1')) return;
     const produtoContainer = document.getElementById('vendaPorProdutoContainer'), manualContainer = document.getElementById('manualModeContainer'), flagDisplayContainer = document.getElementById("flagDisplayContainer1");
     const valueLabel = document.getElementById('fecharVendaValueLabel'), valueInput = document.getElementById('fecharVendaValue');
     const isProdutoMode = document.getElementById('vendaModeToggle').checked, installments = parseInt(document.getElementById("installments1").value, 10), manualMode = document.querySelector('input[name="manualMode"]:checked').value, machine = document.getElementById("machine1").value;
@@ -1068,6 +1100,7 @@ function getRate(machine, brand, installments) {
 
 function calculateFecharVenda() {
     if (!areRatesLoaded) return;
+    if (!document.getElementById('machine1')) return;
     const resultDiv = document.getElementById("resultFecharVenda"), isProdutoMode = document.getElementById('vendaModeToggle').checked, isEntradaAVista = document.getElementById('entradaAVistaCheckbox').checked;
     const installments = parseInt(document.getElementById("installments1").value, 10), tax = getRate(document.getElementById("machine1").value, document.getElementById("brand1").value, installments);
     const foneDescontado = document.getElementById('descontarFoneCheckbox')?.checked || false, valorDesconto = 15;
@@ -1472,12 +1505,21 @@ function handleProductSelectionForAparelho(product) {
 
 function handleProductSelectionForVenda(product) {
     fecharVendaPrecoBase = parseFloat(product.valor);
-    document.getElementById('fecharVendaPrecoBase').value = fecharVendaPrecoBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    document.getElementById('vendaProdutoSearch').value = product.nome;
-    document.getElementById('vendaSearchResultsContainer').innerHTML = '';
+    if (!document.getElementById('fecharVendaPrecoBase')) {
+        // Novo módulo fecharVenda.js: delega para ele
+        window._fecharVendaPrecoBase = fecharVendaPrecoBase;
+        if (typeof window._fvSelectProduct === 'function') window._fvSelectProduct(product);
+        return;
+    }
+    const _fvPrecoEl = document.getElementById('fecharVendaPrecoBase');
+    if (_fvPrecoEl) _fvPrecoEl.value = fecharVendaPrecoBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const _fvSearchEl = document.getElementById('vendaProdutoSearch');
+    if (_fvSearchEl) _fvSearchEl.value = product.nome;
+    const _fvResEl = document.getElementById('vendaSearchResultsContainer');
+    if (_fvResEl) _fvResEl.innerHTML = '';
     if (!document.getElementById('entradaAVistaCheckbox').checked) {
         const tax = getRate(document.getElementById("machine1").value, document.getElementById("brand1").value, parseInt(document.getElementById("installments1").value, 10));
-        document.getElementById('fecharVendaValue').value = (tax !== undefined) ? (fecharVendaPrecoBase / (1 - tax / 100)).toFixed(2) : fecharVendaPrecoBase.toFixed(2);
+        const _fvValEl = document.getElementById('fecharVendaValue'); if (_fvValEl) _fvValEl.value = (tax !== undefined) ? (fecharVendaPrecoBase / (1 - tax / 100)).toFixed(2) : fecharVendaPrecoBase.toFixed(2);
     }
     updateFecharVendaUI();
 }
@@ -1733,18 +1775,23 @@ function loadRatesFromDB() {
             }
             // ------------------------------------
 
-            areRatesLoaded = true; 
+            areRatesLoaded = true;
+            // ── Expõe para módulos externos (fecharVenda.js etc.) ──
+            window._rates              = rates;
+            window._areRatesLoaded     = true;
+            window._getRate            = getRate;
+            window._parseBrazilianCurrencyToFloat = parseBrazilianCurrencyToFloat;
             updateInstallmentsOptions(); 
             console.log("Taxas carregadas."); 
             
-            // --- CORREÇÃO: RECALCULAR ASSIM QUE AS TAXAS CHEGAREM ---
-            // Se o usuário estiver na tela de "Calcular por Aparelho", forçamos o cálculo agora
-            // pois antes ele pode ter falhado por falta de taxas.
+            // --- RECALCULAR ASSIM QUE AS TAXAS CHEGAREM ---
             if (currentCalculatorSectionId === 'calcularPorAparelho') {
                 calculateAparelho();
             }
-            // Se estiver em outras telas que precisam de recálculo imediato
-            if (currentCalculatorSectionId === 'fecharVenda') calculateFecharVenda();
+            if (currentCalculatorSectionId === 'fecharVenda') {
+                if (typeof window._fvOnRatesLoaded === 'function') window._fvOnRatesLoaded();
+                else if (typeof window._initFecharVenda === 'function') window._initFecharVenda();
+            }
             // ---------------------------------------------------------
 
             if (currentMainSectionId === 'administracao' && document.getElementById('adminModeToggle')?.checked) renderRatesEditor(); 
@@ -1773,7 +1820,10 @@ function loadProductsFromDB() {
         searchContainers.forEach(c => hideSkeletonLoader(c));
         const data = snapshot.val(); 
         products = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+        window.products = products;
+        window.checkedItems = checkedItems;
         setupFuse();
+        window._fuse = fuse; // expõe para fecharVenda.js
         
         const aparelhoContent = document.getElementById('aparelhoContentWrapper');
         const aparelhoEmptyState = document.getElementById('aparelhoEmptyStateWrapper');
@@ -1786,7 +1836,8 @@ function loadProductsFromDB() {
         }
         
         const placeholderText = products.length > 0 ? `Pesquisar entre ${products.length} produtos...` : 'Nenhum produto cadastrado';
-        document.getElementById('vendaProdutoSearch').placeholder = placeholderText;
+        const vendaSearch = document.getElementById('vendaProdutoSearch');
+        if (vendaSearch) vendaSearch.placeholder = placeholderText;
         document.getElementById('aparelhoSearch').placeholder = placeholderText;
         if(document.getElementById('adminSearchInput')) document.getElementById('adminSearchInput').placeholder = `Filtrar ${products.length} produtos...`;
         
@@ -2347,7 +2398,7 @@ function renderQuickAddColors() {
                 <span class="remove-color-btn" data-hex="${c.hex}">&times;</span>
             </div>`).join('');
     palette.querySelectorAll('.quick-swatch').forEach(el => {
-        el.addEventListener('click', () => {
+        el?.addEventListener('click', () => {
             const hex = el.dataset.hex; const nome = el.dataset.nome;
             const idx = _quickAddColors.findIndex(c => c.hex.toLowerCase() === hex.toLowerCase());
             if (idx > -1) _quickAddColors.splice(idx, 1); else _quickAddColors.push({ nome, hex });
@@ -2355,7 +2406,7 @@ function renderQuickAddColors() {
         });
     });
     selected.querySelectorAll('.remove-color-btn').forEach(el => {
-        el.addEventListener('click', () => {
+        el?.addEventListener('click', () => {
             _quickAddColors = _quickAddColors.filter(c => c.hex.toLowerCase() !== el.dataset.hex.toLowerCase());
             renderQuickAddColors();
         });
@@ -2447,18 +2498,54 @@ function formatCurrency(value) {
 }
 
 function calculateContractPayments() {
-    const total = parseFloat(document.getElementById('valorTotal').value) || 0;
-    const entrada = parseFloat(document.getElementById('valorEntrada').value) || 0;
-    const parcelas = parseInt(document.getElementById('numeroParcelas').value, 10) || 0;
-    const saldo = total - entrada;
-    document.getElementById('saldoRestante').value = saldo > 0 ? formatCurrency(saldo) : '0,00';
-    
-    if (parcelas > 0 && saldo > 0) {
-        const valorParcela = saldo / parcelas;
-        document.getElementById('valorParcela').value = formatCurrency(valorParcela);
-    } else {
-        document.getElementById('valorParcela').value = '0,00';
+    // ── NOVA LÓGICA: usuário digita parcela → sistema calcula total e prazo ──
+    const parcelas    = parseInt(document.getElementById('numeroParcelas')?.value, 10) || 0;
+    const entrada     = parseFloat(document.getElementById('valorEntrada')?.value)     || 0;
+    const valorParc   = parseFloat(document.getElementById('valorParcela')?.value)     || 0;
+    const frequencia  = document.getElementById('tipoParcela')?.value || 'mensais';
+
+    // Valor Total = entrada + (parcela × nº parcelas)
+    const total = entrada + (valorParc * parcelas);
+    const saldo = total - entrada; // = valorParc * parcelas
+
+    // Preenche campos hidden usados pelo contrato e pelo Firebase
+    const hiddenTotal = document.getElementById('valorTotal');
+    if (hiddenTotal) hiddenTotal.value = total.toFixed(2);
+
+    // Exibe formatado
+    const dispTotal = document.getElementById('valorTotalDisplay');
+    if (dispTotal) dispTotal.value = total > 0 ? formatCurrency(total) : '—';
+
+    const dispSaldo = document.getElementById('saldoRestante');
+    if (dispSaldo) dispSaldo.value = saldo > 0 ? formatCurrency(saldo) : '0,00';
+
+    // Calcula prazo automaticamente: 
+    //   mensais   → parcelas meses
+    //   quinzenais → parcelas × 0.5 meses (arredondado)
+    //   semanais  → parcelas semanas (exibe como "X semanas")
+    let prazoTexto = '—';
+    let prazoValor = '';
+    if (parcelas > 0) {
+        if (frequencia === 'mensais') {
+            prazoValor = String(parcelas);
+            prazoTexto = parcelas === 1 ? '1 mês' : `${parcelas} meses`;
+        } else if (frequencia === 'quinzenais') {
+            const meses = Math.round(parcelas * 0.5 * 10) / 10;
+            prazoValor = String(meses);
+            prazoTexto = meses === 1 ? '1 mês' : `${meses} meses`;
+        } else if (frequencia === 'semanais') {
+            prazoValor = String(parcelas); // em semanas
+            prazoTexto = parcelas === 1 ? '1 semana' : `${parcelas} semanas`;
+        }
     }
+
+    // Campo oculto que alimenta contrato (safeSet 'prevPrazo' lê 'contratoPrazo')
+    const hiddenPrazo = document.getElementById('contratoPrazo');
+    if (hiddenPrazo) hiddenPrazo.value = prazoValor;
+
+    // Campo de exibição readonly
+    const dispPrazo = document.getElementById('contratoPrazoDisplay');
+    if (dispPrazo) dispPrazo.value = prazoTexto;
 }
 
 function numeroPorExtenso(numero, tipo = 'normal') {
@@ -2613,8 +2700,11 @@ function populatePreview() {
 
             <div class="section-title" style="font-weight: bold; margin-top: 15px;">CLÁUSULA 4 – DO PREÇO E FORMA DE PAGAMENTO</div>
             <p>4.1. Pela locação do bem, o LOCATÁRIO pagará à LOCADORA:<br>
-            Entrada: R$ <strong id="prevEntrada"></strong> e <strong id="prevQtdParcelas"></strong> parcelas mensais de R$ <strong id="prevValorParcela"></strong>.<br>
-            4.2. O pagamento será realizado mediante boleto bancário com vencimento todo dia <strong id="prevVencimento"></strong> de cada mês.<br>
+            Valor total: R$ <strong id="prevValorTotal"></strong><br>
+            Entrada: R$ <strong id="prevEntrada"></strong><br>
+            Saldo restante: R$ <strong id="prevSaldoRestante"></strong><br>
+            Parcelado em: <strong id="prevQtdParcelas"></strong> parcelas <strong id="prevTipoParcela"></strong> de R$ <strong id="prevValorParcela"></strong>.<br>
+            4.2. O pagamento será realizado mediante boleto bancário com vencimento todo dia <strong id="prevVencimento"></strong> do período, com início em <strong id="prevDataVencimento"></strong>.<br>
             4.3. O não recebimento do boleto não exime o LOCATÁRIO da obrigação de pagamento na data de vencimento.<br>
             4.4. O atraso implicará incidência de multa, juros e correção monetária conforme legislação vigente.</p>
 
@@ -2695,8 +2785,15 @@ function populatePreview() {
         const safeSet = (idSpan, idInput) => {
             const span = document.getElementById(idSpan);
             const input = document.getElementById(idInput);
+            if (span && input) span.textContent = input.value;
+        };
+        // Para campos de moeda: formata como R$ 1.500,00
+        const safeSetCurrency = (idSpan, idInput) => {
+            const span = document.getElementById(idSpan);
+            const input = document.getElementById(idInput);
             if (span && input) {
-                span.textContent = input.value;
+                const v = parseFloat(String(input.value).replace(',', '.')) || 0;
+                span.textContent = v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
         };
 
@@ -2704,7 +2801,7 @@ function populatePreview() {
         const spanData = document.getElementById('prevDataAtual');
         if (spanData) spanData.textContent = dataDeHoje;
 
-        // Puxando dos IDs originais que o seu JS gosta:
+        // Dados do cliente
         safeSet('prevNome', 'compradorNome');
         safeSet('prevAssinaturaNome', 'compradorNome');
         safeSet('prevCPF', 'compradorCpf');
@@ -2712,28 +2809,49 @@ function populatePreview() {
         safeSet('prevRG', 'compradorRg');
         safeSet('prevEndereco', 'compradorEndereco');
         safeSet('prevTelefone', 'compradorTelefone');
+
+        // Dados do aparelho
         safeSet('prevModelo', 'produtoModelo');
         safeSet('prevIMEI', 'produtoImei');
-        
-        // Puxando dos campos novos que criei pra você
         safeSet('prevEstado', 'aparelhoEstado');
         safeSet('prevAcessorios', 'aparelhoAcessorios');
+
+        // Condições do contrato
         safeSet('prevPrazo', 'contratoPrazo');
-        
-        // Puxando das finanças usando seus IDs
-        safeSet('prevEntrada', 'valorEntrada');
         safeSet('prevQtdParcelas', 'numeroParcelas');
-        safeSet('prevValorParcela', 'valorParcela');
-        
-        // Extrai apenas o dia (ex: 10) da data completa que o usuário selecionar
+
+        // Valores financeiros — formatados como moeda
+        safeSetCurrency('prevValorTotal', 'valorTotal');
+        safeSetCurrency('prevEntrada', 'valorEntrada');
+        safeSet('prevSaldoRestante', 'saldoRestante'); // já formatado pelo calculateContractPayments
+        // valorParcela agora é input numérico — formata na hora
+        const elParcela = document.getElementById('valorParcela');
+        const spanParcela = document.getElementById('prevValorParcela');
+        if (elParcela && spanParcela) {
+            const vp = parseFloat(elParcela.value) || 0;
+            spanParcela.textContent = formatCurrency(vp);
+        }
+
+        // Tipo de parcela (mensal/semanal)
+        const tipoParcelaEl = document.getElementById('tipoParcela');
+        const spanTipo = document.getElementById('prevTipoParcela');
+        if (tipoParcelaEl && spanTipo) spanTipo.textContent = tipoParcelaEl.value || 'mensais';
+
+        // Data 1º vencimento — exibe dia E data completa
         const dataVenc = document.getElementById('primeiroVencimento')?.value;
-        let diaVenc = "";
+        let diaVenc = '', dataVencFormatada = '';
         if (dataVenc) {
             const parts = dataVenc.split('-');
-            if(parts.length === 3) diaVenc = parts[2];
+            if (parts.length === 3) {
+                diaVenc = parts[2];
+                const d = new Date(dataVenc + 'T00:00:00');
+                dataVencFormatada = d.toLocaleDateString('pt-BR');
+            }
         }
         const spanVenc = document.getElementById('prevVencimento');
         if (spanVenc) spanVenc.textContent = diaVenc;
+        const spanDataVenc = document.getElementById('prevDataVencimento');
+        if (spanDataVenc) spanDataVenc.textContent = dataVencFormatada;
 
     } catch (error) {
         console.error("Erro no contrato:", error);
@@ -2844,7 +2962,7 @@ function renderBoletosHistory(data) {
 
     // --- EDITAR ---
     historyContainer.querySelectorAll('.editar-boleto-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn?.addEventListener('click', (e) => {
             const boletoId = e.currentTarget.dataset.id;
             const boleto = boletosArray.find(b => b.id === boletoId);
             if (!boleto) return;
@@ -2862,10 +2980,24 @@ function renderBoletosHistory(data) {
             document.getElementById('compradorEndereco').value = boleto.compradorEndereco || '';
             document.getElementById('produtoModelo').value = boleto.produtoModelo || '';
             document.getElementById('produtoImei').value = boleto.produtoImei || '';
+            if (document.getElementById('aparelhoEstado')) {
+                if (boleto.aparelhoEstado !== undefined) document.getElementById('aparelhoEstado').value = boleto.aparelhoEstado;
+                else document.getElementById('aparelhoEstado').value = 'Novo';
+            }
+            if (document.getElementById('aparelhoAcessorios')) document.getElementById('aparelhoAcessorios').value = boleto.aparelhoAcessorios || '';
+            if (document.getElementById('contratoPrazo')) document.getElementById('contratoPrazo').value = boleto.contratoPrazo || '';
+            // valorTotal → campo hidden
             document.getElementById('valorTotal').value = boleto.valorTotal || '';
             document.getElementById('valorEntrada').value = boleto.valorEntrada || '';
             document.getElementById('numeroParcelas').value = boleto.numeroParcelas || '';
             document.getElementById('tipoParcela').value = boleto.tipoParcela || 'mensais';
+            // valorParcela salvo como "R$ X,XX" — extrai o número para o input numérico
+            if (boleto.valorParcela) {
+                const vpNum = parseBrazilianCurrencyToFloat(String(boleto.valorParcela));
+                if (!isNaN(vpNum)) document.getElementById('valorParcela').value = vpNum.toFixed(2);
+            }
+            // Recalcula todos os campos derivados (prazo display, total display, saldo)
+            calculateContractPayments();
             document.getElementById('primeiroVencimento').value = boleto.primeiroVencimento || '';
             document.getElementById('valorTotal').dispatchEvent(new Event('input'));
 
@@ -2905,7 +3037,7 @@ function renderBoletosHistory(data) {
 
     // --- REENVIAR ---
     historyContainer.querySelectorAll('.reenviar-boleto-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        btn?.addEventListener('click', async (e) => {
             const boletoId = e.currentTarget.dataset.id;
             const boleto = boletosArray.find(b => b.id === boletoId);
             if (!boleto) return;
@@ -2918,12 +3050,27 @@ function renderBoletosHistory(data) {
             document.getElementById('compradorEndereco').value = boleto.compradorEndereco || '';
             document.getElementById('produtoModelo').value = boleto.produtoModelo || '';
             document.getElementById('produtoImei').value = boleto.produtoImei || '';
+            if (document.getElementById('aparelhoEstado')) {
+                if (boleto.aparelhoEstado !== undefined) document.getElementById('aparelhoEstado').value = boleto.aparelhoEstado;
+                else document.getElementById('aparelhoEstado').value = 'Novo';
+            }
+            if (document.getElementById('aparelhoAcessorios')) document.getElementById('aparelhoAcessorios').value = boleto.aparelhoAcessorios || '';
+            if (document.getElementById('contratoPrazo')) document.getElementById('contratoPrazo').value = boleto.contratoPrazo || '';
+            // valorTotal → campo hidden
             document.getElementById('valorTotal').value = boleto.valorTotal || '';
             document.getElementById('valorEntrada').value = boleto.valorEntrada || '';
             document.getElementById('numeroParcelas').value = boleto.numeroParcelas || '';
             document.getElementById('tipoParcela').value = boleto.tipoParcela || 'mensais';
+            // valorParcela salvo como "R$ X,XX" — extrai o número para o input numérico
+            if (boleto.valorParcela) {
+                const vpNum = parseBrazilianCurrencyToFloat(String(boleto.valorParcela));
+                if (!isNaN(vpNum)) document.getElementById('valorParcela').value = vpNum.toFixed(2);
+            }
+            // Recalcula todos os campos derivados (prazo display, total display, saldo)
+            calculateContractPayments();
             document.getElementById('primeiroVencimento').value = boleto.primeiroVencimento || '';
-
+            // Recalcula saldo e parcela
+            calculateContractPayments();
             populatePreview();
 
             const tempDiv = document.createElement('div');
@@ -2940,8 +3087,7 @@ function renderBoletosHistory(data) {
             });
 
             const nomeArq = 'Contrato-' + (boleto.compradorNome || 'cliente').split(' ')[0] + '.pdf';
-            await garantirPdfLibs();
-          const opt = {
+            const opt = {
                 margin: [10, 10, 10, 10],
                 filename: nomeArq,
                 image: { type: 'jpeg', quality: 0.98 },
@@ -2951,7 +3097,10 @@ function renderBoletosHistory(data) {
 
             showCustomModal({ message: 'Gerando PDF, aguarde...' });
 
-            html2pdf().set(opt).from(tempDiv).output('blob').then(async function(pdfBlob) {
+            // Aguarda libs, depois gera PDF e compartilha — tudo na mesma chain de Promise
+            garantirPdfLibs().then(() => {
+                return html2pdf().set(opt).from(tempDiv).output('blob');
+            }).then(async function(pdfBlob) {
                 const file = new File([pdfBlob], nomeArq, { type: 'application/pdf' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
@@ -2980,16 +3129,16 @@ function renderBoletosHistory(data) {
 
     // --- EXCLUIR ---
     historyContainer.querySelectorAll('.delete-boleto-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn?.addEventListener('click', (e) => {
             const boletoId = e.currentTarget.dataset.id;
             const boleto = boletosArray.find(b => b.id === boletoId);
             const nomeCliente = boleto ? boleto.compradorNome : 'este registro';
             showCustomModal({
-                message: 'Tem certeza que deseja excluir o contrato de <strong>' + escapeHtml(nomeCliente) + '</strong>? Esta ação NÃO pode ser desfeita.',
+                message: 'Tem certeza que deseja excluir o contrato de ' + escapeHtml(nomeCliente) + '? Esta ação NÃO pode ser desfeita.',
                 confirmText: "Sim, Excluir",
                 onConfirm: async () => {
                     showCustomModal({
-                        message: 'CONFIRMAÇÃO FINAL: Apagar o contrato de <strong>' + escapeHtml(nomeCliente) + '</strong> permanentemente?',
+                        message: 'CONFIRMAÇÃO FINAL: Apagar o contrato de ' + escapeHtml(nomeCliente) + ' permanentemente?',
                         confirmText: "Apagar Definitivamente",
                         onConfirm: async () => {
                             try {
@@ -3264,7 +3413,7 @@ function renderTagManagementUI() {
     const invertToggle = document.getElementById('invertCopyOrderToggle');
     if (invertToggle) {
         invertToggle.checked = safeStorage.getItem('ctwInvertCopyOrder') === 'true';
-        invertToggle.addEventListener('change', () => {
+        invertToggle?.addEventListener('change', () => {
             safeStorage.setItem('ctwInvertCopyOrder', invertToggle.checked);
             showCustomModal({ message: `Ordem de cópia ${invertToggle.checked ? 'ATIVADA' : 'DESATIVADA'}.` });
         });
@@ -3294,7 +3443,7 @@ function renderSearchChips() {
         if (activeTagFilter === tag) btn.classList.add('active'); // Mantém aceso se já estava
         btn.textContent = tag;
         
-        btn.addEventListener('click', () => {
+        btn?.addEventListener('click', () => {
             // 1. Lógica de Alternar (Ligar/Desligar)
             if (activeTagFilter === tag) {
                 activeTagFilter = null; // Desliga se clicar no mesmo
@@ -3471,6 +3620,143 @@ window.applyColorTheme = function(color) {
 
 
 
+
+// ═══════════════════════════════════════════════════════════════
+// CAPCUT SAVE PREVIEW ENGINE — Central Workcell
+// Uso:
+//   const confirmed = await ctwSavePreview.show({ type, previewHtml, docInfo });
+//   if (confirmed) { /* executa salvamento real */ }
+// ═══════════════════════════════════════════════════════════════
+const ctwSavePreview = (() => {
+    // Perímetro do retângulo SVG (266+374)×2 = 1280
+    // O rect no SVG: x=3,y=3,w=266,h=374 → perímetro = (266+374)*2 = 1280
+    const CIRCUMFERENCE = 1280;
+
+    let _resolvePromise = null;
+    let _animFrame      = null;
+
+    function _el(id) { return document.getElementById(id); }
+
+    // Anima o arco de 0→100% em ~1.8s, depois revela os botões
+    function _runRing() {
+        const arc    = _el('ctwSpArc');
+        const pctEl  = _el('ctwSpPct');
+        if (!arc || !pctEl) return;
+
+        const DURATION = 1800; // ms
+        const start    = performance.now();
+
+        function step(now) {
+            const elapsed  = now - start;
+            const progress = Math.min(elapsed / DURATION, 1);
+
+            // Easing: ease-in-out
+            const eased = progress < 0.5
+                ? 2 * progress * progress
+                : -1 + (4 - 2 * progress) * progress;
+
+            const offset = CIRCUMFERENCE * (1 - eased);
+            arc.style.strokeDashoffset = offset.toFixed(2);
+
+            const pct = Math.round(eased * 100);
+            pctEl.textContent = pct + '%';
+
+            if (progress < 1) {
+                _animFrame = requestAnimationFrame(step);
+            } else {
+                // Chegou a 100%
+                arc.classList.add('done');
+                pctEl.classList.add('done');
+                pctEl.textContent = '100%';
+                // Revela botões de ação
+                _el('ctwSpLoading')?.classList.add('hidden');
+                _el('ctwSpActions')?.classList.remove('hidden');
+            }
+        }
+
+        _animFrame = requestAnimationFrame(step);
+    }
+
+    // Fecha o overlay com animação de saída
+    function _close(confirmed) {
+        const overlay = _el('ctwSavePreviewOverlay');
+        if (!overlay) return;
+
+        if (_animFrame) { cancelAnimationFrame(_animFrame); _animFrame = null; }
+
+        overlay.classList.remove('entering');
+        overlay.classList.add('leaving');
+
+        setTimeout(() => {
+            overlay.classList.remove('leaving');
+            overlay.classList.add('hidden');
+            // Limpa estado
+            const arc = _el('ctwSpArc');
+            if (arc) {
+                arc.style.strokeDashoffset = 1280;
+                arc.classList.remove('done');
+            }
+            const pctEl = _el('ctwSpPct');
+            if (pctEl) { pctEl.textContent = '0%'; pctEl.classList.remove('done'); }
+            _el('ctwSpActions')?.classList.add('hidden');
+            _el('ctwSpLoading')?.classList.remove('hidden');
+            _el('ctwSpPreviewInner').innerHTML = '';
+        }, 300);
+
+        if (_resolvePromise) { _resolvePromise(confirmed); _resolvePromise = null; }
+    }
+
+    // API pública
+    return {
+        // Retorna uma Promise<boolean>
+        // true = usuário confirmou → executar salvamento
+        // false = cancelou
+        show({ type = 'bookip', previewHtml = '', docInfo = '', title = '', subtitle = '' }) {
+            return new Promise(resolve => {
+                _resolvePromise = resolve;
+
+                // Textos dinâmicos
+                const titles = {
+                    bookip:  { t: 'Pré-visualização', s: 'Confira o documento antes de salvar' },
+                    boleto:  { t: 'Pré-visualização do Contrato', s: 'Revise os dados antes de salvar' },
+                };
+                const cfg = titles[type] || titles.bookip;
+                _el('ctwSpTitle').textContent    = title    || cfg.t;
+                _el('ctwSpSubtitle').textContent = subtitle || cfg.s;
+                _el('ctwSpDocInfo').innerHTML    = docInfo;
+
+                // Injeta preview
+                const inner = _el('ctwSpPreviewInner');
+                if (inner) inner.innerHTML = previewHtml;
+
+                // Mostra overlay
+                const overlay = _el('ctwSavePreviewOverlay');
+                overlay.classList.remove('hidden', 'leaving');
+                overlay.classList.add('entering');
+
+                // Dispara anel após um frame (garante que o CSS aplique)
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        _runRing();
+                    });
+                });
+
+                // Botão confirmar
+                const btnConfirm = _el('ctwSpBtnConfirm');
+                const btnCancel  = _el('ctwSpBtnCancel');
+                // Remove listeners antigos (clone replace trick)
+                const newConfirm = btnConfirm.cloneNode(true);
+                const newCancel  = btnCancel.cloneNode(true);
+                btnConfirm.replaceWith(newConfirm);
+                btnCancel.replaceWith(newCancel);
+
+                _el('ctwSpBtnConfirm')?.addEventListener('click', () => _close(true),  { once: true });
+                _el('ctwSpBtnCancel')?.addEventListener('click',  () => _close(false), { once: true });
+            });
+        },
+    };
+})();
+
 async function main() {
     try {
         setupPWA();
@@ -3569,8 +3855,23 @@ async function main() {
                 isAuthReady = true;
                 // Expõe db AGORA — depois do auth, quando db está pronto
                 window._firebaseDB = db;
+                document.dispatchEvent(new CustomEvent('ctwDBReady'));
                 window._dbRef    = ref;    // expõe ref() para módulos IIFE
                 window._dbUpdate = update; // expõe update() para módulos IIFE
+
+                // Cache bookips para VIP/Ranking
+                window._bookipsCache = [];
+                onValue(ref(db, 'bookips'), snap => {
+                    const v = snap.val();
+                    window._bookipsCache = v ? Object.values(v) : [];
+                });
+
+                // Cache de bookips para VIP/Ranking — carrega independente da aba aberta
+                window._bookipsCache = [];
+                onValue(ref(db, 'bookips'), snap => {
+                    const v = snap.val();
+                    window._bookipsCache = v ? Object.values(v) : [];
+                });
 
                 // PERFORMANCE: esconde loading IMEDIATAMENTE após auth
                 // dados carregam em background sem bloquear a UI
@@ -3618,7 +3919,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- CORREÇÃO VISUAL: ESCONDER CONTROLES QUANDO A ABA ABRIR ---
     const controlsPanel = document.getElementById('top-right-controls');
     
-    notificationOffcanvasEl.addEventListener('show.bs.offcanvas', () => {
+    notificationOffcanvasEl?.addEventListener('show.bs.offcanvas', () => {
         // Esconde suavemente o sino e o tema
         if(controlsPanel) {
             controlsPanel.style.opacity = '0';
@@ -3626,7 +3927,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    notificationOffcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
+    notificationOffcanvasEl?.addEventListener('hidden.bs.offcanvas', () => {
         // Mostra de volta quando fechar
         if(controlsPanel) {
             controlsPanel.style.opacity = '1';
@@ -3639,7 +3940,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const moneyInput = document.getElementById('editPriceInput');
 
-    moneyInput.addEventListener('input', (e) => {
+    moneyInput?.addEventListener('input', (e) => {
         let value = e.target.value;
         
         // 1. Remove tudo que não for dígito (0-9)
@@ -3668,7 +3969,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Remova o listener antigo do 'confirmEditPriceBtn' e coloque este:
        // ATUALIZAÇÃO: BOTÃO "CONFIRMAR EDIÇÃO DE PREÇO" (Salva no Banco de Dados)
-    document.getElementById('confirmEditPriceBtn').addEventListener('click', async () => {
+    document.getElementById('confirmEditPriceBtn')?.addEventListener('click', async () => {
         const index = document.getElementById('editPriceProductIndex').value;
         const itemCarrinho = carrinhoDeAparelhos[index]; // O item no carrinho
         const productId = itemCarrinho.id; // Precisamos do ID para salvar no banco
@@ -3711,7 +4012,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
     
-    document.getElementById('notification-bell').addEventListener('click', (e) => {
+    document.getElementById('notification-bell')?.addEventListener('click', (e) => {
     e.stopPropagation();
     window.toggleNotifBalloons();
 });
@@ -3723,7 +4024,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const carrinhoContainer = document.getElementById('carrinhoAparelhosContainer');
     
     if (carrinhoContainer) {
-        carrinhoContainer.addEventListener('click', (e) => {
+        carrinhoContainer?.addEventListener('click', (e) => {
 
             // --- CÓDIGO NOVO: CLIQUE DA ENGRENAGEM ---
             const gearBtn = e.target.closest('.btn-settings-toggle');
@@ -3797,16 +4098,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Lógica do Modal de Editar Preço
     const closePriceModal = () => document.getElementById('editPriceModalOverlay').classList.remove('active');
-    document.getElementById('cancelEditPriceBtn').addEventListener('click', closePriceModal);
+    document.getElementById('cancelEditPriceBtn')?.addEventListener('click', closePriceModal);
 
     // Lógica do Modal de Editar Nome
     const closeNameModal = () => { const m = document.getElementById('editNameModalOverlay'); if(m) m.classList.remove('active'); };
     const _cancelEditNameBtn = document.getElementById('cancelEditNameBtn');
     const _confirmEditNameBtn = document.getElementById('confirmEditNameBtn');
     const _editNameModalOverlay = document.getElementById('editNameModalOverlay');
-    if (_cancelEditNameBtn) _cancelEditNameBtn.addEventListener('click', closeNameModal);
-    if (_editNameModalOverlay) _editNameModalOverlay.addEventListener('click', (e) => { if (e.target.id === 'editNameModalOverlay') closeNameModal(); });
-    if (_confirmEditNameBtn) _confirmEditNameBtn.addEventListener('click', async () => {
+    if (_cancelEditNameBtn) _cancelEditNameBtn?.addEventListener('click', closeNameModal);
+    if (_editNameModalOverlay) _editNameModalOverlay?.addEventListener('click', (e) => { if (e.target.id === 'editNameModalOverlay') closeNameModal(); });
+    if (_confirmEditNameBtn) _confirmEditNameBtn?.addEventListener('click', async () => {
         const newName = document.getElementById('editNameInput').value.trim();
         const productId = document.getElementById('editNameProductId').value;
         const index = document.getElementById('editNameProductIndex').value;
@@ -3832,9 +4133,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const _cancelQuickAddBtn = document.getElementById('cancelQuickAddBtn');
     const _confirmQuickAddBtn = document.getElementById('confirmQuickAddBtn');
     const _quickAddModalOverlay = document.getElementById('quickAddModalOverlay');
-    if (_cancelQuickAddBtn) _cancelQuickAddBtn.addEventListener('click', closeQuickAddModal);
-    if (_quickAddModalOverlay) _quickAddModalOverlay.addEventListener('click', (e) => { if (e.target.id === 'quickAddModalOverlay') closeQuickAddModal(); });
-    if (_confirmQuickAddBtn) _confirmQuickAddBtn.addEventListener('click', async () => {
+    if (_cancelQuickAddBtn) _cancelQuickAddBtn?.addEventListener('click', closeQuickAddModal);
+    if (_quickAddModalOverlay) _quickAddModalOverlay?.addEventListener('click', (e) => { if (e.target.id === 'quickAddModalOverlay') closeQuickAddModal(); });
+    if (_confirmQuickAddBtn) _confirmQuickAddBtn?.addEventListener('click', async () => {
         const nome = document.getElementById('quickAddProductName').value.trim();
         const valorRaw = document.getElementById('quickAddProductValue').value;
         const quantidade = parseInt(document.getElementById('quickAddProductQty').value) || 1;
@@ -3863,7 +4164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    document.getElementById('notificationList').addEventListener('click', (e) => {
+    document.getElementById('notificationList')?.addEventListener('click', (e) => {
         const item = e.target.closest('.notification-item');
         if (item) {
             e.preventDefault();
@@ -3907,7 +4208,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const collapseEl = document.getElementById(accordionButton.getAttribute('data-bs-target').substring(1));
                         const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
                         bsCollapse.show();
-                        collapseEl.addEventListener('shown.bs.collapse', () => {
+                        collapseEl?.addEventListener('shown.bs.collapse', () => {
                             accordionButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }, { once: true });
                     }
@@ -3934,13 +4235,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Garante que o evento só seja adicionado uma vez
         themeToggleCheckbox.removeEventListener('change', toggleTheme);
-        themeToggleCheckbox.addEventListener('change', toggleTheme);
+        themeToggleCheckbox?.addEventListener('change', toggleTheme);
     }
 
 
-    document.getElementById('goToCalculator').addEventListener('click', () => showMainSection('calculator'));
-    document.getElementById('goToContract').addEventListener('click', () => showMainSection('contract'));
-    document.getElementById('goToStock').addEventListener('click', () => {
+    document.getElementById('goToCalculator')?.addEventListener('click', () => showMainSection('calculator'));
+    document.getElementById('goToContract')?.addEventListener('click', () => showMainSection('contract'));
+    document.getElementById('goToStock')?.addEventListener('click', () => {
         showCustomModal({
             message: "Digite a senha para acessar o Estoque:",
             showPassword: true,
@@ -3955,14 +4256,17 @@ document.addEventListener('DOMContentLoaded', () => {
             onCancel: () => {}
         });
     });
-    document.getElementById('goToAdmin').addEventListener('click', () => showMainSection('administracao'));
+    document.getElementById('goToAdmin')?.addEventListener('click', () => showMainSection('administracao'));
     document.getElementById('goToRepairs')?.addEventListener('click', () => showMainSection('repairs'));
+    document.getElementById('goToReposicao')?.addEventListener('click', () => showMainSection('reposicao'));
+    document.getElementById('goToReposicao2')?.addEventListener('click', () => showMainSection('reposicao'));
     // v2 cards
     document.getElementById('goToRepairs2')?.addEventListener('click', () => showMainSection('repairs'));
 
-    document.getElementById('backFromStock').addEventListener('click', () => showMainSection('main'));
-    document.getElementById('backFromAdmin').addEventListener('click', () => showMainSection('main'));
+    document.getElementById('backFromStock')?.addEventListener('click', () => showMainSection('main'));
+    document.getElementById('backFromAdmin')?.addEventListener('click', () => showMainSection('main'));
     document.getElementById('backFromRepairs')?.addEventListener('click', () => showMainSection('main'));
+    document.getElementById('backFromReposicao')?.addEventListener('click', () => showMainSection('main'));
 
    
 
@@ -3970,7 +4274,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Botão que está DENTRO da Administração para ir aos Clientes
     const btnAdminClients = document.getElementById('btnAdminClients');
     if (btnAdminClients) {
-        btnAdminClients.addEventListener('click', () => {
+        btnAdminClients?.addEventListener('click', () => {
             showMainSection('clients');
         });
     }
@@ -3978,7 +4282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Botão Voltar (Da tela de Clientes volta para Administração)
     const btnBackFromClients = document.getElementById('backFromClients');
     if (btnBackFromClients) {
-        btnBackFromClients.addEventListener('click', () => {
+        btnBackFromClients?.addEventListener('click', () => {
             showMainSection('administracao'); 
         });
     }
@@ -3986,7 +4290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Campo de Busca na tabela
     const clientSearchInput = document.getElementById('clientSearchInput');
     if (clientSearchInput) {
-        clientSearchInput.addEventListener('input', (e) => {
+        clientSearchInput?.addEventListener('input', (e) => {
             renderClientsTable(e.target.value);
         });
     }
@@ -3994,72 +4298,88 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Botão Importar (Ainda sem função, só avisa)
     const btnImport = document.getElementById('btnImportClients');
     if(btnImport) {
-        btnImport.addEventListener('click', () => {
+        btnImport?.addEventListener('click', () => {
             showCustomModal({ message: "Aguarde o próximo passo para importar CSV!" });
         });
     }
     // =======================================================
 
     // ... o resto do código continua (goToAdminFromEmptyState etc) ...
-    document.getElementById('goToAdminFromEmptyState').addEventListener('click', () => showMainSection('administracao'));
+    document.getElementById('goToAdminFromEmptyState')?.addEventListener('click', () => showMainSection('administracao'));
 
     // Botão Voltar do Sub-menu da Calculadora
-    document.getElementById('backFromCalculatorHome').addEventListener('click', () => showMainSection('main'));
+    document.getElementById('backFromCalculatorHome')?.addEventListener('click', () => showMainSection('main'));
 
-    ['openFecharVenda', 'openRepassarValores', 'openCalcularEmprestimo', 'openCalcularPorAparelho'].forEach(id => { document.getElementById(id).addEventListener('click', () => openCalculatorSection(id.replace('open', '').charAt(0).toLowerCase() + id.slice(5))); });
-    ['backFromFecharVenda', 'backFromRepassarValores', 'backFromCalcularEmprestimo', 'backFromCalcularPorAparelho'].forEach(id => { document.getElementById(id).addEventListener('click', () => openCalculatorSection('calculatorHome')); });
+    // ── Aplica padrão de maquininha em TODOS os selects logo no início ──
+    (function aplicarPadraoMaquinaGlobal() {
+        const defMachine = safeStorage.getItem('ctwDefaultMachine');
+        const defBrand   = safeStorage.getItem('ctwDefaultBrand');
+        if (!defMachine) return;
+        ['machine1','machine2','machine3','machine4','machine5'].forEach(id => {
+            const sel = document.getElementById(id);
+            if (sel) sel.value = defMachine;
+        });
+        if (defMachine !== 'pagbank' && defBrand) {
+            ['brand1','brand2','brand3','brand4','brand5'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (sel) sel.value = defBrand;
+            });
+        }
+    })();
+
+    ['openFecharVenda', 'openRepassarValores', 'openCalcularEmprestimo', 'openCalcularPorAparelho'].forEach(id => { const _btn = document.getElementById(id); if (_btn) _btn.addEventListener('click', () => openCalculatorSection(id.replace('open', '').charAt(0).toLowerCase() + id.slice(5))); });
+    ['backFromFecharVenda', 'backFromRepassarValores', 'backFromCalcularEmprestimo', 'backFromCalcularPorAparelho'].forEach(id => { const _btn = document.getElementById(id); if (_btn) _btn.addEventListener('click', () => openCalculatorSection('calculatorHome')); });
 
     const installmentsSlider = document.getElementById('installments1');
     const installmentsValueDisplay = document.getElementById('installments1Value');
-    installmentsSlider.addEventListener('input', () => {
+    installmentsSlider?.addEventListener('input', () => {
         const value = installmentsSlider.value;
         installmentsValueDisplay.textContent = (value === '0') ? 'Débito' : `${value}x`;
         updateFecharVendaUI();
     });
 
-    document.getElementById('machine1').addEventListener('change', (event) => { // Adicionamos o 'event'
+    document.getElementById('machine1')?.addEventListener('change', (event) => {
     updateInstallmentsOptions(); 
     updateFecharVendaUI(); 
-    // Adicionamos a checagem 'event.isTrusted'
-    if(event.isTrusted && document.getElementById('machine1').value !== 'pagbank') {
+    if(event.isTrusted && document.getElementById('machine1')?.value !== 'pagbank') {
         openFlagModal(document.getElementById('machine1'));
     } 
 });
-    document.getElementById('brand1').addEventListener('change', updateFecharVendaUI);
-    document.getElementById('vendaModeToggle').addEventListener('change', updateFecharVendaUI);
-    document.querySelectorAll('input[name="manualMode"]').forEach(radio => radio.addEventListener('change', updateFecharVendaUI));
-    document.getElementById('vendaProdutoSearch').addEventListener('input', () => displayDynamicSearchResults(document.getElementById('vendaProdutoSearch').value, 'vendaSearchResultsContainer', handleProductSelectionForVenda));
-    document.getElementById('fecharVendaValue').addEventListener('input', calculateFecharVenda);
-    document.getElementById('resultFecharVenda').addEventListener('change', e => { if (e.target && e.target.id === 'descontarFoneCheckbox') calculateFecharVenda(); });
-    document.getElementById('entradaAVistaCheckbox').addEventListener('change', toggleEntradaAVistaUI);
-    document.getElementById('valorEntradaAVista').addEventListener('input', calculateFecharVenda);
-    document.getElementById('valorPassadoNoCartao').addEventListener('input', calculateFecharVenda);
+    document.getElementById('brand1')?.addEventListener('change', updateFecharVendaUI);
+    document.getElementById('vendaModeToggle')?.addEventListener('change', updateFecharVendaUI);
+    document.querySelectorAll('input[name="manualMode"]').forEach(radio => radio?.addEventListener('change', updateFecharVendaUI));
+    document.getElementById('vendaProdutoSearch')?.addEventListener('input', () => displayDynamicSearchResults(document.getElementById('vendaProdutoSearch')?.value, 'vendaSearchResultsContainer', handleProductSelectionForVenda));
+    document.getElementById('fecharVendaValue')?.addEventListener('input', calculateFecharVenda);
+    document.getElementById('resultFecharVenda')?.addEventListener('change', e => { if (e.target && e.target.id === 'descontarFoneCheckbox') calculateFecharVenda(); });
+    document.getElementById('entradaAVistaCheckbox')?.addEventListener('change', toggleEntradaAVistaUI);
+    document.getElementById('valorEntradaAVista')?.addEventListener('input', calculateFecharVenda);
+    document.getElementById('valorPassadoNoCartao')?.addEventListener('input', calculateFecharVenda);
 
-    document.getElementById('aparelhoSearch').addEventListener('input', () => {
+    document.getElementById('aparelhoSearch')?.addEventListener('input', () => {
         const searchTerm = document.getElementById('aparelhoSearch').value;
         if (currentlySelectedProductForCalc && searchTerm !== currentlySelectedProductForCalc.nome) {
             currentlySelectedProductForCalc = null;
         }
         displayDynamicSearchResults(searchTerm, 'aparelhoResultsContainer', handleProductSelectionForAparelho);
     });
-    document.getElementById('entradaAparelho').addEventListener('input', calculateAparelho);
-    document.getElementById('valorExtraAparelho').addEventListener('input', calculateAparelho);
-    document.getElementById('toggleValorExtraBtn').addEventListener('click', (e) => {
+    document.getElementById('entradaAparelho')?.addEventListener('input', calculateAparelho);
+    document.getElementById('valorExtraAparelho')?.addEventListener('input', calculateAparelho);
+    document.getElementById('toggleValorExtraBtn')?.addEventListener('click', (e) => {
         const btn = e.currentTarget;
         const container = document.getElementById('valorExtraContainer');
         btn.classList.toggle('is-active');
         container.classList.toggle('is-active');
     });
 
-    document.getElementById('machine3').addEventListener('change', (event) => {
+    document.getElementById('machine3')?.addEventListener('change', (event) => {
     updateCalcularPorAparelhoUI(); 
     if(event.isTrusted && document.getElementById('machine3').value !== 'pagbank') {
         openFlagModal(document.getElementById('machine3'));
     }
 });
-    document.getElementById('brand3').addEventListener('change', updateCalcularPorAparelhoUI);
+    document.getElementById('brand3')?.addEventListener('change', updateCalcularPorAparelhoUI);
 
-    document.getElementById('aparelhoFavoritosContainer').addEventListener('click', e => {
+    document.getElementById('aparelhoFavoritosContainer')?.addEventListener('click', e => {
         const favoriteBtn = e.target.closest('.favorito-btn');
         const removeBtn = e.target.closest('.remove-favorito-btn');
         if (favoriteBtn) {
@@ -4176,7 +4496,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-document.getElementById('resultCalcularPorAparelho').addEventListener('click', (e) => {
+document.getElementById('resultCalcularPorAparelho')?.addEventListener('click', (e) => {
     const toggle = document.getElementById('multiSelectToggle');
     const isMultiMode = toggle && toggle.checked;
     const row = e.target.closest('.copyable-row');
@@ -4331,7 +4651,7 @@ document.getElementById('resultCalcularPorAparelho').addEventListener('click', (
 });
 
     // e adicione essa linha dentro do evento de click:
-    document.getElementById('backFromCalcularPorAparelho').addEventListener('click', () => {
+    document.getElementById('backFromCalcularPorAparelho')?.addEventListener('click', () => {
          const fabBtn = document.getElementById('fabCopyMulti');
          if(fabBtn) fabBtn.style.display = 'none';
          // Limpa seleções visuais
@@ -4339,7 +4659,7 @@ document.getElementById('resultCalcularPorAparelho').addEventListener('click', (
     });
 
     ['resultRepassarValores', 'resultCalcularEmprestimo'].forEach(containerId => {
-        document.getElementById(containerId).addEventListener('click', (e) => {
+        document.getElementById(containerId)?.addEventListener('click', (e) => {
             const row = e.target.closest('.copyable-row');
             if (!row) return;
 
@@ -4382,7 +4702,7 @@ document.getElementById('resultCalcularPorAparelho').addEventListener('click', (
     const cancelSaveFavoriteBtn = document.getElementById('cancelSaveFavoriteBtn');
     const closeFavoriteNameModal = () => favoriteNameModal.classList.remove('active');
     
-    document.getElementById('saveAparelhoFavoriteBtn').addEventListener('click', () => {
+    document.getElementById('saveAparelhoFavoriteBtn')?.addEventListener('click', () => {
         const favorites = getAparelhoFavorites();
         if (Object.keys(favorites).length >= MAX_FAVORITES) {
             showCustomModal({ message: `Você já tem ${MAX_FAVORITES} favoritos. Remova um para salvar outro.` });
@@ -4394,7 +4714,7 @@ document.getElementById('resultCalcularPorAparelho').addEventListener('click', (
     });
     
         // --- CORREÇÃO DO BOTÃO SALVAR FAVORITO ---
-    document.getElementById('confirmSaveFavoriteBtn').addEventListener('click', () => {
+    document.getElementById('confirmSaveFavoriteBtn')?.addEventListener('click', () => {
         const favoriteName = document.getElementById('favoriteNameInput').value.trim();
         const favorites = getAparelhoFavorites();
 
@@ -4437,29 +4757,29 @@ document.getElementById('resultCalcularPorAparelho').addEventListener('click', (
     });
 
     
-    cancelSaveFavoriteBtn.addEventListener('click', closeFavoriteNameModal);
-    favoriteNameModal.addEventListener('click', (e) => { if (e.target === favoriteNameModal) closeFavoriteNameModal(); });
+    cancelSaveFavoriteBtn?.addEventListener('click', closeFavoriteNameModal);
+    favoriteNameModal?.addEventListener('click', (e) => { if (e.target === favoriteNameModal) closeFavoriteNameModal(); });
 
-   document.getElementById('machine2').addEventListener('change', (event) => {
+   document.getElementById('machine2')?.addEventListener('change', (event) => {
     updateRepassarValoresUI(); 
     if(event.isTrusted && document.getElementById('machine2').value !== 'pagbank') {
         openFlagModal(document.getElementById('machine2'));
     }
 });
-    document.getElementById('brand2').addEventListener('change', updateRepassarValoresUI);
-    document.getElementById('repassarValue').addEventListener('input', calculateRepassarValores);
+    document.getElementById('brand2')?.addEventListener('change', updateRepassarValoresUI);
+    document.getElementById('repassarValue')?.addEventListener('input', calculateRepassarValores);
 
 // --- OUVINTES DO LUCRO EXTRA (REPASSAR) ---
 const inputRepassarExtra = document.getElementById('repassarExtra');
 if (inputRepassarExtra) {
     // Garante que o valor 40 esteja lá
     if(!inputRepassarExtra.value) inputRepassarExtra.value = "40";
-    inputRepassarExtra.addEventListener('input', calculateRepassarValores);
+    inputRepassarExtra?.addEventListener('input', calculateRepassarValores);
 }
 
 const btnToggleRepassar = document.getElementById('toggleRepassarExtraBtn');
 if (btnToggleRepassar) {
-    btnToggleRepassar.addEventListener('click', (e) => {
+    btnToggleRepassar?.addEventListener('click', (e) => {
         const btn = e.currentTarget;
         const container = document.getElementById('repassarExtraContainer');
         btn.classList.toggle('is-active');
@@ -4470,26 +4790,26 @@ if (btnToggleRepassar) {
 
 
 
-    document.getElementById('emprestimoValue').addEventListener('input', calculateEmprestimo);
-    document.getElementById('machine4').addEventListener('change', (event) => {
+    document.getElementById('emprestimoValue')?.addEventListener('input', calculateEmprestimo);
+    document.getElementById('machine4')?.addEventListener('change', (event) => {
     updateCalcularEmprestimoUI(); 
     if(event.isTrusted && document.getElementById('machine4').value !== 'pagbank') {
         openFlagModal(document.getElementById('machine4'));
     }
 });
-    document.getElementById('brand4').addEventListener('change', updateCalcularEmprestimoUI);
+    document.getElementById('brand4')?.addEventListener('change', updateCalcularEmprestimoUI);
     
     const lucroModalOverlay = document.getElementById('lucroModalOverlay');
     const lucroPercentInput = document.getElementById('lucroPercentInput');
     const closeLucroModal = () => lucroModalOverlay.classList.remove('active');
     
-    document.getElementById('openLucroModalBtn').addEventListener('click', () => {
+    document.getElementById('openLucroModalBtn')?.addEventListener('click', () => {
         lucroPercentInput.value = emprestimoLucroPercentual;
         lucroModalOverlay.classList.add('active');
         lucroPercentInput.focus();
     });
     
-    document.getElementById('saveLucroBtn').addEventListener('click', () => {
+    document.getElementById('saveLucroBtn')?.addEventListener('click', () => {
         const newPercent = parseFloat(lucroPercentInput.value);
         if (!isNaN(newPercent) && newPercent >= 0) {
             emprestimoLucroPercentual = newPercent;
@@ -4500,12 +4820,12 @@ if (btnToggleRepassar) {
         }
     });
     
-    document.getElementById('cancelLucroBtn').addEventListener('click', closeLucroModal);
-    lucroModalOverlay.addEventListener('click', (e) => { if (e.target === lucroModalOverlay) closeLucroModal(); });
+    document.getElementById('cancelLucroBtn')?.addEventListener('click', closeLucroModal);
+    lucroModalOverlay?.addEventListener('click', (e) => { if (e.target === lucroModalOverlay) closeLucroModal(); });
 
-    document.getElementById('adminSearchInput').addEventListener('input', filterAdminProducts);
+    document.getElementById('adminSearchInput')?.addEventListener('input', filterAdminProducts);
     
-    document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+    document.getElementById('addProductForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const nome = document.getElementById('newProductName').value.trim();
         const valorStr = document.getElementById('newProductValue').value;
@@ -4544,13 +4864,13 @@ if (btnToggleRepassar) {
         }
     });
 
-    document.getElementById('deleteAllProductsBtn').addEventListener('click', deleteAllProducts);
+    document.getElementById('deleteAllProductsBtn')?.addEventListener('click', deleteAllProducts);
         // --- C: SALVAR CONFIGURAÇÕES DE RECIBO ---
         // --- BOTÃO SALVAR CONFIGURAÇÕES (ATUALIZADO) ---
         // --- BOTÃO SALVAR CONFIGURAÇÕES (ATUALIZADO COM UPLOAD) ---
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
     if (saveSettingsBtn) {
-        saveSettingsBtn.addEventListener('click', () => {
+        saveSettingsBtn?.addEventListener('click', () => {
             showCustomModal({
                 message: "Senha de Administrador:",
                 showPassword: true,
@@ -4608,7 +4928,7 @@ let updates = { header, terms, emailMessage, shareMessage: emailMessage };
 
 
     const productsListContainer = document.getElementById('productsListContainer');
-    productsListContainer.addEventListener('click', e => {
+    productsListContainer?.addEventListener('click', e => {
         const header = e.target.closest('.admin-product-header');
         if (header) {
             e.preventDefault();
@@ -4634,7 +4954,7 @@ let updates = { header, terms, emailMessage, shareMessage: emailMessage };
         }
     });
     
-    productsListContainer.addEventListener('change', e => {
+    productsListContainer?.addEventListener('change', e => {
         if (e.target.matches('.form-control, .form-select')) {
             const card = e.target.closest('.admin-product-accordion');
             if (card) {
@@ -4665,7 +4985,7 @@ let updates = { header, terms, emailMessage, shareMessage: emailMessage };
     //comeco
     
     // --- D: NAVEGAÇÃO DO ADMIN (ATUALIZADA) ---
-document.getElementById('admin-nav-buttons').addEventListener('click', e => {
+document.getElementById('admin-nav-buttons')?.addEventListener('click', e => {
     if (e.target.tagName !== 'BUTTON') return;
     const buttonElement = e.target;
     const targetId = buttonElement.dataset.adminSection;
@@ -4720,7 +5040,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
 
     
     
-    document.getElementById('scheduleNotificationForm').addEventListener('submit', async (e) => {
+    document.getElementById('scheduleNotificationForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = document.getElementById('notificationText').value.trim();
         const date = document.getElementById('notificationDate').value;
@@ -4742,7 +5062,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
         }
     });
     
-    document.getElementById('administracao').addEventListener('click', e => {
+    document.getElementById('administracao')?.addEventListener('click', e => {
         const deleteNotifBtn = e.target.closest('.delete-notification-btn');
         if (deleteNotifBtn) {
             const notifId = deleteNotifBtn.dataset.id;
@@ -4814,7 +5134,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
     });
 
 
-    document.getElementById('administracao').addEventListener('submit', e => {
+    document.getElementById('administracao')?.addEventListener('submit', e => {
         if (e.target.id === 'addTagForm') {
             e.preventDefault();
             const input = document.getElementById('newTagName');
@@ -4866,15 +5186,19 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
     }
 
     const flagModalOverlay = document.getElementById('flagSelectorModalOverlay');
-    document.getElementById('closeFlagModalBtn').addEventListener('click', closeFlagModal);
-    flagModalOverlay.addEventListener('click', (e) => { if (e.target === flagModalOverlay) closeFlagModal(); });
-    ['flagDisplayButton1', 'flagDisplayButton2', 'flagDisplayButton3', 'flagDisplayButton4'].forEach(id => { document.getElementById(id).addEventListener('click', (e) => { const sectionNumber = id.replace('flagDisplayButton', ''); openFlagModal(document.getElementById(`machine${sectionNumber}`)); }); });
+    document.getElementById('closeFlagModalBtn')?.addEventListener('click', closeFlagModal);
+    flagModalOverlay?.addEventListener('click', (e) => { if (e.target === flagModalOverlay) closeFlagModal(); });
+    ['flagDisplayButton1', 'flagDisplayButton2', 'flagDisplayButton3', 'flagDisplayButton4'].forEach(id => { document.getElementById(id)?.addEventListener('click', (e) => { const sectionNumber = id.replace('flagDisplayButton', ''); openFlagModal(document.getElementById(`machine${sectionNumber}`)); }); });
 
     document.addEventListener('click', (e) => { document.querySelectorAll('.search-wrapper').forEach(wrapper => { if (!wrapper.contains(e.target)) { const resultsContainer = wrapper.querySelector('.search-results-container'); if (resultsContainer) resultsContainer.innerHTML = ''; } }); });
 
-    document.getElementById('stockSearchInput').addEventListener('input', filterStockProducts);
-    document.getElementById('generateReportBtn').addEventListener('click', generateStockReport);
-    document.getElementById('toggleIgnoredBtn').addEventListener('click', (e) => {
+    document.getElementById('stockSearchInput')?.addEventListener('input', function() {
+        filterStockProducts();
+        const clearBtn = document.getElementById('stockSearchClear');
+        if (clearBtn) clearBtn.style.display = this.value ? 'block' : 'none';
+    });
+    document.getElementById('generateReportBtn')?.addEventListener('click', generateStockReport);
+    document.getElementById('toggleIgnoredBtn')?.addEventListener('click', (e) => {
         onlyShowIgnored = !onlyShowIgnored;
         const btn = e.currentTarget;
         const icon = btn.querySelector('i');
@@ -4891,7 +5215,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
         filterStockProducts();
     });
 
-    document.getElementById('resetCountBtn').addEventListener('click', () => {
+    document.getElementById('resetCountBtn')?.addEventListener('click', () => {
         showCustomModal({
             message: "Tem certeza que deseja resetar o status de todos os itens para 'não conferido'?",
             confirmText: "Sim, Resetar",
@@ -4903,6 +5227,562 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
             onCancel: () => {}
         });
     });
+
+    // ============================================================
+    // 📷 SCAN IA — GROQ VISION LOTE
+    // ============================================================
+    (function initScanIa() {
+        const GROQ_KEY_STORAGE = 'ctwGroqApiKey';
+        function getGroqKey() { return safeStorage.getItem(GROQ_KEY_STORAGE) || ''; }
+
+        function mostrarTela(id) {
+            ['scanNoKeyScreen','scanSelectScreen','scanProcessingScreen','scanResultsScreen']
+                .forEach(s => {
+                    const el = document.getElementById(s);
+                    if (el) el.classList.add('hidden');
+                });
+            const show = document.getElementById(id);
+            if (show) show.classList.remove('hidden');
+        }
+
+        function openOverlay() {
+            const ov = document.getElementById('scanIaOverlay');
+            if (!ov) return;
+            ov.classList.add('active');
+            if (!getGroqKey()) {
+                mostrarTela('scanNoKeyScreen');
+            } else {
+                mostrarTela('scanSelectScreen');
+                resetSelectScreen();
+            }
+        }
+
+        function closeOverlay() {
+            const ov = document.getElementById('scanIaOverlay');
+            if (ov) ov.classList.remove('active');
+            resetSelectScreen();
+        }
+
+        let _fotos = [];
+        let _resultados = [];
+
+        function resetSelectScreen() {
+            _fotos = [];
+            _resultados = [];
+            const grid = document.getElementById('scanPreviewGrid');
+            if (grid) { grid.classList.add('hidden'); grid.innerHTML = ''; }
+            const btn = document.getElementById('scanBtnAnalisar');
+            if (btn) btn.disabled = true;
+        }
+
+        // Redimensiona imagem para max 1280px antes de enviar — Groq rejeita imagens grandes
+        function redimensionarImagem(file) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    const MAX = 1280;
+                    let w = img.width, h = img.height;
+                    if (w > MAX || h > MAX) {
+                        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                        else { w = Math.round(w * MAX / h); h = MAX; }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    canvas.toBlob(blob => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.readAsDataURL(blob);
+                    }, 'image/jpeg', 0.88);
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+                img.src = url;
+            });
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = () => resolve(r.result.split(',')[1]);
+                r.onerror = reject;
+                r.readAsDataURL(file);
+            });
+        }
+
+        function adicionarFotos(files) {
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                const url = URL.createObjectURL(file);
+                _fotos.push({ file, dataUrl: url, status: 'pending' });
+            });
+            renderPreviewGrid();
+            const btn = document.getElementById('scanBtnAnalisar');
+            if (btn) btn.disabled = _fotos.length === 0;
+        }
+
+        function renderPreviewGrid() {
+            const grid = document.getElementById('scanPreviewGrid');
+            if (!grid) return;
+            if (_fotos.length === 0) { grid.classList.add('hidden'); return; }
+            grid.classList.remove('hidden');
+            grid.innerHTML = _fotos.map((f, i) => `
+                <div class="scan-thumb-wrap">
+                    <img src="${f.dataUrl}" alt="foto ${i+1}">
+                    <button class="scan-thumb-remove" data-idx="${i}"><i class="bi bi-x"></i></button>
+                </div>`).join('');
+            grid.querySelectorAll('.scan-thumb-remove').forEach(btn => {
+                btn?.addEventListener('click', e => {
+                    const idx = parseInt(e.currentTarget.dataset.idx);
+                    _fotos.splice(idx, 1);
+                    renderPreviewGrid();
+                    const ab = document.getElementById('scanBtnAnalisar');
+                    if (ab) ab.disabled = _fotos.length === 0;
+                });
+            });
+        }
+
+        async function analisarFotoGroq(base64, mimeType) {
+            const key = getGroqKey();
+
+            const prompt = `Leia TODAS as etiquetas/rótulos de smartphones visíveis nesta foto.
+
+Para cada modelo diferente extraia:
+- modelo: nome completo como está na caixa
+- armazenamento: ex "256GB"
+- cores: lista de cores diferentes deste modelo na foto
+- quantidade: total de unidades deste modelo (todas as cores somadas)
+
+Agrupe por modelo: "Redmi Note 14 Pro 5G Midnight Black" e "Redmi Note 14 Pro 5G Coral Green" = 1 item com cores:["Midnight Black","Coral Green"] e quantidade=2.
+
+Responda SOMENTE com array JSON, sem markdown:
+[{"modelo":"NOME","armazenamento":"256GB","quantidade":2,"cores":["Cor1","Cor2"]}]
+
+Se não houver smartphones: []`;
+
+            const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+                body: JSON.stringify({
+                    model: 'llama-3.2-90b-vision-preview',
+                    max_tokens: 1500,
+                    temperature: 0.1,
+                    messages: [{ role: 'user', content: [
+                        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64}` } },
+                        { type: 'text', text: prompt }
+                    ]}]
+                })
+            });
+
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                const msg = err.error?.message || `Erro HTTP ${resp.status}`;
+                console.error('Groq API error:', msg);
+                throw new Error(msg);
+            }
+
+            const data = await resp.json();
+            const texto = (data.choices?.[0]?.message?.content || '').trim();
+            console.log('🤖 Groq response:', texto);
+
+            const clean = texto.replace(/```json|```/gi, '').trim();
+            const match = clean.match(/\[[\s\S]*\]/);
+            if (!match) {
+                console.warn('Groq não retornou array:', texto);
+                return [];
+            }
+            try { return JSON.parse(match[0]); }
+            catch(e) { console.error('JSON parse error:', e); return []; }
+        }
+
+        function mapearCor(corDetectada) {
+            if (!corDetectada) return null;
+            const lower = corDetectada.toLowerCase().trim();
+            const exato = colorPalette.find(c => c.nome.toLowerCase() === lower);
+            if (exato) return exato;
+            for (const cor of colorPalette) {
+                if (lower.includes(cor.nome.toLowerCase()) || cor.nome.toLowerCase().includes(lower)) return cor;
+            }
+            const palavrasChave = {
+                'preto': 'Preto', 'black': 'Preto', 'branco': 'Branco', 'white': 'Branco',
+                'cinza': 'Grafite', 'gray': 'Grafite', 'grey': 'Grafite', 'prata': 'Prata',
+                'azul': 'Azul', 'blue': 'Azul', 'verde': 'Verde', 'green': 'Verde',
+                'roxo': 'Roxo', 'purple': 'Roxo', 'rosa': 'Rosa', 'pink': 'Rosa',
+                'dourado': 'Dourado', 'gold': 'Dourado', 'amarelo': 'Amarelo', 'yellow': 'Amarelo',
+                'laranja': 'Laranja', 'orange': 'Laranja', 'vermelho': 'Vermelho', 'red': 'Vermelho',
+                'titanio': 'Titânio Natural', 'titanium': 'Titânio Natural',
+            };
+            for (const [palavra, nome] of Object.entries(palavrasChave)) {
+                if (lower.includes(palavra)) {
+                    const found = colorPalette.find(c => c.nome === nome);
+                    if (found) return found;
+                }
+            }
+            return { nome: corDetectada, hex: '#888888' };
+        }
+
+        function agruparResultados(itensPorFoto) {
+            // itensPorFoto: array de arrays (cada foto retorna um array de itens)
+            // Agrupa tudo por modelo+armazenamento somando quantidades
+            const grupos = {};
+
+            itensPorFoto.forEach(itensUmaFoto => {
+                if (!Array.isArray(itensUmaFoto)) return;
+                itensUmaFoto.forEach(item => {
+                    if (!item.modelo) return;
+                    const arm = (item.armazenamento || '').toUpperCase().replace(/\s/g,'');
+                    const armFormatado = arm ? (arm.includes('GB') ? arm : arm + 'GB') : '';
+                    const chave = armFormatado
+                        ? `${item.modelo.toUpperCase().trim()} DE ${armFormatado}`
+                        : item.modelo.toUpperCase().trim();
+
+                    if (!grupos[chave]) grupos[chave] = { nome: chave, quantidade: 0, coresMapeadas: [] };
+                    grupos[chave].quantidade += (parseInt(item.quantidade) || 1);
+
+                    // Adiciona cores
+                    const coresDaFoto = Array.isArray(item.cores) ? item.cores : (item.cor ? [item.cor] : []);
+                    coresDaFoto.forEach(cor => {
+                        const corMapeada = mapearCor(cor);
+                        if (corMapeada) {
+                            const jaExiste = grupos[chave].coresMapeadas.some(c => c.hex.toLowerCase() === corMapeada.hex.toLowerCase());
+                            if (!jaExiste) grupos[chave].coresMapeadas.push(corMapeada);
+                        }
+                    });
+                });
+            });
+
+            // Faz match com produtos do Firebase
+            const fuseLocal = new Fuse(products, { keys: ['nome'], threshold: 0.45, ignoreLocation: true, minMatchCharLength: 3 });
+            return Object.values(grupos).map(grupo => {
+                const matches = fuseLocal.search(grupo.nome);
+                return { ...grupo, produtoMatch: matches.length > 0 ? matches[0].item : null };
+            });
+        }
+
+        function renderResultados(grupos) {
+            const container = document.getElementById('scanResultsList');
+            if (!container) return;
+
+            // Produtos do estoque não vistos nas fotos
+            const produtosVistosIds = new Set(grupos.filter(g => g.produtoMatch).map(g => g.produtoMatch.id));
+            const naoEncontrados = products.filter(p => !p.ignorarContagem && !produtosVistosIds.has(p.id));
+
+            if (grupos.length === 0) {
+                container.innerHTML = `
+                <div style="text-align:center;padding:20px 10px;">
+                    <i class="bi bi-camera-slash" style="font-size:2.5rem;color:var(--text-secondary)"></i>
+                    <p class="mt-3 fw-bold">A IA não identificou aparelhos nas fotos</p>
+                    <p class="text-secondary small">Dicas para melhorar:<br>
+                    • Garanta boa iluminação<br>
+                    • A etiqueta da caixa deve estar legível<br>
+                    • Evite reflexos no plástico da embalagem<br>
+                    • Tente fotografar mais de perto</p>
+                    <button class="btn btn-outline-light btn-sm mt-2" id="scanVoltarBtnInner">
+                        <i class="bi bi-arrow-left"></i> Tentar novamente
+                    </button>
+                </div>`;
+                const vb = container.querySelector('#scanVoltarBtnInner');
+                if (vb) vb?.addEventListener('click', () => { mostrarTela('scanSelectScreen'); renderPreviewGrid(); });
+                return;
+            }
+
+            // — Cabeçalho resumo —
+            const totalUnidades = grupos.reduce((s, g) => s + g.quantidade, 0);
+            let html = `
+            <div style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div style="font-weight:700;font-size:.95rem;color:#4ade80;">
+                        <i class="bi bi-check-circle-fill"></i> ${grupos.length} modelo(s) identificado(s)
+                    </div>
+                    <div style="font-size:.78rem;color:var(--text-secondary);margin-top:2px;">
+                        ${totalUnidades} unidade(s) no total · Revise abaixo antes de confirmar
+                    </div>
+                </div>
+            </div>`;
+
+            // — Cards dos aparelhos identificados —
+            html += grupos.map((g, idx) => {
+                const matchLabel = g.produtoMatch
+                    ? `<span class="scan-match-badge found"><i class="bi bi-link-45deg"></i> ${escapeHtml(g.produtoMatch.nome)}</span>`
+                    : `<span class="scan-match-badge new"><i class="bi bi-plus-circle"></i> Não cadastrado — será criado</span>`;
+
+                const coresHtml = colorPalette.map(cor => {
+                    const sel = g.coresMapeadas.some(c => c.hex.toLowerCase() === cor.hex.toLowerCase());
+                    return `<span class="scan-cor-chip ${sel ? 'selected' : ''}" data-hex="${cor.hex}" data-nome="${escapeHtml(cor.nome)}" data-grupo="${idx}">
+                        <span class="scan-cor-dot" style="background:${cor.hex}"></span><span>${escapeHtml(cor.nome)}</span></span>`;
+                }).join('');
+
+                return `
+                <div class="scan-result-card ${g.produtoMatch ? '' : 'sem-match'}" data-grupo="${idx}">
+                    <div class="scan-result-nome">${escapeHtml(g.nome)}</div>
+                    <div class="mb-2">${matchLabel}</div>
+                    <div class="scan-result-row">
+                        <span class="scan-result-label"><i class="bi bi-hash"></i> Quantidade</span>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <button class="btn btn-outline-secondary btn-sm px-2 py-0 scan-qty-dec" data-grupo="${idx}">−</button>
+                            <input type="number" class="form-control form-control-sm text-center" style="max-width:65px" value="${g.quantidade}" min="0" data-field="quantidade" data-grupo="${idx}">
+                            <button class="btn btn-outline-secondary btn-sm px-2 py-0 scan-qty-inc" data-grupo="${idx}">+</button>
+                        </div>
+                    </div>
+                    <div class="scan-result-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                        <span class="scan-result-label"><i class="bi bi-palette"></i> Cores detectadas</span>
+                        <div style="display:flex;flex-wrap:wrap;gap:5px;max-height:100px;overflow-y:auto">${coresHtml}</div>
+                    </div>
+                    ${!g.produtoMatch ? `
+                    <div class="scan-result-row mt-1">
+                        <span class="scan-result-label"><i class="bi bi-tag"></i> Preço (R$)</span>
+                        <input type="text" class="form-control form-control-sm" style="max-width:120px" placeholder="0,00" data-field="valor" data-grupo="${idx}">
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+
+            // — Seção "não encontrados" colapsável —
+            if (naoEncontrados.length > 0) {
+                const listaHtml = naoEncontrados.map(p => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <span style="font-size:.78rem;color:var(--text-color);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.nome)}</span>
+                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                        <span style="font-size:.72rem;color:var(--text-secondary);">Qtd: ${p.quantidade || 0}</span>
+                        <button class="btn btn-outline-warning py-0 px-2" style="font-size:.7rem;border-radius:8px;" data-zero-id="${p.id}" data-zero-nome="${escapeHtml(p.nome)}">Zerar</button>
+                    </div>
+                </div>`).join('');
+
+                html += `
+                <details style="margin-bottom:12px;">
+                    <summary style="background:rgba(250,204,21,0.08);border:1px solid rgba(250,204,21,0.3);border-radius:12px;padding:10px 14px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-weight:700;font-size:.82rem;color:#facc15;">
+                            <i class="bi bi-exclamation-triangle-fill"></i> ${naoEncontrados.length} produto(s) não apareceram nas fotos
+                        </span>
+                        <span style="font-size:.75rem;color:var(--text-secondary)">Toque para ver ▾</span>
+                    </summary>
+                    <div style="border:1px solid rgba(250,204,21,0.2);border-top:none;border-radius:0 0 12px 12px;overflow:hidden;background:rgba(0,0,0,0.2);">
+                        <p style="font-size:.73rem;color:var(--text-secondary);padding:8px 10px 4px;margin:0;">Não foram identificados nas fotos. Estoque zerado ou esqueceu de fotografar?</p>
+                        ${listaHtml}
+                    </div>
+                </details>`;
+            }
+
+            container.innerHTML = html;
+
+            // Listeners — toggle cores
+            container.querySelectorAll('.scan-cor-chip').forEach(chip => {
+                chip?.addEventListener('click', () => {
+                    const idx = parseInt(chip.dataset.grupo);
+                    const hex = chip.dataset.hex, nome = chip.dataset.nome;
+                    const grupo = _resultados[idx];
+                    const jaIdx = grupo.coresMapeadas.findIndex(c => c.hex.toLowerCase() === hex.toLowerCase());
+                    if (jaIdx > -1) { grupo.coresMapeadas.splice(jaIdx, 1); chip.classList.remove('selected'); }
+                    else { grupo.coresMapeadas.push({ nome, hex }); chip.classList.add('selected'); }
+                });
+            });
+
+            // Listeners — quantidade (input + botões +/-)
+            container.querySelectorAll('[data-field="quantidade"]').forEach(input => {
+                input?.addEventListener('input', () => {
+                    _resultados[parseInt(input.dataset.grupo)].quantidade = parseInt(input.value) || 0;
+                });
+            });
+            container.querySelectorAll('.scan-qty-inc').forEach(btn => {
+                btn?.addEventListener('click', () => {
+                    const idx = parseInt(btn.dataset.grupo);
+                    const inp = container.querySelector(`[data-field="quantidade"][data-grupo="${idx}"]`);
+                    if (inp) { inp.value = (parseInt(inp.value) || 0) + 1; _resultados[idx].quantidade = parseInt(inp.value); }
+                });
+            });
+            container.querySelectorAll('.scan-qty-dec').forEach(btn => {
+                btn?.addEventListener('click', () => {
+                    const idx = parseInt(btn.dataset.grupo);
+                    const inp = container.querySelector(`[data-field="quantidade"][data-grupo="${idx}"]`);
+                    if (inp) { const v = Math.max(0, (parseInt(inp.value) || 0) - 1); inp.value = v; _resultados[idx].quantidade = v; }
+                });
+            });
+
+            // Listeners — zerar produto não encontrado
+            container.querySelectorAll('[data-zero-id]').forEach(btn => {
+                btn?.addEventListener('click', () => {
+                    const id = btn.dataset.zeroId, nome = btn.dataset.zeroNome;
+                    showCustomModal({
+                        message: `Zerar estoque de "${nome}"?`,
+                        confirmText: 'Sim, Zerar',
+                        onConfirm: async () => {
+                            await updateProductInDB(id, { quantidade: 0 });
+                            btn.textContent = '✓ Zerado';
+                            btn.disabled = true;
+                            btn.classList.remove('btn-outline-warning');
+                            btn.classList.add('btn-outline-secondary');
+                            filterStockProducts();
+                        },
+                        onCancel: () => {}
+                    });
+                });
+            });
+        }
+
+        async function confirmarESalvar() {
+            const btn = document.getElementById('scanBtnConfirmar');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...'; }
+            let salvos = 0, novos = 0, erros = 0;
+            for (const grupo of _resultados) {
+                try {
+                    const cores = grupo.coresMapeadas;
+                    if (grupo.produtoMatch) {
+                        const coresAtuais = grupo.produtoMatch.cores || [];
+                        const coresMerge = [...coresAtuais];
+                        cores.forEach(nc => { if (!coresMerge.some(c => c.hex.toLowerCase() === nc.hex.toLowerCase())) coresMerge.push(nc); });
+                        await updateProductInDB(grupo.produtoMatch.id, { quantidade: grupo.quantidade, cores: coresMerge });
+                        salvos++;
+                    } else {
+                        const gi = _resultados.indexOf(grupo);
+                        const card = document.querySelector(`.scan-result-card[data-grupo="${gi}"]`);
+                        const valorInput = card ? card.querySelector('[data-field="valor"]') : null;
+                        const valor = parseBrazilianCurrencyToFloat(valorInput ? valorInput.value : '0') || 0;
+                        await push(getProductsRef(), { nome: grupo.nome, valor, quantidade: grupo.quantidade, cores, ignorarContagem: false, tag: 'Nenhuma' });
+                        novos++;
+                    }
+                } catch(e) { console.error('Erro scan save:', e); erros++; }
+            }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-cloud-check-fill"></i> Confirmar e Atualizar Estoque'; }
+            closeOverlay();
+            filterStockProducts();
+            let msg = '';
+            if (salvos > 0) msg += `${salvos} produto(s) atualizado(s). `;
+            if (novos > 0) msg += `${novos} novo(s) cadastrado(s). `;
+            if (erros > 0) msg += `${erros} erro(s).`;
+            showCustomModal({ message: msg.trim() || 'Estoque atualizado!' });
+        }
+
+        async function executarAnalise() {
+            if (_fotos.length === 0) return;
+            mostrarTela('scanProcessingScreen');
+            const totalEl = document.getElementById('scanTotalFotos');
+            if (totalEl) totalEl.textContent = _fotos.length;
+            const progBar = document.getElementById('scanProgressBar');
+            if (progBar) progBar.style.width = '0%';
+
+            const itensPorFoto = [];
+            for (let i = 0; i < _fotos.length; i++) {
+                const statusEl = document.getElementById('scanProcessingStatus');
+                if (statusEl) statusEl.textContent = `Foto ${i+1} de ${_fotos.length}...`;
+                try {
+                    // Redimensiona antes de enviar — Groq rejeita imagens muito grandes
+                    const b64 = await redimensionarImagem(_fotos[i].file)
+                        || await fileToBase64(_fotos[i].file);
+                    const res = await analisarFotoGroq(b64, 'image/jpeg');
+                    itensPorFoto.push(Array.isArray(res) ? res : []);
+                } catch(e) {
+                    console.error(`Foto ${i+1} erro:`, e);
+                    // Mostra erro real ao usuário em vez de falhar silenciosamente
+                    const statusEl2 = document.getElementById('scanProcessingStatus');
+                    if (statusEl2) statusEl2.textContent = `Erro foto ${i+1}: ${e.message}`;
+                    itensPorFoto.push([]);
+                    // Se for erro de autenticação, para tudo
+                    if (e.message && (e.message.includes('401') || e.message.includes('invalid_api_key') || e.message.includes('auth'))) {
+                        showCustomModal({ message: `❌ Chave Groq inválida ou expirada.\n${e.message}` });
+                        mostrarTela('scanSelectScreen');
+                        return;
+                    }
+                }
+                if (progBar) progBar.style.width = Math.round(((i+1) / _fotos.length) * 100) + '%';
+                if (i < _fotos.length - 1) await new Promise(r => setTimeout(r, 400));
+            }
+
+            _resultados = agruparResultados(itensPorFoto);
+            mostrarTela('scanResultsScreen');
+            renderResultados(_resultados);
+        }
+
+        // — Event Listeners —
+        const btnScan = document.getElementById('btnScanLote');
+        if (btnScan) btnScan?.addEventListener('click', openOverlay);
+
+        const closeBtn = document.getElementById('scanCloseBtn');
+        if (closeBtn) closeBtn?.addEventListener('click', closeOverlay);
+
+        const overlay = document.getElementById('scanIaOverlay');
+        if (overlay) overlay?.addEventListener('click', e => { if (e.target.id === 'scanIaOverlay') closeOverlay(); });
+
+        const noKeyClose = document.getElementById('scanNoKeyCloseBtn');
+        if (noKeyClose) noKeyClose?.addEventListener('click', closeOverlay);
+
+        const goSettings = document.getElementById('scanGoToSettingsBtn');
+        if (goSettings) goSettings?.addEventListener('click', () => {
+            closeOverlay();
+            showMainSection('administracao');
+            setTimeout(() => {
+                const ratesBtn = document.querySelector('[data-admin-section="adminRatesContent"]');
+                if (ratesBtn) ratesBtn.click();
+                setTimeout(() => { const inp = document.getElementById('groqApiKeyInput'); if (inp) inp.focus(); }, 400);
+            }, 300);
+        });
+
+        const inputGal = document.getElementById('scanFileInputGaleria');
+        const btnGal = document.getElementById('scanBtnGaleria');
+        if (btnGal && inputGal) {
+            btnGal?.addEventListener('click', () => inputGal.click());
+            inputGal?.addEventListener('change', e => { adicionarFotos(e.target.files); e.target.value = ''; });
+        }
+
+        const inputCam = document.getElementById('scanFileInput');
+        const btnCam = document.getElementById('scanBtnCamera');
+        if (btnCam && inputCam) {
+            btnCam?.addEventListener('click', () => inputCam.click());
+            inputCam?.addEventListener('change', e => { adicionarFotos(e.target.files); e.target.value = ''; });
+        }
+
+        const dropzone = document.getElementById('scanDropzone');
+        if (dropzone) dropzone?.addEventListener('click', e => { if (!e.target.closest('button') && inputGal) inputGal.click(); });
+
+        const btnAnalisar = document.getElementById('scanBtnAnalisar');
+        if (btnAnalisar) btnAnalisar?.addEventListener('click', executarAnalise);
+
+        const btnVoltar = document.getElementById('scanVoltarBtn');
+        if (btnVoltar) btnVoltar?.addEventListener('click', () => { mostrarTela('scanSelectScreen'); renderPreviewGrid(); });
+
+        const btnConfirmar = document.getElementById('scanBtnConfirmar');
+        if (btnConfirmar) btnConfirmar?.addEventListener('click', confirmarESalvar);
+
+
+        // — Groq Key UI —
+        function initGroqKeyUI() {
+            const input = document.getElementById('groqApiKeyInput');
+            const saveBtn = document.getElementById('groqApiKeySaveBtn');
+            const toggleBtn = document.getElementById('groqApiKeyToggle');
+            if (!input || input.dataset.groqInit) return;
+            input.dataset.groqInit = '1';
+            const saved = getGroqKey();
+            if (saved) input.value = saved;
+            if (toggleBtn) toggleBtn?.addEventListener('click', () => {
+                const vis = input.type === 'text';
+                input.type = vis ? 'password' : 'text';
+                const icon = toggleBtn.querySelector('i');
+                if (icon) icon.className = vis ? 'bi bi-eye' : 'bi bi-eye-slash';
+            });
+            if (saveBtn) saveBtn?.addEventListener('click', () => {
+                const val = input.value.trim();
+                if (val && !val.startsWith('gsk_')) {
+                    showCustomModal({ message: 'Chave inválida. Deve começar com gsk_' });
+                    return;
+                }
+                safeStorage.setItem(GROQ_KEY_STORAGE, val);
+                // Salva também no Firebase para sobreviver ao clear do cache
+                if (val) {
+                    try {
+                        update(ref(db, 'settings'), { groqKey: val });
+                        console.log('[App] Chave Groq salva no Firebase');
+                    } catch(e) { console.warn('Firebase groqKey save:', e); }
+                }
+                showCustomModal({ message: val ? '✅ Chave Groq salva!' : 'Chave removida.' });
+            });
+        }
+
+        // Hook no clique do admin nav para inicializar a UI da chave
+        const adminNav = document.getElementById('admin-nav-buttons');
+        if (adminNav) adminNav?.addEventListener('click', () => { setTimeout(initGroqKeyUI, 150); });
+        // Tenta já na carga caso a aba já esteja aberta
+        setTimeout(initGroqKeyUI, 800);
+    })();
+    // ============================================================
 
     const stockTableBody = document.getElementById('stockTableBody');
     const handleStockUpdate = (inputElement) => {
@@ -4924,7 +5804,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
     };
     
     if(stockTableBody) {
-        stockTableBody.addEventListener('change', e => {
+        stockTableBody?.addEventListener('change', e => {
             if (e.target.classList.contains('stock-qty-input')) {
                 handleStockUpdate(e.target);
             }
@@ -4951,7 +5831,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
 
         });
         
-        stockTableBody.addEventListener('click', e => {
+        stockTableBody?.addEventListener('click', e => {
             const qtyButton = e.target.closest('.stock-qty-btn');
             const colorButton = e.target.closest('.open-color-picker-btn');
             const ignoreBtn = e.target.closest('.ignore-toggle-btn');
@@ -4981,19 +5861,19 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
     }
 
     const colorPickerModal = document.getElementById('colorPickerModalOverlay');
-    document.getElementById('colorPalette').addEventListener('click', e => {
+    document.getElementById('colorPalette')?.addEventListener('click', e => {
         const swatch = e.target.closest('.color-swatch-lg');
         if (swatch) {
             toggleColorSelection(swatch.dataset.hex, swatch.dataset.nome);
         }
     });
-    document.getElementById('selectedColors').addEventListener('click', e => {
+    document.getElementById('selectedColors')?.addEventListener('click', e => {
         const removeBtn = e.target.closest('.remove-color-btn');
         if(removeBtn) {
             toggleColorSelection(removeBtn.dataset.hex);
         }
     });
-    document.getElementById('addCustomColorBtn').addEventListener('click', () => {
+    document.getElementById('addCustomColorBtn')?.addEventListener('click', () => {
         const nameInput = document.getElementById('customColorNameInput');
         const hexInput = document.getElementById('customColorHexInput');
         const nome = nameInput.value.trim();
@@ -5005,9 +5885,9 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
             showCustomModal({message: "Por favor, digite um nome para a cor personalizada."});
         }
     });
-    document.getElementById('cancelColorPicker').addEventListener('click', () => colorPickerModal.classList.remove('active'));
+    document.getElementById('cancelColorPicker')?.addEventListener('click', () => colorPickerModal.classList.remove('active'));
         // --- CORREÇÃO: SALVAR COR E ATUALIZAR O CARRINHO IMEDIATAMENTE ---
-    document.getElementById('saveColorPicker').addEventListener('click', () => {
+    document.getElementById('saveColorPicker')?.addEventListener('click', () => {
         if (currentEditingProductId) {
             const newTimestamp = Date.now();
             
@@ -5038,7 +5918,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
     });
 
 
-    document.getElementById('boletoModeToggle').addEventListener('change', (e) => {
+    document.getElementById('boletoModeToggle')?.addEventListener('change', (e) => {
         const showHistory = e.target.checked;
         document.getElementById('newBoletoContent').classList.toggle('hidden', showHistory);
         document.getElementById('historyBoletoContent').classList.toggle('hidden', !showHistory);
@@ -5046,22 +5926,60 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
             loadBoletosHistory();
         }
     });
-    document.getElementById('contractForm').addEventListener('input', () => {
+    document.getElementById('contractForm')?.addEventListener('input', () => {
         calculateContractPayments();
         saveContractDraft();
     });
-    document.getElementById('btnLimparCampos').addEventListener('click', () => clearContractDraft(true));
-    document.getElementById('btnApagarRascunho').addEventListener('click', () => {
+    document.getElementById('btnLimparCampos')?.addEventListener('click', () => clearContractDraft(true));
+    document.getElementById('btnApagarRascunho')?.addEventListener('click', () => {
         safeStorage.removeItem(CONTRACT_DRAFT_KEY);
         showCustomModal({ message: 'Rascunho apagado.' });
     });
-    document.getElementById('btnImprimir').addEventListener('click', () => {
+    document.getElementById('btnImprimir')?.addEventListener('click', async () => {
         const contractForm = document.getElementById('contractForm');
         if (!contractForm.checkValidity()) {
             showCustomModal({ message: "Por favor, preencha todos os campos obrigatórios." });
             contractForm.reportValidity();
             return;
         }
+
+        // Garante que saldo e parcela estejam calculados antes de tudo
+        calculateContractPayments();
+
+        // Validação extra dos campos calculados
+        const _vp = parseFloat(document.getElementById('valorParcela')?.value) || 0;
+        const _np = parseInt(document.getElementById('numeroParcelas')?.value, 10) || 0;
+        if (_vp <= 0 || _np <= 0) {
+            showCustomModal({ message: 'Preencha o Valor da Parcela e o Nº de Parcelas.' });
+            return;
+        }
+
+        // ── CAPCUT PREVIEW ──────────────────────────────────
+        // Usa o contractPreview já populado pelo populatePreview()
+        populatePreview();
+        const contractPreviewEl = document.getElementById('contractPreview');
+        const _rawBoleto = contractPreviewEl ? contractPreviewEl.innerHTML : '<p style="color:#000;padding:20px">Prévia indisponível</p>';
+        // Adiciona um reset inline de cores para o contrato que não tem color definido
+        const previewHtmlBoleto = `<div style="width:750px;overflow:hidden;background:#fff;color:#000;font-family:Times New Roman,serif;font-size:10pt;line-height:1.5;">${_rawBoleto}</div>`;
+
+        const nomeClientePreview = document.getElementById('compradorNome')?.value || 'Cliente';
+        const modeloPreview      = document.getElementById('produtoModelo')?.value  || '';
+        const valorTotalPreview  = parseFloat(document.getElementById('valorTotal')?.value) || 0;
+        const prazoDisplay       = document.getElementById('contratoPrazoDisplay')?.value || '';
+        const docInfoBoleto = `
+            <strong style="color:var(--text-color,#e2e8f0)">${nomeClientePreview}</strong><br>
+            ${modeloPreview}${valorTotalPreview > 0 ? ' · R$ ' + valorTotalPreview.toLocaleString('pt-BR', {minimumFractionDigits:2}) : ''}
+            ${prazoDisplay ? ' · ' + prazoDisplay : ''}
+        `;
+
+        const confirmedBoleto = await ctwSavePreview.show({
+            type: 'boleto',
+            previewHtml: previewHtmlBoleto,
+            docInfo: docInfoBoleto,
+        });
+
+        if (!confirmedBoleto) return; // usuário cancelou
+        // ────────────────────────────────────────────────────
 
         const boletosRef = ref(db, 'boletos');
         const boletoData = {
@@ -5072,11 +5990,14 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
             compradorEndereco: document.getElementById('compradorEndereco').value,
             produtoModelo: document.getElementById('produtoModelo').value,
             produtoImei: document.getElementById('produtoImei').value,
+            aparelhoEstado: document.getElementById('aparelhoEstado')?.value || 'Novo',
+            aparelhoAcessorios: document.getElementById('aparelhoAcessorios')?.value || '',
+            contratoPrazo: document.getElementById('contratoPrazo').value,
             valorTotal: parseFloat(document.getElementById('valorTotal').value) || 0,
             valorEntrada: parseFloat(document.getElementById('valorEntrada').value) || 0,
             saldoRestante: document.getElementById('saldoRestante').value,
             numeroParcelas: parseInt(document.getElementById('numeroParcelas').value, 10) || 0,
-            valorParcela: document.getElementById('valorParcela').value,
+            valorParcela: formatCurrency(parseFloat(document.getElementById('valorParcela').value) || 0),
             tipoParcela: document.getElementById('tipoParcela').value,
             primeiroVencimento: document.getElementById('primeiroVencimento').value,
             criadoEm: new Date().toISOString(),
@@ -5113,7 +6034,6 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
         const nomeCliente = document.getElementById('compradorNome').value || 'contrato';
         const nomeArquivo = 'Contrato-' + nomeCliente.split(' ')[0] + '.pdf';
 
-        garantirPdfLibs(); // carrega libs em paralelo (já estarão prontas quando html2pdf rodar)
         const opt = {
             margin: [10, 10, 10, 10],
             filename: nomeArquivo,
@@ -5124,18 +6044,21 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
 
         showCustomModal({ message: 'Gerando PDF, aguarde...' });
 
-        html2pdf().set(opt).from(tempDiv).output('blob').then(async function(pdfBlob) {
+        try {
+            // ✅ FIX 1: await garantirPdfLibs — garante que html2pdf e html2canvas estejam carregados
+            await garantirPdfLibs();
+
+            // ✅ FIX 2: await aqui dentro de handler async — preserva o user gesture para navigator.share
+            const pdfBlob = await html2pdf().set(opt).from(tempDiv).output('blob');
+
             // Salva ou atualiza no Firebase
-            // Lê o ID do campo hidden (mais confiável que variável JS)
             const hiddenIdEl = document.getElementById('editingBoletoId');
             const editId = (hiddenIdEl && hiddenIdEl.value) ? hiddenIdEl.value : window.currentEditingBoletoId;
 
             if (editId) {
-                // EDITANDO registro existente - atualiza sem criar novo
                 update(ref(db, 'boletos/' + editId), boletoData).catch(function(e) {
                     console.error("Erro ao atualizar contrato: ", e);
                 });
-                // Reseta estado de edição
                 if (hiddenIdEl) hiddenIdEl.value = '';
                 window.currentEditingBoletoId = null;
                 const btnImprimir2 = document.getElementById('btnImprimir');
@@ -5147,7 +6070,6 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
                 const banner2 = document.getElementById('editingBannerBoleto');
                 if (banner2) banner2.style.display = 'none';
             } else {
-                // NOVO registro
                 push(boletosRef, boletoData).catch(function(error) {
                     console.error("Erro ao salvar contrato: ", error);
                 });
@@ -5156,7 +6078,6 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
             const nomeCliente2 = document.getElementById('compradorNome').value || 'Cliente';
             const file = new File([pdfBlob], nomeArquivo, { type: 'application/pdf' });
 
-            // Tenta compartilhar (celular)
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
@@ -5185,16 +6106,16 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
                 URL.revokeObjectURL(url);
                 showCustomModal({ message: 'Contrato salvo! ✅' });
             }
-        }).catch(function(error) {
+        } catch(error) {
             console.error("Erro ao gerar PDF:", error);
             showCustomModal({ message: 'Erro ao gerar PDF: ' + error.message });
-        });
+        }
     });
 
-    document.getElementById('exportRepassarBtn').addEventListener('click', () => {
+    document.getElementById('exportRepassarBtn')?.addEventListener('click', () => {
         exportResultsToImage('resultRepassarValores', 'repassar-valores.png');
     });
-       document.getElementById('exportEmprestimoBtn').addEventListener('click', () => {
+       document.getElementById('exportEmprestimoBtn')?.addEventListener('click', () => {
         const valorBase = parseFloat(document.getElementById('emprestimoValue').value) || 0;
         if (valorBase <= 0) {
             showCustomModal({ message: "Insira um valor base para exportar." });
@@ -5207,7 +6128,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
         exportResultsToImage('resultCalcularEmprestimo', 'calculo-emprestimo.png', titulo);
     });
 
-        document.getElementById('exportAparelhoBtn').addEventListener('click', () => {
+        document.getElementById('exportAparelhoBtn')?.addEventListener('click', () => {
         if (carrinhoDeAparelhos.length === 0) {
             showCustomModal({ message: "Adicione um aparelho para exportar." });
             return;
@@ -5236,7 +6157,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
     const arredondarToggle = document.getElementById('arredondarToggle');
     if (arredondarToggle) {
         arredondarToggle.checked = safeStorage.getItem('ctwArredondarEnabled') === 'true';
-        arredondarToggle.addEventListener('change', () => {
+        arredondarToggle?.addEventListener('change', () => {
             safeStorage.setItem('ctwArredondarEnabled', arredondarToggle.checked);
             showCustomModal({ message: `Arredondamento ${arredondarToggle.checked ? 'ATIVADO' : 'DESATIVADO'}.` });
         });
@@ -5313,7 +6234,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
             const machineName = toggle.dataset.machine;
             const disabledMachines = getDisabledMachines();
             toggle.checked = !disabledMachines.includes(machineName);
-            toggle.addEventListener('change', () => {
+            toggle?.addEventListener('change', () => {
                 const currentDisabled = getDisabledMachines();
                 if (toggle.checked) {
                     const newDisabled = currentDisabled.filter(m => m !== machineName);
@@ -5338,7 +6259,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
     // Abrir Modal
     const paletteBtn = document.getElementById('theme-palette-btn');
     if (paletteBtn) {
-        paletteBtn.addEventListener('click', () => {
+        paletteBtn?.addEventListener('click', () => {
             themeModal.classList.add('active');
         });
     }
@@ -5346,14 +6267,14 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
     // Fechar Modal
     const closeThemeBtn = document.getElementById('closeThemeModal');
     if (closeThemeBtn) {
-        closeThemeBtn.addEventListener('click', () => {
+        closeThemeBtn?.addEventListener('click', () => {
             themeModal.classList.remove('active');
         });
     }
     
     // Clicar nas cores
     document.querySelectorAll('.theme-option-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn?.addEventListener('click', () => {
             applyColorTheme(btn.dataset.color);
             // Pequeno delay para fechar o modal
             setTimeout(() => themeModal.classList.remove('active'), 200);
@@ -5365,7 +6286,7 @@ document.getElementById('admin-nav-buttons').addEventListener('click', e => {
 const bookipToggle = document.getElementById('bookipModeToggle');
 
 if (bookipToggle) {
-    bookipToggle.addEventListener('change', (e) => {
+    bookipToggle?.addEventListener('change', (e) => {
         const isHistoryMode = e.target.checked; // true = Histórico, false = Novo
 
         // 1. Elementos da Aba "NOVO" (Formulário)
@@ -5425,7 +6346,7 @@ if (bookipToggle) {
 
     // 1. Lógica da Busca (Consertada)
     if (inputBuscaBookip && containerResultados) {
-        inputBuscaBookip.addEventListener('input', (e) => {
+        inputBuscaBookip?.addEventListener('input', (e) => {
             const termo = e.target.value.toLowerCase();
             
             // Se digitar, já joga pro nome do produto caso não selecione nada
@@ -5455,7 +6376,7 @@ if (bookipToggle) {
                             <span class="fw-bold text-success">R$ ${parseFloat(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                         </div>`;
                     
-                    item.addEventListener('click', () => {
+                    item?.addEventListener('click', () => {
 
 
                                             // AQUI A MÁGICA: Chama a função que limpa o emoji antes de preencher
@@ -5518,7 +6439,7 @@ try {
     // ============================================================
     
     if (btnAddLista) {
-        btnAddLista.addEventListener('click', (e) => {
+        btnAddLista?.addEventListener('click', (e) => {
             e.preventDefault(); 
 
             // 1. DESCOBRE O MODO (PRODUTO vs SITUAÇÃO)
@@ -5645,7 +6566,7 @@ function limparTextoEmoji(texto) {
 const inputValorBookip = document.getElementById('bookipProdValorTemp');
 if (inputValorBookip) {
     inputValorBookip.type = "text"; 
-    inputValorBookip.addEventListener('input', (e) => {
+    inputValorBookip?.addEventListener('input', (e) => {
         let value = e.target.value.replace(/\D/g, ""); // Só números
         if (value === "") { e.target.value = ""; return; }
         // Divide por 100 pra virar centavos
@@ -5716,7 +6637,7 @@ if (inputValorBookip) {
 
         // 1. Remover
         document.querySelectorAll('.remove-item-bookip').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn?.addEventListener('click', (e) => {
                 const idx = parseInt(e.currentTarget.dataset.index);
                 // Se estava editando esse, cancela a edição
                 if (editingItemIndex === idx) {
@@ -5735,7 +6656,7 @@ if (inputValorBookip) {
 
         // 2. Editar (A Lógica do Lápis)
         document.querySelectorAll('.edit-item-bookip').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn?.addEventListener('click', (e) => {
                 const idx = parseInt(e.currentTarget.dataset.index);
                 const item = bookipCartList[idx];
 
@@ -5863,6 +6784,8 @@ function loadBookipHistory() {
             const data = snapshot.val();
             // 1. Transforma em lista
             listaCompletaCache = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+            window._bookipsCache = listaCompletaCache;
+            window._bookipsCache = listaCompletaCache; // para VIP e Zelador
             
             // ==========================================================
             // 2. ORDENAÇÃO INTELIGENTE (MODIFICADO AQUI)
@@ -6179,23 +7102,23 @@ function loadBookipHistory() {
         reativarListeners();
         
         const btnMore = document.getElementById('btnLoadMoreBookip');
-        if (btnMore) btnMore.addEventListener('click', () => { itensVisiveis += incremento; renderizarLote(); });
+        if (btnMore) btnMore?.addEventListener('click', () => { itensVisiveis += incremento; renderizarLote(); });
     }
 
     // --- REATIVAR BOTÕES INTERNOS ---
     function reativarListeners() {
-        container.querySelectorAll('.edit-bookip-btn').forEach(b => b.addEventListener('click', e => carregarDadosParaEdicao(listaCompletaCache.find(i => i.id === e.target.closest('button').dataset.id))));
-        container.querySelectorAll('.email-history-btn').forEach(b => b.addEventListener('click', e => gerarPdfDoHistorico(listaCompletaCache.find(i => i.id === e.target.closest('button').dataset.id), b)));
-        container.querySelectorAll('.btn-ver-foto').forEach(b => b.addEventListener('click', e => {
+        container.querySelectorAll('.edit-bookip-btn').forEach(b => b?.addEventListener('click', e => carregarDadosParaEdicao(listaCompletaCache.find(i => i.id === e.target.closest('button').dataset.id))));
+        container.querySelectorAll('.email-history-btn').forEach(b => b?.addEventListener('click', e => gerarPdfDoHistorico(listaCompletaCache.find(i => i.id === e.target.closest('button').dataset.id), b)));
+        container.querySelectorAll('.btn-ver-foto').forEach(b => b?.addEventListener('click', e => {
             const btn = e.target.closest('button');
             const fotoUrl = btn.dataset.foto;
             const nome = btn.dataset.nome || 'Produto';
             window.abrirFotoBookip(fotoUrl, nome);
         }));
-        container.querySelectorAll('.print-old-bookip').forEach(b => b.addEventListener('click', e => printBookip(listaCompletaCache.find(i => i.id === e.target.closest('button').dataset.id))));
+        container.querySelectorAll('.print-old-bookip').forEach(b => b?.addEventListener('click', e => printBookip(listaCompletaCache.find(i => i.id === e.target.closest('button').dataset.id))));
 
 
-container.querySelectorAll('.delete-bookip-btn').forEach(b => b.addEventListener('click', e => {
+container.querySelectorAll('.delete-bookip-btn').forEach(b => b?.addEventListener('click', e => {
     const id = e.target.closest('button').dataset.id;
     
     showCustomModal({
@@ -6212,7 +7135,7 @@ container.querySelectorAll('.delete-bookip-btn').forEach(b => b.addEventListener
 
         // --- LÓGICA DO BOTÃO NF (COM NOTIFICAÇÃO NATIVA) ---
         container.querySelectorAll('.btn-copy-nf').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn?.addEventListener('click', e => {
                 const id = e.target.closest('button').dataset.id;
                 const item = listaCompletaCache.find(i => i.id === id);
 
@@ -6277,7 +7200,7 @@ container.querySelectorAll('.delete-bookip-btn').forEach(b => b.addEventListener
 
 // --- NOVO: Listener para o Botão de Download Seguro ---
 container.querySelectorAll('.btn-download-seguro').forEach(b => {
-    b.addEventListener('click', e => {
+    b?.addEventListener('click', e => {
         const btn = e.target.closest('button');
         const id = btn.dataset.id;
         // Pega os dados da memória (seguro e rápido)
@@ -6414,12 +7337,43 @@ let lastSavedBookipData = null; // Guarda os dados na memória após salvar
 // 1. AÇÃO: CLICAR EM "FINALIZAR E SALVAR"
 const btnSave = document.getElementById('btnSaveBookip');
 if (btnSave) {
-    btnSave.addEventListener('click', async () => {
+    btnSave?.addEventListener('click', async () => {
         // Validação Básica
         if (bookipCartList.length === 0) {
             showCustomModal({ message: "A lista está vazia! Adicione itens primeiro." });
             return;
         }
+
+        // ── CAPCUT PREVIEW ──────────────────────────────────
+        // Monta preview parcial com dados atuais do formulário
+        // (sem foto ainda — foto só sobe após confirmar)
+        const previewDadosTemp = {
+            nome:        document.getElementById('bookipNome')?.value || 'Consumidor',
+            cpf:         document.getElementById('bookipCpf')?.value  || '',
+            tel:         document.getElementById('bookipTelefone')?.value || '',
+            items:       bookipCartList,
+            diasGarantia: parseInt(document.getElementById('bookipGarantiaSelect')?.value) || 365,
+            dataVenda:   document.getElementById('bookipDataManual')?.value || new Date().toISOString().split('T')[0],
+            criadoEm:    new Date().toISOString(),
+            type:        bookipCartList.some(i => i.isSituation) ? 'situacao' : (window.isSimpleReceiptMode ? 'recibo' : 'garantia'),
+            fotoUrl:     window._bookipFotoUrl || '',
+        };
+        const _rawHtml = (typeof getReciboHTML === 'function') ? getReciboHTML(previewDadosTemp) : '<p style="color:#000;padding:20px">Prévia indisponível</p>';
+        const previewHtmlTemp = `<div style="width:750px;overflow:hidden;background:#fff;color:#000;">${_rawHtml}</div>`;
+
+        const docInfoHtml = `
+            <strong style="color:var(--text-color)">${previewDadosTemp.nome}</strong><br>
+            ${previewDadosTemp.items.length} ${previewDadosTemp.items.length === 1 ? 'item' : 'itens'} · Garantia: ${previewDadosTemp.diasGarantia} dias
+        `;
+
+        const confirmed = await ctwSavePreview.show({
+            type: 'bookip',
+            previewHtml: previewHtmlTemp,
+            docInfo: docInfoHtml,
+        });
+
+        if (!confirmed) return; // usuário cancelou
+        // ────────────────────────────────────────────────────
 
         // Feedback visual
         const originalText = btnSave.innerHTML;
@@ -6566,7 +7520,7 @@ criadoPor: currentUserProfile || "Desconhecido",
 // 2. AÇÃO: CLICAR EM "IMPRIMIR" (PÓS-SALVO)
 const btnPostPrint = document.getElementById('btnPostPrint');
 if (btnPostPrint) {
-    btnPostPrint.addEventListener('click', () => {
+    btnPostPrint?.addEventListener('click', () => {
         if (lastSavedBookipData) {
             printBookip(lastSavedBookipData);
         } else {
@@ -6578,7 +7532,7 @@ if (btnPostPrint) {
 // 3. AÇÃO: CLICAR EM "COMPARTILHAR / PDF" (PÓS-SALVO)
 const btnPostShare = document.getElementById('btnPostShare');
 if (btnPostShare) {
-    btnPostShare.addEventListener('click', () => {
+    btnPostShare?.addEventListener('click', () => {
         if (lastSavedBookipData) {
             // Truque de copiar e-mail antes
             if (lastSavedBookipData.email) {
@@ -6834,7 +7788,7 @@ function ativarAutocomplete() {
         }
 
         // 2. Ouve o que você digita
-        input.addEventListener('input', (e) => {
+        input?.addEventListener('input', (e) => {
             const termo = e.target.value.toLowerCase().trim();
             const termoLimpo = termo.replace(/[^a-z0-9]/g, ''); // Tira pontos e traços para comparar
 
@@ -6916,6 +7870,32 @@ window.preencherCliente = function(id, idListaParaFechar) {
                 setTimeout(() => el.classList.remove('is-valid'), 1000);
             }
         });
+
+        // 🏆 Botão (i) VIP no Bookip
+        if (typeof window._getNivelVip === 'function' && cliente.cpf) {
+            const nivel = window._getNivelVip(cliente.cpf);
+            window._vipInfoAtual = { cliente, nivel };
+            // Injeta ou atualiza o botão (i) no formulário
+            const existente = document.getElementById('bookipVipInfoBtn');
+            if (existente) existente.remove();
+            if (nivel && nivel.total > 0) {
+                const cor = nivel.cor || 'var(--primary-color)';
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.id = 'bookipVipInfoBtn';
+                btn.title = 'Informações do cliente';
+                btn.style.cssText = `position:absolute;top:8px;right:8px;background:${cor}22;border:1px solid ${cor}55;color:${cor};border-radius:50%;width:28px;height:28px;font-weight:700;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;`;
+                btn.innerHTML = 'i';
+                btn.onclick = window._mostrarVipBanner;
+                // Insere relativo ao campo nome
+                const nomeField = document.getElementById('bookipNome');
+                if (nomeField) {
+                    const parent = nomeField.closest('.col-md-12, .col-md-6, .mb-3') || nomeField.parentElement;
+                    parent.style.position = 'relative';
+                    parent.appendChild(btn);
+                }
+            }
+        }
     }
 };
 
@@ -6944,7 +7924,7 @@ function ativarAutocompleteBoleto() {
             input.parentNode.appendChild(listaUl);
         }
 
-        input.addEventListener('input', function(e) {
+        input?.addEventListener('input', function(e) {
             var termo = e.target.value.toLowerCase().trim();
             var termoLimpo = termo.replace(/[^a-z0-9]/g, '');
             listaUl.style.display = 'none';
@@ -7018,6 +7998,761 @@ if (typeof db !== 'undefined') {
 
 // 3. Função Visual: Desenhar Tabela
 // 3. Função Visual OTIMIZADA (Para listas gigantes)
+
+// ============================================================
+// 🏆 SISTEMA VIP — conta bookips por CPF
+// Bronze(3) Ouro(5) VIP(8) Extraordinário(15)
+// ============================================================
+window._getNivelVip = function(cpf) {
+    if (!cpf) return null;
+    const cpfLimpo = cpf.replace(/\D/g, '');
+    if (!cpfLimpo) return null;
+    const cache = window._bookipsCache || [];
+    const total = cache.filter(b => (b.cpf || '').replace(/\D/g, '') === cpfLimpo).length;
+    if (total >= 15) return { label: '⭐ Extraordinário', cor: '#a78bfa', total, prox: null };
+    if (total >= 8)  return { label: '💎 VIP',           cor: '#00e5ff', total, prox: 15 };
+    if (total >= 5)  return { label: '🥇 Ouro',          cor: '#ffd700', total, prox: 8 };
+    if (total >= 3)  return { label: '🥉 Bronze',        cor: '#cd7f32', total, prox: 5 };
+    return { label: null, cor: null, total, prox: 3 };
+};
+
+window._nivelVipBadgeHTML = function(cpf) {
+    const n = window._getNivelVip(cpf);
+    if (!n || !n.label) return '';
+    const proxMsg = n.prox ? ` · falta ${n.prox - n.total} p/ subir` : ' · máximo!';
+    return `<span style="display:inline-block;background:${n.cor}22;border:1px solid ${n.cor}55;color:${n.cor};border-radius:20px;padding:1px 8px;font-size:.68rem;font-weight:700;vertical-align:middle;">${n.label}${proxMsg}</span>`;
+};
+
+// ── Ranking top 10 clientes mais fiéis ──
+window._renderRankingEstrelas = function() {
+    const el = document.getElementById('rankingClientesBody');
+    if (!el) return;
+    const cache = window._bookipsCache || [];
+    const clientes = window.dbClientsCache || [];
+    if (!cache.length) {
+        el.innerHTML = '<p class="text-secondary small text-center mb-0">Nenhuma compra registrada ainda.</p>';
+        return;
+    }
+    const contagem = {};
+    cache.forEach(b => {
+        const cpf = (b.cpf || '').replace(/\D/g, '');
+        if (cpf) contagem[cpf] = (contagem[cpf] || 0) + 1;
+    });
+    const top = Object.entries(contagem)
+        .sort((a, b) => b[1] - a[1]).slice(0, 10)
+        .map(([cpf, qtd]) => {
+            const c = clientes.find(x => (x.cpf || '').replace(/\D/g, '') === cpf);
+            return { nome: c?.nome || 'Cliente sem cadastro', cpf, qtd, nivel: window._getNivelVip(cpf) };
+        });
+    if (!top.length) { el.innerHTML = '<p class="text-secondary small text-center mb-0">Nenhum dado ainda.</p>'; return; }
+    const medalhas = ['🥇','🥈','🥉'];
+    el.innerHTML = top.map((t, i) => {
+        const badge = t.nivel?.label
+            ? `<span style="background:${t.nivel.cor}22;border:1px solid ${t.nivel.cor}55;color:${t.nivel.cor};border-radius:20px;padding:1px 7px;font-size:.65rem;font-weight:700;">${t.nivel.label}</span>`
+            : '';
+        const clienteId = (window.dbClientsCache||[]).find(c => (c.cpf||'').replace(/\D/g,'') === t.cpf)?.id || '';
+        const clickFn = clienteId ? `onclick="window.abrirEstrelaCliente('${clienteId}', ${i})"` : '';
+        return `<div ${clickFn} style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--glass-border);cursor:${clienteId?'pointer':'default'};">
+            <span style="font-size:1.2rem;width:28px;text-align:center;">${medalhas[i] || (i+1)+'.'}</span>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.nome} ${badge}</div>
+                <div style="font-size:.72rem;color:var(--text-secondary);">${t.qtd} compra(s)</div>
+            </div>
+            ${clienteId ? '<i class="bi bi-chevron-right" style="color:var(--text-secondary);font-size:.7rem;"></i>' : ''}
+        </div>`;
+    }).join('');
+};
+
+// ============================================================
+// 🔍 ZELADOR DE DADOS — Detecta e mescla duplicatas
+// Usa hash map — funciona rápido mesmo com 10k+ clientes
+// ============================================================
+window.abrirZelador = function() {
+    const clientes = window.dbClientsCache || [];
+    if (clientes.length < 2) { showCustomModal({ message: 'Poucos clientes para analisar.' }); return; }
+
+    function normCpf(s)  { return (s || '').replace(/\D/g, ''); }
+    function normTel(s)  { return (s || '').replace(/\D/g, '').replace(/^0+/, ''); }
+    function normNome(s) {
+        return (s || '').toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z\s]/g, '').trim()
+            .split(/\s+/).sort().join(' ');
+    }
+
+    // ── Agrupa por hash map (O(n) por critério) ──
+    const idParaGrupo = new Map(); // id → índice do grupo
+    const grupos = [];
+
+    function adicionarAoGrupo(a, b, motivo) {
+        const ga = idParaGrupo.get(a.id);
+        const gb = idParaGrupo.get(b.id);
+        if (ga !== undefined && gb !== undefined && ga === gb) return; // já no mesmo grupo
+        if (ga !== undefined && gb !== undefined) {
+            // Mescla dois grupos existentes
+            const menor = Math.min(ga, gb), maior = Math.max(ga, gb);
+            grupos[menor].itens.push(...grupos[maior].itens);
+            grupos[maior].itens.forEach(c => idParaGrupo.set(c.id, menor));
+            grupos[menor].motivos = [...new Set([...grupos[menor].motivos, ...grupos[maior].motivos, motivo])];
+            grupos[maior] = null;
+        } else if (ga !== undefined) {
+            grupos[ga].itens.push(b);
+            grupos[ga].motivos = [...new Set([...grupos[ga].motivos, motivo])];
+            idParaGrupo.set(b.id, ga);
+        } else if (gb !== undefined) {
+            grupos[gb].itens.push(a);
+            grupos[gb].motivos = [...new Set([...grupos[gb].motivos, motivo])];
+            idParaGrupo.set(a.id, gb);
+        } else {
+            const idx = grupos.length;
+            grupos.push({ itens: [a, b], motivos: [motivo] });
+            idParaGrupo.set(a.id, idx);
+            idParaGrupo.set(b.id, idx);
+        }
+    }
+
+    // Passa 1: CPF
+    const porCpf = {};
+    clientes.forEach(c => {
+        const cpf = normCpf(c.cpf);
+        if (cpf.length !== 11) return;
+        if (!porCpf[cpf]) porCpf[cpf] = [];
+        porCpf[cpf].push(c);
+    });
+    Object.values(porCpf).filter(g => g.length > 1).forEach(g => {
+        for (let i = 1; i < g.length; i++) adicionarAoGrupo(g[0], g[i], 'mesmo CPF');
+    });
+
+    // Passa 2: Nome
+    const porNome = {};
+    clientes.forEach(c => {
+        const nome = normNome(c.nome);
+        if (nome.length < 6) return;
+        if (!porNome[nome]) porNome[nome] = [];
+        porNome[nome].push(c);
+    });
+    Object.values(porNome).filter(g => g.length > 1).forEach(g => {
+        for (let i = 1; i < g.length; i++) adicionarAoGrupo(g[0], g[i], 'mesmo nome');
+    });
+
+    // Passa 3: Telefone
+    const porTel = {};
+    clientes.forEach(c => {
+        const tel = normTel(c.tel);
+        if (tel.length < 10) return;
+        if (!porTel[tel]) porTel[tel] = [];
+        porTel[tel].push(c);
+    });
+    Object.values(porTel).filter(g => g.length > 1).forEach(g => {
+        for (let i = 1; i < g.length; i++) adicionarAoGrupo(g[0], g[i], 'mesmo telefone');
+    });
+
+    // Remove grupos nulos
+    const gruposValidos = grupos.filter(g => g !== null && g.itens.length > 1);
+
+    // ── Mesclagem ──
+    async function mesclarGrupo(grupo) {
+        const melhor = (campo) => grupo.itens
+            .map(c => c[campo] || '').sort((a, b) => b.length - a.length)[0] || '';
+        const mesclado = {
+            nome: melhor('nome'), cpf: melhor('cpf'), tel: melhor('tel'),
+            end: melhor('end'), email: melhor('email'), dataNascimento: melhor('dataNascimento'),
+        };
+        const idManter  = grupo.itens.map(c => c.id).sort()[0];
+        const idsRemover = grupo.itens.map(c => c.id).filter(id => id !== idManter);
+        try {
+            await set(ref(db, `clientes/${idManter}`), { ...mesclado, id: idManter });
+            for (const id of idsRemover) await remove(ref(db, `clientes/${id}`));
+            return true;
+        } catch(e) { console.error('[Zelador] merge:', e); return false; }
+    }
+
+    // ── Modal ──
+    document.getElementById('zeladorOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'zeladorOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:1050;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;justify-content:center;';
+
+    function renderZelador() {
+        let corpo = '';
+        if (!gruposValidos.length) {
+            corpo = '<div style="text-align:center;padding:28px;"><span style="font-size:2.5rem;">✅</span><p style="margin-top:10px;color:var(--text-secondary);">Tudo limpo! Nenhuma duplicata encontrada.</p></div>';
+        } else {
+            corpo = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <p style="margin:0;color:var(--text-secondary);font-size:.83rem;">
+                    <strong style="color:var(--primary-color)">${gruposValidos.length}</strong> duplicata(s) em ${clientes.length} clientes.
+                </p>
+                <button onclick="window._zeladorMesclarTodos()" style="padding:5px 12px;border:none;border-radius:8px;background:var(--primary-color);color:#000;font-weight:700;font-size:.75rem;cursor:pointer;">Mesclar Todos</button>
+            </div>`;
+
+            gruposValidos.forEach((grupo, gi) => {
+                if (!grupo) return;
+                const campos = grupo.itens.map(c => `
+                    <div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+                        <strong>${c.nome || '?'}</strong>
+                        <div style="font-size:.72rem;color:var(--text-secondary);margin-top:2px;display:flex;flex-wrap:wrap;gap:8px;">
+                            ${c.cpf ? `<span>📋 ${c.cpf}</span>` : '<span style="opacity:.4">sem CPF</span>'}
+                            ${c.tel ? `<span>📱 ${c.tel}</span>` : '<span style="opacity:.4">sem tel</span>'}
+                            ${c.end ? `<span>📍 ${c.end.substring(0,25)}</span>` : ''}
+                        </div>
+                    </div>`).join('');
+                corpo += `
+                <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;margin-bottom:10px;" id="zelGrupo_${gi}">
+                    <div style="font-size:.7rem;color:var(--primary-color);font-weight:700;margin-bottom:6px;">🔗 ${grupo.motivos.join(' · ')}</div>
+                    ${campos}
+                    <button onclick="window._zeladorMesclar(${gi})" style="width:100%;margin-top:8px;padding:7px;border:1px solid var(--primary-color);border-radius:8px;background:rgba(var(--primary-color-rgb),.15);color:var(--primary-color);font-weight:700;font-size:.78rem;cursor:pointer;">
+                        ✂️ Mesclar este grupo
+                    </button>
+                </div>`;
+            });
+        }
+
+        const panel = overlay.querySelector('#zelPanel');
+        if (panel) panel.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <span style="font-weight:700;font-size:1rem;color:var(--text-color);">🔍 Zelador de Dados</span>
+                <button onclick="document.getElementById('zeladorOverlay').remove()" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer;">✕</button>
+            </div>
+            <div style="font-size:.85rem;color:var(--text-color);">${corpo}</div>`;
+    }
+
+    overlay.innerHTML = '<div id="zelPanel" style="background:var(--card-bg,#1a1a2e);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:20px 18px 36px;border-top:2px solid var(--primary-color);"></div>';
+    document.body.appendChild(overlay);
+    renderZelador();
+
+    window._zeladorMesclar = async function(gi) {
+        const grupo = gruposValidos[gi];
+        if (!grupo) return;
+        const btn = document.querySelector(`#zelGrupo_${gi} button`);
+        if (btn) { btn.disabled = true; btn.textContent = 'Mesclando...'; }
+        const ok = await mesclarGrupo(grupo);
+        if (ok) {
+            gruposValidos[gi] = null;
+            showCustomModal({ message: '✅ Mesclado!' });
+            renderZelador();
+        } else {
+            showCustomModal({ message: '❌ Erro ao mesclar.' });
+            if (btn) { btn.disabled = false; btn.textContent = '✂️ Mesclar este grupo'; }
+        }
+    };
+
+    window._zeladorMesclarTodos = async function() {
+        showCustomModal({
+            message: `Mesclar todos os ${gruposValidos.filter(Boolean).length} grupos?`,
+            confirmText: 'Sim, mesclar tudo',
+            onConfirm: async () => {
+                const total = gruposValidos.filter(Boolean).length;
+                showCustomModal({ message: `Mesclando ${total} grupos em paralelo...` });
+                // Dispara todas as mesclagens em paralelo — não bloqueia navegação
+                const promises = gruposValidos.map((g, i) => {
+                    if (!g) return Promise.resolve(false);
+                    return mesclarGrupo(g).then(ok => { if (ok) gruposValidos[i] = null; return ok; });
+                });
+                const results = await Promise.all(promises);
+                const ok = results.filter(Boolean).length;
+                showCustomModal({ message: `✅ ${ok} de ${total} grupo(s) mesclado(s)!` });
+                setTimeout(() => document.getElementById('zeladorOverlay')?.remove(), 300);
+            },
+            onCancel: () => {}
+        });
+    };
+};
+
+
+// ============================================================
+// 👤 RESUMO DO CLIENTE — bookips + Groq
+// ============================================================
+window.abrirResumoCliente = async function(id) {
+    const cliente = (window.dbClientsCache || []).find(c => c.id === id);
+    if (!cliente) return;
+
+    // Bookips deste cliente
+    const bookips = (window._bookipsCache || []).filter(b => {
+        const cpfB = (b.cpf || '').replace(/\D/g,'');
+        const cpfC = (cliente.cpf || '').replace(/\D/g,'');
+        const nomeB = (b.nome || '').toLowerCase().trim();
+        const nomeC = (cliente.nome || '').toLowerCase().trim();
+        return (cpfB && cpfC && cpfB === cpfC) || (nomeB && nomeC && nomeB === nomeC);
+    }).sort((a, b) => (b.dataVenda || b.criadoEm || '') > (a.dataVenda || a.criadoEm || '') ? 1 : -1);
+
+    const nivel = typeof window._getNivelVip === 'function' ? window._getNivelVip(cliente.cpf) : null;
+    const nivelHTML = nivel?.label
+        ? `<span style="background:${nivel.cor}22;border:1px solid ${nivel.cor}55;color:${nivel.cor};border-radius:20px;padding:2px 10px;font-size:.75rem;font-weight:700;">${nivel.label}</span>`
+        : '';
+
+    // Monta HTML das compras
+    const comprasHTML = bookips.length
+        ? bookips.slice(0, 15).map(b => {
+            const itens = (b.items || b.produtos || []).map(i => i.nome || i.name || '').filter(Boolean).join(', ') || 'Sem detalhes';
+            const data  = b.dataVenda || (b.criadoEm ? b.criadoEm.substring(0,10) : '');
+            const dataFmt = data ? data.split('-').reverse().join('/') : '---';
+            const tipo  = b.type === 'recibo' ? '🧾' : b.type === 'situacao' ? '📋' : '📄';
+            const vend  = b.criadoPor ? `<span style="background:rgba(var(--primary-color-rgb),.15);color:var(--primary-color);border-radius:6px;padding:1px 6px;font-size:.67rem;font-weight:600;margin-left:4px;">${b.criadoPor}</span>` : '';
+            return `<div onclick="window._abrirGarantiaDoBanner('${b.id}')" style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;border-radius:6px;" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''">
+                <span style="font-size:1.1rem;">${tipo}</span>
+                <div style="flex:1;">
+                    <div style="font-size:.82rem;font-weight:600;">${itens}${vend}</div>
+                    <div style="font-size:.72rem;color:var(--text-secondary);">${dataFmt}</div>
+                </div>
+                <i class="bi bi-chevron-right" style="color:var(--text-secondary);font-size:.7rem;align-self:center;"></i>
+            </div>`;
+          }).join('')
+        : '<p style="color:var(--text-secondary);text-align:center;padding:12px;">Nenhuma compra registrada.</p>';
+
+    document.getElementById('resumoClienteOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'resumoClienteOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;justify-content:center;';
+    overlay.innerHTML = `
+        <div style="background:var(--card-bg,#1a1a2e);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:20px 18px 36px;border-top:2px solid var(--primary-color);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <span style="font-weight:700;font-size:1rem;color:var(--text-color);">👤 Perfil do Cliente</span>
+                <button onclick="document.getElementById('resumoClienteOverlay').remove()" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer;">✕</button>
+            </div>
+            <div style="margin-bottom:14px;">
+                <div style="font-size:1.1rem;font-weight:700;color:var(--text-color);">${cliente.nome || '?'} ${nivelHTML}</div>
+                <div style="font-size:.8rem;color:var(--text-secondary);margin-top:4px;display:flex;flex-wrap:wrap;gap:10px;">
+                    ${cliente.cpf ? `<span>📋 ${cliente.cpf}</span>` : ''}
+                    ${cliente.tel ? `<span>📱 ${cliente.tel}</span>` : ''}
+                    ${cliente.end ? `<span>📍 ${cliente.end}</span>` : ''}
+                </div>
+                <div style="margin-top:8px;font-size:.8rem;color:var(--text-secondary);">${bookips.length} compra(s) registrada(s)</div>
+            </div>
+            <div style="font-weight:600;font-size:.85rem;margin-bottom:8px;color:var(--text-color);">Histórico de Compras</div>
+            <div>${comprasHTML}</div>
+        </div>`;
+    overlay?.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+};
+
+
+// ============================================================
+// 🏆 BANNER ESTRELA — clique no ranking
+// ============================================================
+window.abrirEstrelaCliente = async function(id, posicao) {
+    const cliente = (window.dbClientsCache || []).find(c => c.id === id);
+    if (!cliente) return;
+
+    const bookips = (window._bookipsCache || []).filter(b => {
+        const cpfB = (b.cpf || '').replace(/\D/g,'');
+        const cpfC = (cliente.cpf || '').replace(/\D/g,'');
+        const nomeB = (b.nome || '').toLowerCase().trim();
+        const nomeC = (cliente.nome || '').toLowerCase().trim();
+        return (cpfB && cpfC && cpfB === cpfC) || (nomeB && nomeC && nomeB === nomeC);
+    }).sort((a, b) => (b.dataVenda || '') > (a.dataVenda || '') ? 1 : -1);
+
+    const nivel = typeof window._getNivelVip === 'function' ? window._getNivelVip(cliente.cpf) : null;
+    const medalhas = ['🥇','🥈','🥉'];
+    const medalha  = medalhas[posicao] || '⭐';
+    const corNivel = nivel?.cor || '#ffd700';
+
+    const comprasHTML = bookips.slice(0, 8).map(b => {
+        const itens = (b.items || b.produtos || []).map(i => i.nome || i.name || '').filter(Boolean).join(', ') || '—';
+        const data  = (b.dataVenda || '').split('-').reverse().join('/') || '---';
+        const vend  = b.criadoPor ? `<span style="background:rgba(var(--primary-color-rgb),.15);color:var(--primary-color);border-radius:6px;padding:1px 6px;font-size:.68rem;font-weight:600;">${b.criadoPor}</span>` : '';
+        return `<div onclick="window._abrirGarantiaDoBanner('${b.id}')" style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.06);font-size:.78rem;cursor:pointer;border-radius:6px;" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''">
+            <div style="flex:1;">
+                <div style="color:var(--text-color);font-weight:500;">${itens}</div>
+                <div style="display:flex;gap:8px;align-items:center;margin-top:3px;">${vend}<span style="color:var(--text-secondary);">${data}</span></div>
+            </div>
+            <i class="bi bi-file-earmark-text" style="color:var(--text-secondary);font-size:.85rem;"></i>
+        </div>`;
+    }).join('');
+
+    document.getElementById('estrelaOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'estrelaOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML = `
+        <div style="background:var(--card-bg,#1a1a2e);border-radius:24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;padding:28px 22px;border:1px solid ${corNivel}44;box-shadow:0 0 40px ${corNivel}22;text-align:center;">
+            <div style="font-size:3.5rem;margin-bottom:4px;">${medalha}</div>
+            <div style="font-size:.75rem;color:${corNivel};font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">${nivel?.label || 'Cliente Fiel'}</div>
+            <div style="font-size:1.3rem;font-weight:800;color:var(--text-color);margin-bottom:4px;">${cliente.nome}</div>
+            <div style="font-size:.8rem;color:var(--text-secondary);margin-bottom:16px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+                ${cliente.cpf ? `<span>📋 ${cliente.cpf}</span>` : ''}
+                ${cliente.tel ? `<span>📱 ${cliente.tel}</span>` : ''}
+            </div>
+            <div style="background:${corNivel}15;border:1px solid ${corNivel}33;border-radius:14px;padding:12px;margin-bottom:18px;display:flex;justify-content:center;gap:24px;">
+                <div><div style="font-size:1.6rem;font-weight:800;color:${corNivel};">${bookips.length}</div><div style="font-size:.72rem;color:var(--text-secondary);">compras</div></div>
+                ${nivel?.prox ? `<div><div style="font-size:1.6rem;font-weight:800;color:var(--text-secondary);">${nivel.prox - (nivel.total||0)}</div><div style="font-size:.72rem;color:var(--text-secondary);">p/ próx. nível</div></div>` : '<div><div style="font-size:1.6rem;">🎉</div><div style="font-size:.72rem;color:var(--text-secondary);">nível máximo</div></div>'}
+            </div>
+            <div style="text-align:left;">
+                <div style="font-weight:700;font-size:.82rem;color:var(--text-color);margin-bottom:8px;">Últimas compras</div>
+                ${comprasHTML || '<p style="color:var(--text-secondary);font-size:.78rem;">Sem histórico detalhado.</p>'}
+            </div>
+            <button onclick="document.getElementById('estrelaOverlay').remove()" style="margin-top:18px;width:100%;padding:12px;border:none;border-radius:14px;background:var(--primary-color);color:#000;font-weight:700;font-size:.9rem;cursor:pointer;">Fechar</button>
+        </div>`;
+    overlay?.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+};
+
+
+// Abre o bookip específico a partir do banner estrela
+window._abrirGarantiaDoBanner = function(bookipId) {
+    document.getElementById('estrelaOverlay')?.remove();
+    document.getElementById('resumoClienteOverlay')?.remove();
+
+    // Vai pra aba de documentos
+    if (typeof window.showMainSection === 'function') window.showMainSection('contract');
+
+    // Polling: espera o DOM do accordion estar pronto
+    let n = 0;
+    const poll = setInterval(() => {
+        n++;
+
+        // Passo 1: garante que o item está na lista visível
+        if (typeof window._bookipNavigateTo === 'function') window._bookipNavigateTo(bookipId);
+
+        // Passo 2: verifica se o collapse já existe no DOM
+        const el = document.getElementById('collapse-bk-' + bookipId);
+        if (el) {
+            clearInterval(poll);
+
+            // Passo 3: abre o accordion deste item
+            el.classList.add('show');
+            const btn = document.querySelector(`[data-bs-target="#collapse-bk-${bookipId}"]`);
+            if (btn) btn.classList.remove('collapsed');
+
+            // Passo 4: scroll suave até ele
+            setTimeout(() => el.closest('.accordion-item, .card, [id]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+        }
+
+        if (n > 30) clearInterval(poll); // desiste após 3s
+    }, 100);
+};
+
+
+// Banner VIP ao clicar no botão (i) do Bookip
+window._mostrarVipBanner = function() {
+    const info = window._vipInfoAtual;
+    if (!info) return;
+    const { cliente, nivel } = info;
+    if (!nivel || !nivel.total) return;
+
+    const cor = nivel.cor || '#ffd700';
+    const label = nivel.label || `${nivel.total} compra(s)`;
+    const prox = nivel.prox
+        ? `Falta <strong>${nivel.prox - nivel.total}</strong> compra(s) para o próximo nível.`
+        : '🎉 Nível máximo atingido!';
+
+    document.getElementById('vipBannerOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'vipBannerOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10003;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.innerHTML = `
+        <div style="background:var(--card-bg,#1a1a2e);border-radius:20px;width:100%;max-width:340px;padding:28px 22px;border:1px solid ${cor}44;box-shadow:0 0 30px ${cor}22;text-align:center;">
+            <div style="font-size:2.8rem;margin-bottom:6px;">${nivel.label ? nivel.label.split(' ')[0] : '⭐'}</div>
+            <div style="font-size:.72rem;color:${cor};font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">${label}</div>
+            <div style="font-size:1.1rem;font-weight:700;color:var(--text-color);margin-bottom:6px;">${cliente.nome}</div>
+            <div style="background:${cor}15;border:1px solid ${cor}33;border-radius:12px;padding:12px;margin:14px 0;font-size:.85rem;color:var(--text-color);">
+                Já comprou <strong style="color:${cor};font-size:1.2rem;">${nivel.total}x</strong> com você!<br>
+                <span style="font-size:.75rem;color:var(--text-secondary);">${prox}</span>
+            </div>
+            <button onclick="document.getElementById('vipBannerOverlay').remove()" style="width:100%;padding:10px;border:none;border-radius:12px;background:var(--primary-color);color:#000;font-weight:700;cursor:pointer;">Fechar</button>
+        </div>`;
+    overlay?.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+};
+
+
+// ============================================================
+// Abre bookip específico — mesmo padrão da busca global
+// ============================================================
+window._abrirGarantiaDoBanner = function(bookipId) {
+    document.getElementById('estrelaOverlay')?.remove();
+    document.getElementById('resumoClienteOverlay')?.remove();
+
+    if (typeof window.showMainSection === 'function') window.showMainSection('contract');
+
+    setTimeout(function() {
+        // 1. Abre a área de histórico
+        if (typeof window.openDocumentsSection === 'function') window.openDocumentsSection('bookip');
+
+        // 2. Ativa o toggle de histórico (igual a busca global faz)
+        var t = document.getElementById('bookipModeToggle');
+        if (t && !t.checked) { t.checked = true; t.dispatchEvent(new Event('change')); }
+
+        // 3. Polling: espera o accordion renderizar
+        var attempts = 0;
+        function tryOpen() {
+            attempts++;
+            // Garante que item está visível na lista
+            if (typeof window._bookipNavigateTo === 'function') window._bookipNavigateTo(bookipId);
+
+            var el = document.getElementById('collapse-bk-' + bookipId);
+            if (el) {
+                // Abre o accordion
+                if (window.bootstrap) {
+                    bootstrap.Collapse.getOrCreateInstance(el, { toggle: false }).show();
+                    el?.addEventListener('shown.bs.collapse', function() {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, { once: true });
+                } else {
+                    el.classList.add('show');
+                    setTimeout(function() { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
+                }
+            } else if (attempts < 15) {
+                setTimeout(tryOpen, 300);
+            }
+        }
+        setTimeout(tryOpen, 500);
+    }, 300);
+};
+
+
+// ============================================================
+// 🏆 SISTEMA VIP
+// ============================================================
+window._getNivelVip = function(cpf) {
+    if (!cpf) return null;
+    const cpfLimpo = cpf.replace(/\D/g, '');
+    if (!cpfLimpo) return null;
+    const total = (window._bookipsCache || []).filter(b => (b.cpf||'').replace(/\D/g,'') === cpfLimpo).length;
+    if (total >= 15) return { label: '⭐ Extraordinário', cor: '#a78bfa', total, prox: null };
+    if (total >= 8)  return { label: '💎 VIP',           cor: '#00e5ff', total, prox: 15 };
+    if (total >= 5)  return { label: '🥇 Ouro',          cor: '#ffd700', total, prox: 8 };
+    if (total >= 3)  return { label: '🥉 Bronze',        cor: '#cd7f32', total, prox: 5 };
+    return { label: null, cor: null, total, prox: 3 };
+};
+window._nivelVipBadgeHTML = function(cpf) {
+    const n = window._getNivelVip(cpf);
+    if (!n || !n.label) return '';
+    const proxMsg = n.prox ? ` · falta ${n.prox - n.total} p/ subir` : ' · máximo!';
+    return `<span style="display:inline-block;background:${n.cor}22;border:1px solid ${n.cor}55;color:${n.cor};border-radius:20px;padding:1px 8px;font-size:.68rem;font-weight:700;vertical-align:middle;">${n.label}${proxMsg}</span>`;
+};
+
+// ── Banner VIP ao clicar no (i) do Bookip ──
+window._mostrarVipBanner = function() {
+    const info = window._vipInfoAtual;
+    if (!info) return;
+    const { cliente, nivel } = info;
+    if (!nivel || !nivel.total) return;
+    const cor = nivel.cor || '#ffd700';
+    const label = nivel.label || `${nivel.total} compra(s)`;
+    const prox = nivel.prox ? `Falta <strong>${nivel.prox - nivel.total}</strong> compra(s) para o próximo nível.` : '🎉 Nível máximo!';
+    document.getElementById('vipBannerOverlay')?.remove();
+    const ov = document.createElement('div');
+    ov.id = 'vipBannerOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:10003;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:24px;';
+    ov.innerHTML = `<div style="background:var(--card-bg,#1a1a2e);border-radius:20px;width:100%;max-width:340px;padding:28px 22px;border:1px solid ${cor}44;box-shadow:0 0 30px ${cor}22;text-align:center;">
+        <div style="font-size:2.8rem;">${nivel.label?.split(' ')[0]||'⭐'}</div>
+        <div style="font-size:.72rem;color:${cor};font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:6px 0 10px;">${label}</div>
+        <div style="font-size:1.1rem;font-weight:700;color:var(--text-color);margin-bottom:6px;">${cliente.nome}</div>
+        <div style="background:${cor}15;border:1px solid ${cor}33;border-radius:12px;padding:12px;margin:14px 0;font-size:.85rem;color:var(--text-color);">
+            Já comprou <strong style="color:${cor};font-size:1.2rem;">${nivel.total}x</strong> com você!<br>
+            <span style="font-size:.75rem;color:var(--text-secondary);">${prox}</span>
+        </div>
+        <button onclick="document.getElementById('vipBannerOverlay').remove()" style="width:100%;padding:10px;border:none;border-radius:12px;background:var(--primary-color);color:#000;font-weight:700;cursor:pointer;">Fechar</button>
+    </div>`;
+    ov?.addEventListener('click', e => { if(e.target===ov) ov.remove(); });
+    document.body.appendChild(ov);
+};
+
+// ── Ranking top 10 ──
+window._renderRankingEstrelas = function() {
+    const el = document.getElementById('rankingClientesBody');
+    if (!el) return;
+    const cache = window._bookipsCache || [];
+    const clientes = window.dbClientsCache || [];
+    if (!cache.length) { el.innerHTML = '<p class="text-secondary small text-center mb-0">Nenhuma compra ainda.</p>'; return; }
+    const contagem = {};
+    cache.forEach(b => { const cpf = (b.cpf||'').replace(/\D/g,''); if(cpf) contagem[cpf]=(contagem[cpf]||0)+1; });
+    const top = Object.entries(contagem).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([cpf,qtd])=>{
+        const c = clientes.find(x=>(x.cpf||'').replace(/\D/g,'')===cpf);
+        return { nome: c?.nome||'Cliente', cpf, qtd, id: c?.id||'', nivel: window._getNivelVip(cpf) };
+    });
+    if (!top.length) { el.innerHTML = '<p class="text-secondary small text-center mb-0">Nenhum dado ainda.</p>'; return; }
+    const medalhas = ['🥇','🥈','🥉'];
+    el.innerHTML = top.map((t,i) => {
+        const badge = t.nivel?.label ? `<span style="background:${t.nivel.cor}22;border:1px solid ${t.nivel.cor}55;color:${t.nivel.cor};border-radius:20px;padding:1px 7px;font-size:.65rem;font-weight:700;">${t.nivel.label}</span>` : '';
+        const click = t.id ? `onclick="window.abrirEstrelaCliente('${t.id}',${i})"` : '';
+        return `<div ${click} style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--glass-border);cursor:${t.id?'pointer':'default'};">
+            <span style="font-size:1.2rem;width:28px;text-align:center;">${medalhas[i]||(i+1)+'.'}</span>
+            <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.nome} ${badge}</div><div style="font-size:.72rem;color:var(--text-secondary);">${t.qtd} compra(s)</div></div>
+            ${t.id?'<i class="bi bi-chevron-right" style="color:var(--text-secondary);font-size:.7rem;"></i>':''}
+        </div>`;
+    }).join('');
+};
+
+// ── Banner estrela ao clicar no ranking ──
+window.abrirEstrelaCliente = async function(id, posicao) {
+    const cliente = (window.dbClientsCache||[]).find(c=>c.id===id);
+    if (!cliente) return;
+    const bookips = (window._bookipsCache||[]).filter(b=>{
+        const cpfB=(b.cpf||'').replace(/\D/g,''), cpfC=(cliente.cpf||'').replace(/\D/g,'');
+        const nomeB=(b.nome||'').toLowerCase().trim(), nomeC=(cliente.nome||'').toLowerCase().trim();
+        return (cpfB&&cpfC&&cpfB===cpfC)||(nomeB&&nomeC&&nomeB===nomeC);
+    }).sort((a,b)=>((b.dataVenda||'')>(a.dataVenda||'')?1:-1));
+    const nivel = window._getNivelVip ? window._getNivelVip(cliente.cpf) : null;
+    const medalhas=['🥇','🥈','🥉'];
+    const medalha=medalhas[posicao]||'⭐';
+    const cor=nivel?.cor||'#ffd700';
+    const comprasHTML = bookips.slice(0,8).map(b=>{
+        const itens=(b.items||b.produtos||[]).map(i=>i.nome||i.name||'').filter(Boolean).join(', ')||'—';
+        const data=(b.dataVenda||'').split('-').reverse().join('/')||'---';
+        const vend=b.criadoPor?`<span style="background:rgba(var(--primary-color-rgb),.15);color:var(--primary-color);border-radius:6px;padding:1px 6px;font-size:.68rem;font-weight:600;">${b.criadoPor}</span>`:'';
+        return `<div onclick="window._abrirGarantiaDoBanner('${b.id}')" style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''">
+            <div style="flex:1;"><div style="font-size:.82rem;font-weight:500;color:var(--text-color);">${itens}</div><div style="display:flex;gap:8px;align-items:center;margin-top:3px;">${vend}<span style="font-size:.72rem;color:var(--text-secondary);">${data}</span></div></div>
+            <i class="bi bi-file-earmark-text" style="color:var(--text-secondary);font-size:.85rem;"></i>
+        </div>`;
+    }).join('');
+    document.getElementById('estrelaOverlay')?.remove();
+    const ov=document.createElement('div');
+    ov.id='estrelaOverlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px;';
+    ov.innerHTML=`<div style="background:var(--card-bg,#1a1a2e);border-radius:24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;padding:28px 22px;border:1px solid ${cor}44;box-shadow:0 0 40px ${cor}22;text-align:center;">
+        <div style="font-size:3.5rem;margin-bottom:4px;">${medalha}</div>
+        <div style="font-size:.75rem;color:${cor};font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">${nivel?.label||'Cliente Fiel'}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text-color);margin-bottom:4px;">${cliente.nome}</div>
+        <div style="font-size:.8rem;color:var(--text-secondary);margin-bottom:16px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+            ${cliente.cpf?`<span>📋 ${cliente.cpf}</span>`:''}${cliente.tel?`<span>📱 ${cliente.tel}</span>`:''}
+        </div>
+        <div style="background:${cor}15;border:1px solid ${cor}33;border-radius:14px;padding:12px;margin-bottom:18px;display:flex;justify-content:center;gap:24px;">
+            <div><div style="font-size:1.6rem;font-weight:800;color:${cor};">${bookips.length}</div><div style="font-size:.72rem;color:var(--text-secondary);">compras</div></div>
+            ${nivel?.prox?`<div><div style="font-size:1.6rem;font-weight:800;color:var(--text-secondary);">${nivel.prox-nivel.total}</div><div style="font-size:.72rem;color:var(--text-secondary);">p/ próx.</div></div>`:'<div><div style="font-size:1.6rem;">🎉</div><div style="font-size:.72rem;color:var(--text-secondary);">máximo</div></div>'}
+        </div>
+        <div style="text-align:left;"><div style="font-weight:700;font-size:.82rem;color:var(--text-color);margin-bottom:8px;">Histórico de Compras</div>${comprasHTML||'<p style="color:var(--text-secondary);font-size:.78rem;">Sem histórico.</p>'}</div>
+        <button onclick="document.getElementById('estrelaOverlay').remove()" style="margin-top:18px;width:100%;padding:12px;border:none;border-radius:14px;background:var(--primary-color);color:#000;font-weight:700;font-size:.9rem;cursor:pointer;">Fechar</button>
+    </div>`;
+    ov?.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+    document.body.appendChild(ov);
+};
+
+// ── Resumo do cliente ──
+window.abrirResumoCliente = async function(id) {
+    const cliente=(window.dbClientsCache||[]).find(c=>c.id===id);
+    if (!cliente) return;
+    const bookips=(window._bookipsCache||[]).filter(b=>{
+        const cpfB=(b.cpf||'').replace(/\D/g,''),cpfC=(cliente.cpf||'').replace(/\D/g,'');
+        const nomeB=(b.nome||'').toLowerCase().trim(),nomeC=(cliente.nome||'').toLowerCase().trim();
+        return (cpfB&&cpfC&&cpfB===cpfC)||(nomeB&&nomeC&&nomeB===nomeC);
+    }).sort((a,b)=>((b.dataVenda||'')>(a.dataVenda||'')?1:-1));
+    const nivel=window._getNivelVip?window._getNivelVip(cliente.cpf):null;
+    const nivelHTML=nivel?.label?`<span style="background:${nivel.cor}22;border:1px solid ${nivel.cor}55;color:${nivel.cor};border-radius:20px;padding:2px 10px;font-size:.75rem;font-weight:700;">${nivel.label}</span>`:'';
+    const comprasHTML=bookips.length?bookips.slice(0,15).map(b=>{
+        const itens=(b.items||b.produtos||[]).map(i=>i.nome||i.name||'').filter(Boolean).join(', ')||'Sem detalhes';
+        const data=b.dataVenda||''; const dataFmt=data?data.split('-').reverse().join('/'):'---';
+        const tipo=b.type==='recibo'?'🧾':b.type==='situacao'?'📋':'📄';
+        const vend=b.criadoPor?`<span style="background:rgba(var(--primary-color-rgb),.15);color:var(--primary-color);border-radius:6px;padding:1px 6px;font-size:.67rem;font-weight:600;margin-left:4px;">${b.criadoPor}</span>`:'';
+        return `<div onclick="window._abrirGarantiaDoBanner('${b.id}')" style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''">
+            <span style="font-size:1.1rem;">${tipo}</span>
+            <div style="flex:1;"><div style="font-size:.82rem;font-weight:600;">${itens}${vend}</div><div style="font-size:.72rem;color:var(--text-secondary);">${dataFmt}</div></div>
+            <i class="bi bi-chevron-right" style="color:var(--text-secondary);font-size:.7rem;align-self:center;"></i>
+        </div>`;
+    }).join(''):'<p style="color:var(--text-secondary);text-align:center;padding:12px;">Nenhuma compra registrada.</p>';
+    document.getElementById('resumoClienteOverlay')?.remove();
+    const ov=document.createElement('div');
+    ov.id='resumoClienteOverlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;justify-content:center;';
+    ov.innerHTML=`<div style="background:var(--card-bg,#1a1a2e);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:20px 18px 36px;border-top:2px solid var(--primary-color);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <span style="font-weight:700;font-size:1rem;color:var(--text-color);">👤 Perfil do Cliente</span>
+            <button onclick="document.getElementById('resumoClienteOverlay').remove()" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer;">✕</button>
+        </div>
+        <div style="margin-bottom:14px;">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--text-color);">${cliente.nome||'?'} ${nivelHTML}</div>
+            <div style="font-size:.8rem;color:var(--text-secondary);margin-top:4px;display:flex;flex-wrap:wrap;gap:10px;">
+                ${cliente.cpf?`<span>📋 ${cliente.cpf}</span>`:''}${cliente.tel?`<span>📱 ${cliente.tel}</span>`:''}${cliente.end?`<span>📍 ${cliente.end}</span>`:''}
+            </div>
+            <div style="margin-top:8px;font-size:.8rem;color:var(--text-secondary);">${bookips.length} compra(s) registrada(s)</div>
+        </div>
+        <div style="font-weight:600;font-size:.85rem;margin-bottom:8px;color:var(--text-color);">Histórico de Compras</div>
+        <div>${comprasHTML}</div>
+    </div>`;
+    ov?.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+    document.body.appendChild(ov);
+};
+
+// ============================================================
+// 🔍 ZELADOR — hash map O(n), sem travar
+// ============================================================
+window.abrirZelador = function() {
+    const clientes = window.dbClientsCache || [];
+    if (clientes.length < 2) { showCustomModal({ message: 'Poucos clientes.' }); return; }
+    function normCpf(s)  { return (s||'').replace(/\D/g,''); }
+    function normTel(s)  { return (s||'').replace(/\D/g,'').replace(/^0+/,''); }
+    function normNome(s) { return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z\s]/g,'').trim().split(/\s+/).sort().join(' '); }
+    const idParaGrupo = new Map();
+    const grupos = [];
+    function addGrupo(a, b, motivo) {
+        const ga=idParaGrupo.get(a.id), gb=idParaGrupo.get(b.id);
+        if (ga!==undefined && gb!==undefined && ga===gb) return;
+        if (ga!==undefined && gb!==undefined) {
+            const mn=Math.min(ga,gb),mx=Math.max(ga,gb);
+            grupos[mn].itens.push(...grupos[mx].itens);
+            grupos[mx].itens.forEach(c=>idParaGrupo.set(c.id,mn));
+            grupos[mn].motivos=[...new Set([...grupos[mn].motivos,...grupos[mx].motivos,motivo])];
+            grupos[mx]=null;
+        } else if (ga!==undefined) { grupos[ga].itens.push(b); grupos[ga].motivos=[...new Set([...grupos[ga].motivos,motivo])]; idParaGrupo.set(b.id,ga); }
+        else if (gb!==undefined) { grupos[gb].itens.push(a); grupos[gb].motivos=[...new Set([...grupos[gb].motivos,motivo])]; idParaGrupo.set(a.id,gb); }
+        else { const idx=grupos.length; grupos.push({itens:[a,b],motivos:[motivo]}); idParaGrupo.set(a.id,idx); idParaGrupo.set(b.id,idx); }
+    }
+    const porCpf={}, porNome={}, porTel={};
+    clientes.forEach(c=>{
+        const cpf=normCpf(c.cpf); if(cpf.length===11){if(!porCpf[cpf])porCpf[cpf]=[];porCpf[cpf].push(c);}
+        const nome=normNome(c.nome); if(nome.length>=6){if(!porNome[nome])porNome[nome]=[];porNome[nome].push(c);}
+        const tel=normTel(c.tel); if(tel.length>=10){if(!porTel[tel])porTel[tel]=[];porTel[tel].push(c);}
+    });
+    Object.values(porCpf).filter(g=>g.length>1).forEach(g=>{for(let i=1;i<g.length;i++)addGrupo(g[0],g[i],'mesmo CPF');});
+    Object.values(porNome).filter(g=>g.length>1).forEach(g=>{for(let i=1;i<g.length;i++)addGrupo(g[0],g[i],'mesmo nome');});
+    Object.values(porTel).filter(g=>g.length>1).forEach(g=>{for(let i=1;i<g.length;i++)addGrupo(g[0],g[i],'mesmo telefone');});
+    const gv = grupos.filter(g=>g!==null&&g.itens.length>1);
+
+    async function mesclarGrupo(grupo) {
+        const melhor=(campo)=>grupo.itens.map(c=>c[campo]||'').sort((a,b)=>b.length-a.length)[0]||'';
+        const mesclado={nome:melhor('nome'),cpf:melhor('cpf'),tel:melhor('tel'),end:melhor('end'),email:melhor('email'),dataNascimento:melhor('dataNascimento')};
+        const idManter=grupo.itens.map(c=>c.id).sort()[0];
+        const idsRem=grupo.itens.map(c=>c.id).filter(id=>id!==idManter);
+        try {
+            await set(ref(db,`clientes/${idManter}`),{...mesclado,id:idManter});
+            for(const id of idsRem) await remove(ref(db,`clientes/${id}`));
+            return true;
+        } catch(e){console.error('[Zelador]',e);return false;}
+    }
+
+    document.getElementById('zeladorOverlay')?.remove();
+    const ov=document.createElement('div');
+    ov.id='zeladorOverlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:1050;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;justify-content:center;';
+
+    function renderZ() {
+        let corpo='';
+        if (!gv.filter(Boolean).length) {
+            corpo='<div style="text-align:center;padding:28px;"><span style="font-size:2.5rem;">✅</span><p style="margin-top:10px;color:var(--text-secondary);">Base limpa!</p></div>';
+        } else {
+            corpo=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><p style="margin:0;color:var(--text-secondary);font-size:.83rem;"><strong style="color:var(--primary-color)">${gv.filter(Boolean).length}</strong> duplicata(s) em ${clientes.length} clientes.</p><button onclick="window._zelMesclarTodos()" style="padding:5px 12px;border:none;border-radius:8px;background:var(--primary-color);color:#000;font-weight:700;font-size:.75rem;cursor:pointer;">Mesclar Todos</button></div>`;
+            gv.forEach((g,gi)=>{
+                if(!g)return;
+                const campos=g.itens.map(c=>`<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);"><strong>${c.nome||'?'}</strong><div style="font-size:.72rem;color:var(--text-secondary);margin-top:2px;display:flex;flex-wrap:wrap;gap:8px;">${c.cpf?`<span>📋 ${c.cpf}</span>`:''} ${c.tel?`<span>📱 ${c.tel}</span>`:''}</div></div>`).join('');
+                corpo+=`<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;margin-bottom:10px;" id="zelGrupo_${gi}"><div style="font-size:.7rem;color:var(--primary-color);font-weight:700;margin-bottom:6px;">🔗 ${g.motivos.join(' · ')}</div>${campos}<button onclick="window._zelMesclar(${gi})" style="width:100%;margin-top:8px;padding:7px;border:1px solid var(--primary-color);border-radius:8px;background:rgba(var(--primary-color-rgb),.15);color:var(--primary-color);font-weight:700;font-size:.78rem;cursor:pointer;">✂️ Mesclar</button></div>`;
+            });
+        }
+        const p=ov.querySelector('#zelPanel');
+        if(p)p.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><span style="font-weight:700;font-size:1rem;color:var(--text-color);">🔍 Zelador de Dados</span><button onclick="document.getElementById('zeladorOverlay').remove()" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer;">✕</button></div><div style="font-size:.85rem;color:var(--text-color);">${corpo}</div>`;
+    }
+
+    ov.innerHTML='<div id="zelPanel" style="background:var(--card-bg,#1a1a2e);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:20px 18px 36px;border-top:2px solid var(--primary-color);"></div>';
+    document.body.appendChild(ov);
+    renderZ();
+
+    window._zelMesclar=async function(gi){
+        const g=gv[gi]; if(!g)return;
+        const btn=document.querySelector(`#zelGrupo_${gi} button`); if(btn){btn.disabled=true;btn.textContent='Mesclando...';}
+        const ok=await mesclarGrupo(g);
+        if(ok){gv[gi]=null;showCustomModal({message:'✅ Mesclado!'});renderZ();}
+        else{showCustomModal({message:'❌ Erro.'});if(btn){btn.disabled=false;btn.textContent='✂️ Mesclar';}}
+    };
+    window._zelMesclarTodos=async function(){
+        showCustomModal({message:`Mesclar todos os ${gv.filter(Boolean).length} grupos?`,confirmText:'Sim, mesclar',
+            onConfirm:async()=>{
+                const results=await Promise.all(gv.map((g,i)=>g?mesclarGrupo(g).then(ok=>{if(ok)gv[i]=null;return ok;}):Promise.resolve(false)));
+                const ok=results.filter(Boolean).length;
+                showCustomModal({message:`✅ ${ok} grupo(s) mesclado(s)!`});
+                setTimeout(()=>document.getElementById('zeladorOverlay')?.remove(),300);
+            },onCancel:()=>{}});
+    };
+};
+
 window.renderClientsTable = function(filterText = '') {
     const tbody = document.getElementById('clientsTableBody');
     const countEl = document.getElementById('totalClientsCount');
@@ -7057,7 +8792,7 @@ window.renderClientsTable = function(filterText = '') {
     let html = listaVisivel.map(c => `
         <tr>
             <td class="ps-2">
-                <div style="font-weight: 600; font-size: 1rem;">${c.nome}</div>
+                <div style="font-weight: 600; font-size: 1rem;">${c.nome}${window._nivelVipBadgeHTML ? " " + window._nivelVipBadgeHTML(c.cpf) : ""}</div>
                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 3px; display: flex; align-items: center; gap: 8px;">
                     <span><i class="bi bi-card-heading"></i> ${c.cpf || '---'}</span>
                     <span style="opacity: 0.3;">|</span>
@@ -7066,6 +8801,8 @@ window.renderClientsTable = function(filterText = '') {
             </td>
             <td class="text-end pe-2" style="white-space: nowrap; width: 1px;">
                 <div class="d-flex justify-content-end gap-2">
+                    <button class="client-action-btn" onclick="window.abrirResumoCliente('${c.id}')" title="Ver Resumo" style="background:rgba(var(--primary-color-rgb),.15);color:var(--primary-color);border:1px solid rgba(var(--primary-color-rgb),.3);border-radius:8px;padding:5px 8px;"><i class="bi bi-person-lines-fill"></i></button>
+                    <button class="client-action-btn" onclick="window.abrirResumoCliente('${c.id}')" title="Resumo" style="background:rgba(var(--primary-color-rgb),.15);color:var(--primary-color);border:1px solid rgba(var(--primary-color-rgb),.3);border-radius:8px;padding:5px 8px;"><i class="bi bi-person-lines-fill"></i></button>
                     <button class="client-action-btn btn-edit-theme" onclick="editarCliente('${c.id}')" title="Editar"><i class="bi bi-pencil-fill"></i></button>
                     <button class="client-action-btn btn-delete-theme" onclick="excluirCliente('${c.id}')" title="Excluir"><i class="bi bi-trash-fill"></i></button>
                 </div>
@@ -7161,7 +8898,7 @@ window.editarCliente = function(id) {
     if (btnClose) {
         const newBtn = btnClose.cloneNode(true);
         btnClose.parentNode.replaceChild(newBtn, btnClose);
-        newBtn.addEventListener('click', (e) => {
+        newBtn?.addEventListener('click', (e) => {
             e.preventDefault();
             document.getElementById('editClientModalOverlay').classList.remove('active');
         });
@@ -7172,7 +8909,7 @@ window.editarCliente = function(id) {
     if (form) {
         const newForm = form.cloneNode(true);
         form.parentNode.replaceChild(newForm, form);
-        newForm.addEventListener('submit', async (e) => {
+        newForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('editClientId').value;
             const btn = newForm.querySelector('button[type="submit"]');
@@ -7211,7 +8948,7 @@ window.editarCliente = function(id) {
         const newBtn = btnImport.cloneNode(true);
         btnImport.parentNode.replaceChild(newBtn, btnImport);
         
-        newBtn.addEventListener('click', () => {
+        newBtn?.addEventListener('click', () => {
             fileInput.value = ''; 
             fileInput.click();
         });
@@ -7336,7 +9073,7 @@ const setupProductTags = () => {
 
     // Ação ao clicar no NOVO
     if (btnNovo && inputNome) {
-        btnNovo.addEventListener('click', () => {
+        btnNovo?.addEventListener('click', () => {
             let text = inputNome.value;
             // 1. Remove SEMINOVO se existir (limpa o rival)
             text = text.replace(suffixSemi, '');
@@ -7355,7 +9092,7 @@ const setupProductTags = () => {
 
     // Ação ao clicar no SEMINOVO
     if (btnSemi && inputNome) {
-        btnSemi.addEventListener('click', () => {
+        btnSemi?.addEventListener('click', () => {
             let text = inputNome.value;
             // 1. Remove NOVO se existir (limpa o rival)
             text = text.replace(suffixNovo, '');
@@ -7374,7 +9111,7 @@ const setupProductTags = () => {
     
     // Ouve se o usuário digitar manualmente para atualizar os botões
     if(inputNome) {
-        inputNome.addEventListener('input', updateVisuals);
+        inputNome?.addEventListener('input', updateVisuals);
     }
 };
 // Inicia a função
@@ -7408,6 +9145,8 @@ setupProductTags();
                 areaContrato.classList.remove('hidden');
                 areaContrato.style.display = 'block';
                 if (typeof loadContractDraft === 'function') loadContractDraft();
+                // Pré-carrega as libs de PDF em background para que o share funcione na hora H
+                if (typeof garantirPdfLibs === 'function') garantirPdfLibs();
             }
         } 
         else if (subSectionId === 'bookip') {
@@ -7970,7 +9709,7 @@ const opt = {
         botao.parentNode.replaceChild(novoBotao, botao);
 
         // Evento de Clique para Compartilhar
-        novoBotao.addEventListener('click', async () => {
+        novoBotao?.addEventListener('click', async () => {
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 const settings = (typeof receiptSettings !== 'undefined') ? receiptSettings : {};
                 const saudacao = 'Olá ' + (dados.nome || 'Cliente') + ',';
@@ -8280,7 +10019,7 @@ window.processarTextoZap = function() {
 setTimeout(() => {
     const btnZap = document.getElementById('btnZapMagico');
     if (btnZap) {
-        btnZap.addEventListener('click', (e) => {
+        btnZap?.addEventListener('click', (e) => {
             e.preventDefault(); // Evita recarregar se estiver num form
             window.abrirModalColarZap();
         });
@@ -8394,10 +10133,10 @@ window.resetFormulariosBookip = function() {
     
     // 1. Botões de Navegação
     const btnOpenEmprestar = document.getElementById('openEmprestarValores');
-    if(btnOpenEmprestar) btnOpenEmprestar.addEventListener('click', () => openCalculatorSection('emprestarValores'));
+    if(btnOpenEmprestar) btnOpenEmprestar?.addEventListener('click', () => openCalculatorSection('emprestarValores'));
     
     const btnBackEmprestar = document.getElementById('backFromEmprestarValores');
-    if(btnBackEmprestar) btnBackEmprestar.addEventListener('click', () => openCalculatorSection('calculatorHome'));
+    if(btnBackEmprestar) btnBackEmprestar?.addEventListener('click', () => openCalculatorSection('calculatorHome'));
 
     // 2. OUVINTE GERAL (Atualiza a conta se mexer em QUALQUER coisa)
     const itensParaVigiar = ['emprestarValorBase', 'emprestarLucroReais', 'emprestarEntrada', 'machine5', 'brand5'];
@@ -8406,16 +10145,16 @@ window.resetFormulariosBookip = function() {
         const el = document.getElementById(id);
         if(el) {
             // "input" serve para quando você digita números
-            el.addEventListener('input', calculateEmprestarValores);
+            el?.addEventListener('input', calculateEmprestarValores);
             // "change" é CRUCIAL para quando você troca a maquininha ou bandeira
-            el.addEventListener('change', calculateEmprestarValores);
+            el?.addEventListener('change', calculateEmprestarValores);
         }
     });
 
     // 3. Lógica Especial da Maquininha (Troca Visual + Recalculo)
     const maquina5 = document.getElementById('machine5');
     if(maquina5) {
-        maquina5.addEventListener('change', (event) => {
+        maquina5?.addEventListener('change', (event) => {
             // 1. Atualiza a visibilidade da bandeira
             const containerFlag = document.getElementById("flagDisplayContainer5");
             if(containerFlag) {
@@ -8445,7 +10184,7 @@ window.resetFormulariosBookip = function() {
         const newBtn = btnExportEmprestimo.cloneNode(true);
         btnExportEmprestimo.parentNode.replaceChild(newBtn, btnExportEmprestimo);
         
-        newBtn.addEventListener('click', () => {
+        newBtn?.addEventListener('click', () => {
             const nomeProd = document.getElementById('emprestarNomeProduto').value;
             const titulo = nomeProd ? nomeProd : "Simulação de Empréstimo";
             exportResultsToImage('resultEmprestarValores', 'simulacao-emprestimo.png', titulo);
@@ -8757,10 +10496,10 @@ window.ativarSalvamentoAutomatico = function() {
     // Adiciona ouvintes em TUDO (Inputs, Selects, Checkboxes)
     container.querySelectorAll('input, select, textarea').forEach(el => {
         el.removeEventListener('input', gatilho);
-        el.addEventListener('input', gatilho);
+        el?.addEventListener('input', gatilho);
         // Para checkboxes e selects, usa 'change' também
         el.removeEventListener('change', gatilho); 
-        el.addEventListener('change', gatilho);
+        el?.addEventListener('change', gatilho);
     });
 };
 
@@ -9024,7 +10763,7 @@ window.filtrarHistoricoPorPerfil = function(perfil, btn) {
 // --- MÁSCARA DE DINHEIRO RÁPIDA ---
 const inputVenda = document.getElementById('fecharVendaValue');
 if (inputVenda) {
-    inputVenda.addEventListener('input', (e) => {
+    inputVenda?.addEventListener('input', (e) => {
         let value = e.target.value.replace(/\D/g, ""); // Só deixa números
         if (value === "") { e.target.value = ""; return; }
         
@@ -9388,7 +11127,7 @@ const selectGarantia = document.getElementById('bookipGarantiaSelect');
 const inputGarantiaManual = document.getElementById('bookipGarantiaCustomInput');
 
 if (selectGarantia && inputGarantiaManual) {
-    selectGarantia.addEventListener('change', function() {
+    selectGarantia?.addEventListener('change', function() {
         if (this.value === 'custom') {
             // Se escolheu Manual, mostra o campo e já coloca o cursor lá
             inputGarantiaManual.classList.remove('hidden');
@@ -9481,17 +11220,20 @@ window.showCustomModal       = showCustomModal;
             + '<button id="_npSaveBtn" style="width:calc(100% - 32px);margin:14px 16px 0;padding:14px;border:none;border-radius:14px;background:var(--primary-color,#00e5ff);color:#000;font-weight:700;font-size:.95rem;cursor:pointer;">Salvar preferências</button>'
             + '</div></div>';
 
-        panel.addEventListener('click', function(e) { if (e.target === panel) panel.remove(); });
+        panel?.addEventListener('click', function(e) { if (e.target === panel) panel.remove(); });
         document.body.appendChild(panel);
 
         ['aniversarios','reparos','boletos'].forEach(function(key) {
             var idMap = { aniversarios:'aniv', reparos:'rep', boletos:'bol' };
-            document.getElementById('_np_' + idMap[key]).addEventListener('click', function() {
+            var _npBtn = document.getElementById('_np_' + idMap[key]);
+            if (_npBtn) _npBtn?.addEventListener('click', function() {
                 cur[key] = !cur[key];
-                document.getElementById('_npcb_' + key).innerHTML = cbHtml(cur[key]);
+                var _npcb = document.getElementById('_npcb_' + key);
+                if (_npcb) _npcb.innerHTML = cbHtml(cur[key]);
             });
         });
-        document.getElementById('_npSaveBtn').addEventListener('click', function() {
+        var _npSaveBtn = document.getElementById('_npSaveBtn');
+        if (_npSaveBtn) _npSaveBtn?.addEventListener('click', function() {
             savePrefs(cur);
             updateLabels(cur);
             panel.remove();
@@ -9645,7 +11387,7 @@ window.showCustomModal       = showCustomModal;
         var input = document.getElementById('avatarPhotoInput');
         if (!input) return;
 
-        input.addEventListener('change', async function(e) {
+        input?.addEventListener('change', async function(e) {
             var file = e.target.files[0];
             input.value = '';
             if (!file) return;
@@ -9701,6 +11443,13 @@ window.showCustomModal       = showCustomModal;
 
 window.setupNotificationListeners = setupNotificationListeners;
 window.escapeHtml            = typeof escapeHtml === 'function' ? escapeHtml : (s) => s;
+window.safeStorage           = safeStorage;
+window.checkedItems          = checkedItems;
+window.saveCheckedItems      = typeof saveCheckedItems === 'function' ? saveCheckedItems : null;
+window.updateProductInDB     = typeof updateProductInDB === 'function' ? updateProductInDB : null;
+window.filterStockProducts   = typeof filterStockProducts === 'function' ? filterStockProducts : null;
+window.colorPalette          = typeof colorPalette !== 'undefined' ? colorPalette : [];
+// window.products já é atualizado diretamente via listener do Firebase
 window.updateNotificationUI  = updateNotificationUI;
 // db exposto via window._firebaseDB no onAuthStateChanged (ver abaixo)
 
@@ -9739,9 +11488,11 @@ window.updateNotificationUI  = updateNotificationUI;
                 if(typeof showCustomModal === 'function') showCustomModal({ message: '❌ Senha incorreta.' });
             }
         }
-        document.getElementById('_gPerfisSenhaOk').addEventListener('click', check);
-        document.getElementById('_gPerfisSenhaCancel').addEventListener('click', function(){ ov.remove(); });
-        if(inp) inp.addEventListener('keydown', function(e){ if(e.key==='Enter') check(); });
+        var _gSOk = document.getElementById('_gPerfisSenhaOk');
+        var _gSCan = document.getElementById('_gPerfisSenhaCancel');
+        if (_gSOk) _gSOk?.addEventListener('click', check);
+        if (_gSCan) _gSCan?.addEventListener('click', function(){ ov.remove(); });
+        if(inp) inp?.addEventListener('keydown', function(e){ if(e.key==='Enter') check(); });
     };
 
     function _renderPerfilPanel() {
@@ -9766,8 +11517,10 @@ window.updateNotificationUI  = updateNotificationUI;
         `;
         document.body.appendChild(panel);
 
-        document.getElementById('_gPerfisClose').addEventListener('click', function(){ panel.remove(); });
-        document.getElementById('_gPerfisAddBtn').addEventListener('click', _addPerfil);
+        var _gClose = document.getElementById('_gPerfisClose');
+        var _gAdd = document.getElementById('_gPerfisAddBtn');
+        if (_gClose) _gClose?.addEventListener('click', function(){ panel.remove(); });
+        if (_gAdd) _gAdd?.addEventListener('click', _addPerfil);
         _loadPerfis();
     }
 
@@ -9803,10 +11556,10 @@ window.updateNotificationUI  = updateNotificationUI;
         });
 
         container.querySelectorAll('._gPerfisEditBtn').forEach(function(btn){
-            btn.addEventListener('click', function(){ _editPerfil(btn.dataset.pid, btn.dataset.pname, btn.dataset.psenha); });
+            btn?.addEventListener('click', function(){ _editPerfil(btn.dataset.pid, btn.dataset.pname, btn.dataset.psenha); });
         });
         container.querySelectorAll('._gPerfisDelBtn').forEach(function(btn){
-            btn.addEventListener('click', function(){ _deletePerfil(btn.dataset.pid, btn.dataset.pname); });
+            btn?.addEventListener('click', function(){ _deletePerfil(btn.dataset.pid, btn.dataset.pname); });
         });
     }
 
@@ -9877,14 +11630,16 @@ window.updateNotificationUI  = updateNotificationUI;
         // Lógica dos botões de senha (só existe se já tiver senha)
         var _removerSenha = false;
         if (senhaAtual) {
-            document.getElementById('_btnAlterarSenha').addEventListener('click', function() {
+            var _btnAlt = document.getElementById('_btnAlterarSenha');
+            var _btnRem = document.getElementById('_btnRemoverSenha');
+            if (_btnAlt) _btnAlt?.addEventListener('click', function() {
                 _removerSenha = false;
                 document.getElementById('_novaSenhaContainer').style.display = 'block';
                 document.getElementById('_removerSenhaConfirm').style.display = 'none';
                 document.getElementById('_editSenhaOpcoes').style.display = 'none';
                 setTimeout(function(){ if(senhaInp) senhaInp.focus(); }, 60);
             });
-            document.getElementById('_btnRemoverSenha').addEventListener('click', function() {
+            if (_btnRem) _btnRem?.addEventListener('click', function() {
                 _removerSenha = true;
                 document.getElementById('_removerSenhaConfirm').style.display = 'block';
                 document.getElementById('_novaSenhaContainer').style.display = 'none';
@@ -9892,8 +11647,10 @@ window.updateNotificationUI  = updateNotificationUI;
             });
         }
 
-        document.getElementById('_editPerfilCancel').addEventListener('click', function(){ ov.remove(); });
-        document.getElementById('_editPerfilSave').addEventListener('click', function(){
+        var _editCan = document.getElementById('_editPerfilCancel');
+        var _editSav = document.getElementById('_editPerfilSave');
+        if (_editCan) _editCan?.addEventListener('click', function(){ ov.remove(); });
+        if (_editSav) _editSav?.addEventListener('click', function(){
             var novoNome  = nomeInp.value.trim();
             var novaSenha = senhaInp ? senhaInp.value : '';
             if(!novoNome) { alert('Nome obrigatório.'); return; }
@@ -9982,9 +11739,10 @@ window.updateNotificationUI  = updateNotificationUI;
         var erroDiv  = document.getElementById('_deletePerfilErro');
         setTimeout(function(){ if(senhaInp) senhaInp.focus(); }, 80);
 
-        document.getElementById('_deletePerfilCancel').addEventListener('click', function(){ ov.remove(); });
-
-        document.getElementById('_deletePerfilConfirm').addEventListener('click', function(){
+        var _delCan = document.getElementById('_deletePerfilCancel');
+        var _delCon = document.getElementById('_deletePerfilConfirm');
+        if (_delCan) _delCan?.addEventListener('click', function(){ ov.remove(); });
+        if (_delCon) _delCon?.addEventListener('click', function(){
             if(senhaInp.value !== '220390') {
                 erroDiv.style.display = 'block';
                 senhaInp.value = '';
@@ -9999,20 +11757,90 @@ window.updateNotificationUI  = updateNotificationUI;
                 }, 60);
                 return;
             }
-            // Senha correta — exclui
+            // Senha correta — exclui perfil e marca registros vinculados
             ov.remove();
-            remove(ref(db, 'team_profiles/' + pid)).then(function(){
-                if(nome === currentUserProfile) {
+
+            async function _excluirPerfilComMarcacao() {
+                const tag = '⚠️ Perfil removido (' + nome + ')';
+
+                // Helper: varre um nó e marca campos que correspondam ao perfil
+                async function marcarNo(no, campos) {
+                    try {
+                        const snap = await get(ref(db, no));
+                        if (!snap.exists()) return;
+                        const upd = {};
+                        snap.forEach(child => {
+                            const d = child.val();
+                            campos.forEach(campo => {
+                                if (d[campo] === nome) {
+                                    upd[no + '/' + child.key + '/' + campo] = tag;
+                                }
+                            });
+                        });
+                        if (Object.keys(upd).length > 0) await update(ref(db), upd);
+                    } catch(e) { console.warn('Erro ao marcar ' + no + ':', e); }
+                }
+
+                // 1. Bookips — criadoPor
+                await marcarNo('bookips', ['criadoPor']);
+
+                // 2. Lixeira de Bookips — criadoPor (cópia do bookip, mesmo campo)
+                await marcarNo('trash_bookips', ['criadoPor']);
+
+                // 3. Contratos / Boletos — criadoPor
+                await marcarNo('boletos', ['criadoPor']);
+
+                // 4. Clientes — criadoPor + atribuidoA
+                await marcarNo('clientes', ['criadoPor', 'atribuidoA']);
+
+                // 5. Consertos — criadoPor + responsavel + cada user da timeline
+                try {
+                    const snapRep = await get(ref(db, 'repairs'));
+                    if (snapRep.exists()) {
+                        const updRep = {};
+                        snapRep.forEach(child => {
+                            const d   = child.val();
+                            const base = 'repairs/' + child.key;
+                            if (d.criadoPor   === nome) updRep[base + '/criadoPor']   = tag;
+                            if (d.responsavel === nome) updRep[base + '/responsavel'] = tag;
+                            // Cada etapa da timeline pode ter o user do perfil
+                            if (d.timeline && typeof d.timeline === 'object') {
+                                Object.entries(d.timeline).forEach(([etapa, val]) => {
+                                    if (val && val.user === nome) {
+                                        updRep[base + '/timeline/' + etapa + '/user'] = tag;
+                                    }
+                                });
+                            }
+                        });
+                        if (Object.keys(updRep).length > 0) await update(ref(db), updRep);
+                    }
+                } catch(e) { console.warn('Erro ao marcar repairs:', e); }
+
+                // 6. Remove o nó do perfil em si (favorites, avatarUrl, senha somem junto)
+                await remove(ref(db, 'team_profiles/' + pid));
+
+                // 7. Limpa localStorage do dispositivo que está fazendo a exclusão
+                localStorage.removeItem('ctwAvatar_' + nome.toLowerCase().replace(/\s+/g, '_'));
+                localStorage.removeItem('ctw_favs_'  + nome.toLowerCase().replace(/\s+/g, '_'));
+                if (nome === currentUserProfile) {
                     currentUserProfile = '';
                     localStorage.removeItem('ctwUserProfile');
                 }
+
+                // 8. Invalida cache da equipe para forçar recarga
+                localStorage.removeItem('cache_equipe_local');
+
                 _loadPerfis();
-                if(typeof showCustomModal === 'function') showCustomModal({ message: '✅ Perfil "' + nome + '" removido.' });
-            }).catch(function(e){ alert('Erro: ' + e.message); });
+                if (typeof showCustomModal === 'function') {
+                    showCustomModal({ message: '✅ Perfil "' + nome + '" removido.\nTodos os registros vinculados foram marcados.' });
+                }
+            }
+
+            _excluirPerfilComMarcacao().catch(function(e){ alert('Erro: ' + e.message); });
         });
 
         // Enter no campo de senha confirma
-        senhaInp.addEventListener('keydown', function(e){
+        senhaInp?.addEventListener('keydown', function(e){
             if(e.key === 'Enter') document.getElementById('_deletePerfilConfirm').click();
         });
     }
@@ -10042,8 +11870,10 @@ window.updateNotificationUI  = updateNotificationUI;
         var senhaInp = document.getElementById('_addPerfilSenha');
         setTimeout(function(){ if(nomeInp) nomeInp.focus(); }, 80);
 
-        document.getElementById('_addPerfilCancel').addEventListener('click', function(){ ov.remove(); });
-        document.getElementById('_addPerfilSave').addEventListener('click', function(){
+        var _addCan = document.getElementById('_addPerfilCancel');
+        var _addSav = document.getElementById('_addPerfilSave');
+        if (_addCan) _addCan?.addEventListener('click', function(){ ov.remove(); });
+        if (_addSav) _addSav?.addEventListener('click', function(){
             var nome  = nomeInp.value.trim();
             var senha = senhaInp.value;
             if(!nome) { alert('Nome obrigatório.'); return; }
@@ -10151,12 +11981,12 @@ window.updateNotificationUI  = updateNotificationUI;
             if (!btn) return;
             var targetId = map[v2Id];
             if (targetId) {
-                btn.addEventListener('click', function() {
+                btn?.addEventListener('click', function() {
                     var orig = document.getElementById(targetId);
                     if (orig) orig.click();
                 });
             } else if (v2Id === 'openReciboView2') {
-                btn.addEventListener('click', function() {
+                btn?.addEventListener('click', function() {
                     if (typeof window.abrirReciboSimples === 'function') window.abrirReciboSimples();
                 });
             }
@@ -10341,7 +12171,7 @@ window.updateNotificationUI  = updateNotificationUI;
                 '<span class="gs-card-tag gs-tag-' + r.type + '">' + tags[r.type] + '</span></div>';
         }).join('');
         cont.querySelectorAll('.gs-card').forEach(function(card) {
-            card.addEventListener('click', function() {
+            card?.addEventListener('click', function() {
                 fechar();
                 setTimeout(function() { navigate(card.dataset.type, card.dataset.id); }, 280);
             });
@@ -10411,7 +12241,7 @@ window.updateNotificationUI  = updateNotificationUI;
                     if (collapseEl) {
                         if (window.bootstrap) {
                             bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false }).show();
-                            collapseEl.addEventListener('shown.bs.collapse', function() {
+                            collapseEl?.addEventListener('shown.bs.collapse', function() {
                                 collapseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 setTimeout(function() { applyGlow(collapseEl.closest('.accordion-item') || collapseEl); }, 200);
                             }, { once: true });
@@ -10448,7 +12278,7 @@ window.updateNotificationUI  = updateNotificationUI;
                             var el = document.querySelector(target);
                             if (el) {
                                 bootstrap.Collapse.getOrCreateInstance(el, { toggle: false }).show();
-                                el.addEventListener('shown.bs.collapse', function() {
+                                el?.addEventListener('shown.bs.collapse', function() {
                                     heading.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                     setTimeout(function() { applyGlow(heading.closest('.accordion-item') || heading); }, 200);
                                 }, { once: true });
@@ -10498,13 +12328,13 @@ window.updateNotificationUI  = updateNotificationUI;
     function init() {
         var btn = document.getElementById('globalSearchBtn');
         var input = document.getElementById('gsInput');
-        if (btn) btn.addEventListener('click', abrir);
+        if (btn) btn?.addEventListener('click', abrir);
         var cancel = document.getElementById('gsCancelBtn');
-        if (cancel) cancel.addEventListener('click', fechar);
+        if (cancel) cancel?.addEventListener('click', fechar);
         var bd = document.getElementById('gsBackdrop');
-        if (bd) bd.addEventListener('click', fechar);
+        if (bd) bd?.addEventListener('click', fechar);
         var clearBtn = document.getElementById('gsClearBtn');
-        if (clearBtn) clearBtn.addEventListener('click', function() {
+        if (clearBtn) clearBtn?.addEventListener('click', function() {
             if (input) { input.value = ''; input.focus(); }
             clearBtn.classList.add('gs-hidden');
             var r = document.getElementById('gsResults'); if (r) r.innerHTML = '';
@@ -10512,7 +12342,7 @@ window.updateNotificationUI  = updateNotificationUI;
         });
 
         document.querySelectorAll('.gs-filter').forEach(function(f) {
-            f.addEventListener('click', function() {
+            f?.addEventListener('click', function() {
                 document.querySelectorAll('.gs-filter').forEach(function(x) { x.classList.remove('active'); });
                 f.classList.add('active');
                 _activeFilter = f.dataset.filter;
@@ -10523,7 +12353,7 @@ window.updateNotificationUI  = updateNotificationUI;
 
         if (input) {
             var timer;
-            input.addEventListener('input', function() {
+            input?.addEventListener('input', function() {
                 var q = input.value.trim();
                 var cb = document.getElementById('gsClearBtn');
                 if (cb) cb.classList.toggle('gs-hidden', !q);
@@ -10656,7 +12486,7 @@ window.updateNotificationUI  = updateNotificationUI;
         sheet.style.alignItems = 'flex-end';
         void sheet.offsetHeight;
         sheet.classList.add('ctw-sheet-open');
-        sheet.addEventListener('click', function onBdClick(e) {
+        sheet?.addEventListener('click', function onBdClick(e) {
             if (e.target === sheet) { window.closeCtwSheet(); }
             sheet.removeEventListener('click', onBdClick);
         });
@@ -10685,7 +12515,7 @@ window.updateNotificationUI  = updateNotificationUI;
         // Top pill busca → dispara o mesmo globalSearchBtn
         var topSearch = document.getElementById('ctwTopSearchBtn');
         if (topSearch) {
-            topSearch.addEventListener('click', function() {
+            topSearch?.addEventListener('click', function() {
                 var gsBtn = document.getElementById('globalSearchBtn');
                 if (gsBtn) gsBtn.click();
             });
@@ -10694,7 +12524,7 @@ window.updateNotificationUI  = updateNotificationUI;
         // Botão HOME
         var homeBtn = document.getElementById('ctwNavHome');
         if (homeBtn) {
-            homeBtn.addEventListener('click', function() {
+            homeBtn?.addEventListener('click', function() {
                 setNavActive('ctwNavHome');
                 if (typeof showMainSection === 'function') showMainSection('main');
                 else if (typeof window.showMainSection === 'function') window.showMainSection('main');
@@ -10704,7 +12534,7 @@ window.updateNotificationUI  = updateNotificationUI;
         // Botão SINO — lógica simples sem guard que bloqueava o re-abrir
         var bellBtn = document.getElementById('ctwNavBell');
         if (bellBtn) {
-            bellBtn.addEventListener('click', function() {
+            bellBtn?.addEventListener('click', function() {
                 syncNavBadge();
                 if (typeof window.toggleNotifBalloons === 'function') {
                     window.toggleNotifBalloons();
@@ -10715,7 +12545,7 @@ window.updateNotificationUI  = updateNotificationUI;
         // Botão PERFIL
         var profileBtn = document.getElementById('ctwNavProfile');
         if (profileBtn) {
-            profileBtn.addEventListener('click', function() {
+            profileBtn?.addEventListener('click', function() {
                 setNavActive('ctwNavProfile');
                 window.openCtwSheet();
             });
@@ -10855,7 +12685,7 @@ window.updateNotificationUI  = updateNotificationUI;
         }
 
         // Toque no fundo escuro = mesmo que "Não"
-        banner.addEventListener('click', function(e) {
+        banner?.addEventListener('click', function(e) {
             if (e.target === banner && btnNo) btnNo.click();
         }, { once: true });
     }

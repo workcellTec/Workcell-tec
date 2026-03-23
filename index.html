@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
 
 
-    <title>Central Workcell</title>
+    <title>Central Workcell'</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" id="status-bar-color" content="#0B1120"/>
@@ -335,6 +335,10 @@ class="dropdown-menu-custom">
             <button class="btn-menu" id="goToStock"><i class="bi bi-box-seam"></i> Controle de Estoque</button>
             <button class="btn-menu" id="goToAdmin"><i class="bi bi-gear"></i> Administração</button>
             <button class="btn-menu" id="goToRepairs"><i class="bi bi-wrench-adjustable-circle-fill"></i> Gerenc. de Consertos</button>
+            <button class="btn-menu" id="goToReposicao" style="position:relative;">
+                <i class="bi bi-cart-fill"></i> Lista de Reposição
+                <span id="repoBadge" class="repo-badge hidden">0</span>
+            </button>
         </div>
 
         <!-- ESTILO 2.0 (grid de cards) — oculto por padrão -->
@@ -359,10 +363,16 @@ class="dropdown-menu-custom">
                 <span class="ctw-card-title">Administração</span>
                 <span class="ctw-card-sub">& equipe</span>
             </button>
-            <button class="ctw-card c-teal ctw-card-full" id="goToRepairs2">
+            <button class="ctw-card c-teal" id="goToRepairs2">
                 <div class="ctw-card-icon"><i class="bi bi-wrench-adjustable-circle-fill"></i></div>
                 <span class="ctw-card-title">Consertos</span>
                 <span class="ctw-card-sub">Gerenciamento</span>
+            </button>
+            <button class="ctw-card c-green" id="goToReposicao2" style="position:relative;">
+                <div class="ctw-card-icon"><i class="bi bi-cart-fill"></i></div>
+                <span class="ctw-card-title">Reposição</span>
+                <span class="ctw-card-sub">Lista de compras</span>
+                <span id="repoBadge2" class="repo-badge-card hidden">0</span>
             </button>
         </div>
     </div>
@@ -501,78 +511,7 @@ class="dropdown-menu-custom">
 
 
 
-<div class="container" id="fecharVenda" style="display: none;">
-
-            <div class="section-header">
-                <h3>Fechar Venda</h3>
-                <button aria-label="Voltar" class="btn-back" id="backFromFecharVenda"><i class="bi bi-arrow-left"></i></button>
-            </div>
-            <div class="content-card w-100">
-                <div class="row mb-3 w-100 justify-content-center">
-                    <div class="col-12 col-md-4 mb-3"><label class="form-label">Maquininha</label>
-
-
-<select class="form-select" id="machine1">
-    <option value="pagbank">PagBank</option>
-    <option value="infinity" selected>InfinityPay</option>
-    <option value="valorante">Valorante</option>
-    <option value="nubank">Nubank Link</option>
-</select>
-
-
-
-</div>
-                    <div class="col-12 col-md-4 mb-3" id="flagDisplayContainer1" class="hidden"><label class="form-label">Bandeira</label><button class="btn-flag-display" id="flagDisplayButton1"></button></div>
-                    <div class="col-12 col-md-4 mb-3">
-                        <label for="installments1" class="form-label d-flex justify-content-between">
-                            <span>Parcelas</span>
-                            <span id="installments1Value" class="fw-bold">Débito</span>
-                        </label>
-                        <div id="quickInstallmentsContainer" class="quick-installments"></div>
-                        <input type="range" class="form-range" id="installments1" min="0" max="18" step="1" value="0">
-                    </div>
-                </div>
-                <div id="brand1Container" class="hidden"><select id="brand1"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="hiper">Hiper</option><option value="hipercard">Hipercard</option><option value="elo">Elo</option><option value="amex">Amex</option></select></div>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="vendaModeToggle">
-                    <label for="vendaModeToggle">
-                        <span><i class="bi bi-pencil-alt"></i> Entrada Manual</span>
-                        <span><i class="bi bi-box-seam"></i> Venda por Produto</span>
-                    </label>
-                </div>
-                <div class="mb-3 d-flex justify-content-center flex-wrap" id="manualModeContainer">
-                    <label class="me-3"><input checked="" name="manualMode" type="radio" value="total"/> Valor Total</label>
-                    <label><input name="manualMode" type="radio" value="parcela"/> Valor da Parcela</label>
-                </div>
-                <div class="w-100 hidden max-width-400-margin-auto" id="vendaPorProdutoContainer">
-                    <div class="mb-3 search-wrapper">
-                        <label class="form-label" for="vendaProdutoSearch"><i class="bi bi-search"></i> Pesquisar Produto</label>
-                        <input autocomplete="off" class="form-control" id="vendaProdutoSearch" placeholder="Carregando..." type="text"/>
-                        <div class="search-results-container list-group" id="vendaSearchResultsContainer"></div>
-                    </div>
-                    <div class="mb-3"><label class="form-label" for="fecharVendaPrecoBase"><i class="bi bi-tag"></i> Preço Base (R$)</label><input class="form-control" id="fecharVendaPrecoBase" readonly="" type="text"/></div>
-                    <div class="form-check form-switch my-3 hidden" id="entradaAVistaToggleContainer">
-                        <input class="form-check-input" type="checkbox" role="switch" id="entradaAVistaCheckbox">
-                        <label class="form-check-label" for="entradaAVistaCheckbox">Entrada à vista?</label>
-                    </div>
-                    <div id="entradaAVistaContainer" class="hidden">
-                        <div class="mb-3">
-                            <label class="form-label" for="valorEntradaAVista"><i class="bi bi-cash"></i> Valor da entrada (à vista, sem taxa)</label>
-                            <input class="form-control" id="valorEntradaAVista" type="number" step="0.01" min="0" placeholder="Ex: 500,00">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="valorPassadoNoCartao"><i class="bi bi-credit-card"></i> Valor passado no cartão (com taxa)</label>
-                            <input class="form-control" id="valorPassadoNoCartao" type="number" step="0.01" min="0" placeholder="Ex: 1849,00">
-                        </div>
-                    </div>
-                </div>
-                <div class="w-100 d-flex justify-content-center" id="fecharVendaInputs">
-                    <div class="mb-3 width-100-max-width-400"><label class="form-label" for="fecharVendaValue" id="fecharVendaValueLabel"><i class="bi bi-currency-dollar"></i> Valor Total da Venda (R$)</label><input class="form-control form-control-lg" id="fecharVendaValue" placeholder="R$ 0,00" type="tel"/>
-</div>
-                </div>
-                <div class="w-100 d-flex flex-column justify-content-center mt-3" id="resultFecharVenda"></div>
-            </div>
-        </div>
+<div id="fecharVenda" style="display:none;"></div>
         <div class="container" id="repassarValores" class="hidden">
             <div class="section-header">
                 <h3>Repassar Valores</h3>
@@ -849,6 +788,7 @@ class="dropdown-menu-custom">
         </div>
 
         <div id="adminRatesContent" class="hidden">
+
             <div class="admin-section">
                 <h4 class="text-start"><i class="bi bi-eye-fill"></i> Maquininhas Visíveis</h4>
                 <p class="text-start text-secondary">Desative as maquininhas que você não utiliza para simplificar as telas de cálculo.</p>
@@ -899,6 +839,15 @@ class="dropdown-menu-custom">
         <div id="adminTagsContent" class="hidden"></div>
 
         <div id="adminSettingsContent" class="hidden">
+            <div class="admin-section w-100">
+                <h4 class="mb-3 text-start"><i class="bi bi-robot"></i> Chave Groq — Scan de Estoque</h4>
+                <p class="text-secondary small">Cole sua chave da API Groq para usar o Scan de Cores no Estoque. Gratuito em <a href="https://console.groq.com" target="_blank" class="text-primary">console.groq.com</a></p>
+                <div class="input-group mb-2">
+                    <input type="password" class="form-control" id="groqApiKeyInput" placeholder="gsk_...">
+                    <button class="btn btn-outline-secondary" type="button" id="groqApiKeyToggle"><i class="bi bi-eye"></i></button>
+                </div>
+                <button class="btn btn-primary w-100" id="groqApiKeySaveBtn"><i class="bi bi-save-fill"></i> Salvar Chave</button>
+            </div>
             <div class="admin-section w-100">
                 <h4 class="mb-3 text-start"><i class="bi bi-pencil-square"></i> Cabeçalho do Recibo</h4>
                 <p class="text-secondary small">Edite os dados da empresa que aparecem no topo do Bookip (Nome, CNPJ, Endereço, etc).</p>
@@ -958,7 +907,6 @@ class="dropdown-menu-custom">
     </div>
 
         
-        <div id="adminTagsContent" class="hidden"></div>
     </div>
     
 
@@ -1068,16 +1016,55 @@ do que você precisa??</h2>
                         
                         <h5 class="form-section-title">Condições do Contrato</h5>
                         <div class="row">
-                            <div class="col-md-4 mb-3"><label for="contratoPrazo" class="form-label">Prazo (Meses)</label><input type="number" class="form-control" id="contratoPrazo" required></div>
-                            <div class="col-md-4 mb-3"><label for="valorTotal" class="form-label">Valor Total (R$)</label><input type="number" step="0.01" class="form-control" id="valorTotal" required></div>
-                            <div class="col-md-4 mb-3"><label for="valorEntrada" class="form-label">Valor da Entrada (R$)</label><input type="number" step="0.01" class="form-control" id="valorEntrada" required></div>
-                            
-                            <div class="col-md-4 mb-3"><label for="numeroParcelas" class="form-label">Nº de Parcelas</label><input type="number" step="1" class="form-control" id="numeroParcelas" required></div>
-                            <div class="col-md-4 mb-3"><label for="tipoParcela" class="form-label">Frequência</label><select class="form-select" id="tipoParcela"><option value="mensais" selected>Mensais</option><option value="semanais">Semanais</option></select></div>
-                            <div class="col-md-4 mb-3"><label for="primeiroVencimento" class="form-label">Data 1º Vencimento</label><input type="date" class="form-control" id="primeiroVencimento"></div>
-                            
-                            <div class="col-md-6 mb-3"><label for="saldoRestante" class="form-label">Saldo Restante (R$)</label><input type="text" class="form-control" id="saldoRestante" readonly></div>
-                            <div class="col-md-6 mb-3"><label for="valorParcela" class="form-label">Valor da Parcela (R$)</label><input type="text" class="form-control" id="valorParcela" readonly></div>
+
+                            <!-- Frequência — col-12: um embaixo do outro -->
+                            <div class="col-12 mb-3">
+                                <label for="tipoParcela" class="form-label">Frequência</label>
+                                <select class="form-select" id="tipoParcela">
+                                    <option value="mensais" selected>Mensais</option>
+                                    <option value="semanais">Semanais</option>
+                                    <option value="quinzenais">Quinzenais</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="numeroParcelas" class="form-label">Nº de Parcelas</label>
+                                <input type="number" step="1" min="1" class="form-control" id="numeroParcelas" required placeholder="Ex: 5">
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="valorEntrada" class="form-label">Valor da Entrada (R$)</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="valorEntrada" required placeholder="0,00">
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="valorParcela" class="form-label">Valor da Parcela (R$)</label>
+                                <input type="number" step="0.01" min="0.01" class="form-control" id="valorParcela" required placeholder="Ex: 300,00">
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="primeiroVencimento" class="form-label">Data 1º Vencimento</label>
+                                <input type="date" class="form-control" id="primeiroVencimento">
+                            </div>
+
+                            <!-- Prazo calculado automaticamente — readonly -->
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Prazo (calculado automaticamente)</label>
+                                <input type="text" class="form-control" id="contratoPrazoDisplay" readonly placeholder="—">
+                                <input type="hidden" id="contratoPrazo">
+                            </div>
+
+                            <!-- Valor Total e Saldo — readonly, derivados do cálculo -->
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Valor Total (R$)</label>
+                                <input type="text" class="form-control" id="valorTotalDisplay" readonly placeholder="—">
+                                <input type="hidden" id="valorTotal">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Saldo Restante (R$)</label>
+                                <input type="text" class="form-control" id="saldoRestante" readonly placeholder="—">
+                            </div>
+
                         </div>
                         
                         <div class="text-center mt-4 d-flex justify-content-center gap-2 flex-wrap">
@@ -1088,6 +1075,7 @@ do que você precisa??</h2>
                             <button type="button" id="btnApagarRascunho" class="btn btn-outline-danger"><i class='bi bi-trash'></i> Apagar Rascunho</button>
                         </div>
                         <div id="draftStatus" class="text-secondary small mt-2 text-center" style="height: 1.2em;"></div>
+                        <input type="hidden" id="editingBoletoId" value="">
                     </form>
                 </div>
             </div>
@@ -1125,7 +1113,7 @@ do que você precisa??</h2>
                 <div class="content-card w-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="form-section-title mb-0"><i class="bi bi-person-lines-fill"></i> Dados do Cliente</h5>
-    <button class="btn btn-sm btn-success" onclick="abrirModalColarZap()" style="border-radius: 20px;">
+    <button id="btnZapMagico" class="btn btn-sm btn-success" onclick="abrirModalColarZap()" style="border-radius: 20px;">
         <i class="bi bi-whatsapp"></i> Colar do Zap
     </button>
 </div>
@@ -1399,11 +1387,15 @@ do que você precisa??</h2>
         </div>
         <div class="content-card w-100">
             <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
-                <input class="form-control" id="stockSearchInput" placeholder="Filtrar produtos..." style="flex: 1; min-width: 180px;" type="text">
+                <div style="display:flex;align-items:center;flex:1;min-width:180px;position:relative;">
+                    <input class="form-control pe-4" id="stockSearchInput" placeholder="Filtrar produtos..." style="flex:1;" type="text">
+                    <button id="stockSearchClear" onclick="document.getElementById('stockSearchInput').value='';document.getElementById('stockSearchInput').dispatchEvent(new Event('input'));this.style.display='none';" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-secondary);font-size:.85rem;cursor:pointer;padding:0;line-height:1;" title="Limpar">✕</button>
+                </div>
                 <div class="btn-group">
                     <button class="btn btn-outline-secondary btn-sm" id="toggleIgnoredBtn" title="Mostrar produtos ignorados"><i class="bi bi-eye-slash-fill"></i></button>
                     <button class="btn btn-outline-danger btn-sm" id="resetCountBtn" title="Resetar Contagem"><i class="bi bi-arrow-counterclockwise"></i></button>
                     <button class="btn btn-info btn-sm" id="generateReportBtn"><i class="bi bi-printer"></i> Relatório</button>
+<!-- Scan IA removido — substituído pelo botão 📷 em cada card do estoque -->
                 </div>
             </div>
             <div id="stockNotFoundHint"></div>
@@ -1426,6 +1418,17 @@ do que você precisa??</h2>
         <div class="section-header">
             <h3>Base de Clientes</h3>
             <button aria-label="Voltar" class="btn-back" id="backFromClients"><i class="bi bi-arrow-left"></i></button>
+        </div>
+
+        <!-- 🏆 CLIENTES ESTRELAS -->
+        <div class="content-card w-100 mb-3">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h6 style="margin:0;font-weight:700;"><i class="bi bi-trophy-fill" style="color:#ffd700;"></i> Clientes Estrelas</h6>
+                <button onclick="window.abrirZelador()" class="btn btn-sm btn-outline-secondary" style="font-size:.72rem;">
+                    <i class="bi bi-search"></i> Zelador
+                </button>
+            </div>
+            <div id="rankingClientesBody"><p class="text-secondary small text-center mb-0">Carregando...</p></div>
         </div>
         
         <div class="content-card w-100">
@@ -1814,6 +1817,14 @@ do que você precisa??</h2>
 
 
 <script src="app.js?v=1001" type="module" defer></script>
+<script>
+window.addEventListener('load', function() {
+    var s = document.createElement('script');
+    s.src = 'StockCount.js?v=3';
+    document.head.appendChild(s);
+});
+</script>
+
     <!-- Módulos independentes — carregam em paralelo após app.js -->
     <script type="module" defer>
         // Carrega módulos após o app estar pronto
@@ -1824,6 +1835,8 @@ do que você precisa??</h2>
                 import('./Favorites.js'),
                 import('./repairs.js?v=2').then(m => { window._repairsModule = m; }),
                 import('./Bookip.js'),
+                import('./reposicao.js').then(m => { window._reposicaoModule = m; }),
+                import('./fecharVenda.js'),
             ]);
         }
         // Módulos carregam assim que o DOM está pronto
@@ -2122,13 +2135,13 @@ do que você precisa??</h2>
 
     <!-- Filters -->
     <div class="rep-filters">
-        <button class="rep-filter-btn rep-filter-active" data-rep-filter="all">Todos</button>
-        <button class="rep-filter-btn" data-rep-filter="levar_tecnico">Levar Técnico</button>
+        <button class="rep-filter-btn" data-rep-filter="all">Ativos</button>
+        <button class="rep-filter-btn rep-filter-active" data-rep-filter="levar_tecnico">Levar Técnico</button>
         <button class="rep-filter-btn" data-rep-filter="em_reparo">Em Reparo</button>
-        <button class="rep-filter-btn" data-rep-filter="finalizados_loja">Finalizados Loja</button>
-        <button class="rep-filter-btn" data-rep-filter="proximo">Prox. Prazo</button>
-        <button class="rep-filter-btn" data-rep-filter="tempo_esgotado">Tempo Esgotado</button>
-        <button class="rep-filter-btn" data-rep-filter="entregue">Finalizado/Entregue!</button>
+        <button class="rep-filter-btn" data-rep-filter="finalizados_loja">Fin. Loja</button>
+        <button class="rep-filter-btn" data-rep-filter="proximo">⏰ Prazo</button>
+        <button class="rep-filter-btn" data-rep-filter="tempo_esgotado">⚠️ Atrasado</button>
+        <button class="rep-filter-btn" data-rep-filter="entregue">✅ Entregue</button>
     </div>
 
     <!-- List -->
@@ -2265,12 +2278,9 @@ do que você precisa??</h2>
 </div>
 
 <!-- ─── MODAL: CONFIRMAR EXCLUSÃO ─── -->
-<!-- Overlay: Desfazer Etapa -->
 <div class="rep-modal-overlay" id="repUndoOverlay">
     <div class="rep-modal rep-modal-sm">
-        <div class="rep-modal-header">
-            <span>↩️ Desfazer Etapa</span>
-        </div>
+        <div class="rep-modal-header"><span>↩️ Desfazer Etapa</span></div>
         <div class="rep-modal-body">
             <p id="repUndoMsg" style="margin:0;font-size:.9rem;line-height:1.5;"></p>
         </div>
@@ -2877,6 +2887,224 @@ do que você precisa??</h2>
     });
 })();
 </script>
+
+
+<!-- ═══════════════════════════════════════════════
+     CAPCUT SAVE PREVIEW — Bookip & Boleto
+     ═══════════════════════════════════════════════ -->
+<div id="ctwSavePreviewOverlay" class="ctw-sp-overlay hidden" aria-modal="true" role="dialog">
+    <div class="ctw-sp-backdrop"></div>
+    <div class="ctw-sp-panel">
+
+        <!-- Título dinâmico -->
+        <div class="ctw-sp-title" id="ctwSpTitle">Confirmar e Salvar</div>
+        <div class="ctw-sp-subtitle" id="ctwSpSubtitle">Revise antes de salvar na nuvem</div>
+
+        <!-- Pré-visualização A4 com borda animada estilo CapCut -->
+        <div class="ctw-sp-ring-wrap">
+            <!-- SVG da borda animada sobre o retângulo A4 -->
+            <svg class="ctw-sp-ring-svg" viewBox="0 0 272 380"
+                 xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <!-- Trilha cinza — contorno total do papel -->
+                <rect class="ctw-sp-track" x="3" y="3" width="266" height="374" rx="10" ry="10"/>
+                <!-- Arco de progresso — percorre o retângulo (perímetro 1280) -->
+                <rect class="ctw-sp-arc" id="ctwSpArc"
+                      x="3" y="3" width="266" height="374" rx="10" ry="10"/>
+            </svg>
+            <!-- Miniatura A4 do documento -->
+            <div class="ctw-sp-preview-box">
+                <div class="ctw-sp-preview-scroll">
+                    <div class="ctw-sp-preview-inner" id="ctwSpPreviewInner">
+                        <!-- conteúdo injetado via JS -->
+                    </div>
+                </div>
+            </div>
+            <!-- % abaixo do preview -->
+            <div class="ctw-sp-pct" id="ctwSpPct">0%</div>
+        </div>
+
+        <!-- Info do documento -->
+        <div class="ctw-sp-doc-info" id="ctwSpDocInfo"></div>
+
+        <!-- Botões de ação — só aparecem após 100% -->
+        <div class="ctw-sp-actions hidden" id="ctwSpActions">
+            <button class="ctw-sp-btn-confirm" id="ctwSpBtnConfirm">
+                <i class="bi bi-cloud-check-fill"></i> Salvar agora
+            </button>
+            <button class="ctw-sp-btn-cancel" id="ctwSpBtnCancel">
+                <i class="bi bi-x-lg"></i> Cancelar
+            </button>
+        </div>
+
+        <!-- Loader inicial (enquanto o preview renderiza) -->
+        <div class="ctw-sp-loading" id="ctwSpLoading">
+            <div class="ctw-sp-dot-loader">
+                <span></span><span></span><span></span>
+            </div>
+            <p>Gerando pré-visualização...</p>
+        </div>
+    </div>
+</div>
+
+
+<!-- ======== SCAN IA OVERLAY ======== -->
+<div id="scanIaOverlay" class="scan-ia-overlay">
+    <div class="scan-ia-panel">
+        <div id="scanNoKeyScreen" class="scan-screen hidden">
+            <div class="text-center p-4">
+                <i class="bi bi-key-fill" style="font-size:3rem;color:var(--primary-color)"></i>
+                <h5 class="mt-3">Chave Groq não configurada</h5>
+                <p class="text-secondary small">Vá em Administração → Taxas e configure sua chave da API Groq.</p>
+                <button class="btn btn-primary mt-2" id="scanGoToSettingsBtn">Configurar agora</button>
+                <button class="btn btn-outline-secondary mt-2 ms-2" id="scanNoKeyCloseBtn">Fechar</button>
+            </div>
+        </div>
+        <div id="scanSelectScreen" class="scan-screen">
+            <div class="scan-ia-header">
+                <span><i class="bi bi-camera-fill"></i> Scan em Lote</span>
+                <button class="scan-ia-close" id="scanCloseBtn"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <p class="text-secondary small mb-3">Fotografe todas as caixas do lote. A IA conta as unidades e identifica as cores.</p>
+            <div class="scan-dropzone" id="scanDropzone">
+                <i class="bi bi-images" style="font-size:2.5rem;color:var(--primary-color)"></i>
+                <p class="mt-2 mb-0 fw-bold">Selecione as fotos</p>
+                <div class="d-flex gap-2 mt-3 justify-content-center">
+                    <button class="btn btn-primary btn-sm" id="scanBtnGaleria"><i class="bi bi-image"></i> Galeria</button>
+                    <button class="btn btn-outline-light btn-sm" id="scanBtnCamera"><i class="bi bi-camera"></i> Câmera</button>
+                </div>
+            </div>
+            <input type="file" id="scanFileInputGaleria" accept="image/*" multiple style="display:none">
+            <input type="file" id="scanFileInput" accept="image/*" multiple capture="environment" style="display:none">
+            <div id="scanPreviewGrid" class="scan-preview-grid hidden"></div>
+            <button class="btn btn-success w-100 mt-3 fw-bold" id="scanBtnAnalisar" disabled>
+                <i class="bi bi-cpu-fill"></i> Analisar com IA
+            </button>
+        </div>
+        <div id="scanProcessingScreen" class="scan-screen hidden">
+            <div class="text-center p-4">
+                <div class="scan-ai-pulse"><i class="bi bi-cpu-fill"></i></div>
+                <h5 class="mt-4">Analisando fotos...</h5>
+                <p id="scanProcessingStatus" class="text-secondary small">Foto 1 de <span id="scanTotalFotos">?</span></p>
+                <div class="progress mt-3" style="height:6px;border-radius:10px;background:rgba(255,255,255,0.1)">
+                    <div id="scanProgressBar" class="progress-bar bg-success" style="width:0%;transition:width 0.3s ease"></div>
+                </div>
+            </div>
+        </div>
+        <div id="scanResultsScreen" class="scan-screen hidden">
+            <div class="scan-ia-header">
+                <span><i class="bi bi-check2-square"></i> Resultados</span>
+                <button class="btn btn-link btn-sm text-secondary p-0" id="scanVoltarBtn"><i class="bi bi-arrow-left"></i> Nova scan</button>
+            </div>
+            <p class="text-secondary small mb-3">Revise e confirme.</p>
+            <div id="scanResultsList"></div>
+            <button class="btn btn-success w-100 mt-3 fw-bold" id="scanBtnConfirmar">
+                <i class="bi bi-cloud-check-fill"></i> Confirmar e Atualizar Estoque
+            </button>
+        </div>
+    </div>
+</div>
+<!-- ===================================== -->
+
+<!-- ═══════════════════════════════════════════════
+     SEÇÃO: REPOSIÇÃO — Lista de Compras
+     ═══════════════════════════════════════════════ -->
+<div id="reposicaoContainer" class="hidden" style="display:none;">
+
+    <!-- Header -->
+    <div class="repo-header">
+        <button class="btn-back btn-back-large" id="backFromReposicao">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <div class="repo-header-title">
+            <i class="bi bi-cart-fill"></i>
+            <span>Lista de Reposição</span>
+        </div>
+        <button class="repo-btn-add" id="repoBtnNovo" title="Adicionar item">
+            <i class="bi bi-plus-lg"></i>
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="repo-filters">
+        <button class="repo-filter-btn active" id="repoFilterAll">Todos</button>
+        <button class="repo-filter-btn" id="repoFilterPending">
+            <i class="bi bi-circle"></i> Pendentes
+        </button>
+        <button class="repo-filter-btn" id="repoFilterDone">
+            <i class="bi bi-check-circle-fill"></i> Comprados
+        </button>
+        <button class="repo-filter-btn repo-filter-clear" id="repoBtnLimpar" title="Apagar comprados">
+            <i class="bi bi-trash3"></i>
+        </button>
+    </div>
+
+    <!-- Lista de itens -->
+    <div class="repo-list" id="repoList">
+        <div class="repo-empty">
+            <i class="bi bi-cart-x"></i>
+            <p>Lista vazia! Toque em + para adicionar.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay do formulário de novo/editar item -->
+<div id="repoFormOverlay" class="repo-form-overlay hidden">
+    <div class="repo-form-panel">
+
+        <div class="repo-form-header">
+            <div class="repo-form-header-left">
+                <div class="repo-form-icon"><i class="bi bi-cart-plus-fill"></i></div>
+                <div>
+                    <span id="repoFormTitle" class="repo-form-title">Novo Item</span>
+                    <div class="repo-form-subtitle">Lista de reposição</div>
+                </div>
+            </div>
+            <button class="repo-form-close" id="repoFormClose"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <div class="repo-form-divider"></div>
+
+        <!-- Campos no topo — teclado sobe por baixo, não cobre -->
+        <div class="repo-form-fields">
+            <div class="repo-form-field">
+                <label class="repo-form-label"><i class="bi bi-tag-fill"></i> Produto <span style="color:var(--primary-color)">*</span></label>
+                <input type="text" id="repoInputNome" class="repo-form-input"
+                       placeholder="Ex: Cabo Tipo C, Capinha X7 Pro..." maxlength="80">
+            </div>
+            <div class="repo-form-row">
+                <div class="repo-form-field" style="flex:0 0 86px;">
+                    <label class="repo-form-label"><i class="bi bi-hash"></i> Qtd</label>
+                    <input type="number" id="repoInputQtd" class="repo-form-input repo-input-center" min="1" max="999" value="1">
+                </div>
+                <div class="repo-form-field" style="flex:1;">
+                    <label class="repo-form-label"><i class="bi bi-palette-fill"></i> Cor / Variação</label>
+                    <input type="text" id="repoInputVariacao" class="repo-form-input" placeholder="Preto, Azul, 1m...">
+                </div>
+            </div>
+        </div>
+
+        <button class="repo-btn-salvar" id="repoBtnSalvar">
+            <i class="bi bi-check-circle-fill"></i> Salvar Item
+        </button>
+
+        <!-- Foto embaixo do salvar — teclado pode cobrir à vontade -->
+        <div class="repo-form-field">
+            <label class="repo-foto-section-label"><i class="bi bi-image-fill"></i> Foto de exemplo (opcional)</label>
+            <div class="repo-foto-btns" id="repoFotoBtnsWrap">
+                <button type="button" class="repo-foto-btn" id="repoBtnCamera"><i class="bi bi-camera-fill"></i> Câmera</button>
+                <button type="button" class="repo-foto-btn" id="repoBtnGaleria"><i class="bi bi-image-fill"></i> Galeria</button>
+            </div>
+            <div id="repoFotoPreview" class="repo-foto-preview hidden">
+                <img id="repoFotoImg" src="" alt="prévia">
+                <button type="button" class="repo-foto-remove" id="repoBtnRemoverFoto"><i class="bi bi-x-circle-fill"></i></button>
+            </div>
+        </div>
+
+        <!-- Indicador visual de que há conteúdo abaixo (arraste) -->
+        <span class="repo-form-drag"></span>
+
+    </div>
+</div>
 
 </body>
 </html>
