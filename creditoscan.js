@@ -552,12 +552,30 @@
     function setBtnState(){var canRun=_docsRend.length>0&&!_busy;if(el('cs_btn_analisar'))el('cs_btn_analisar').disabled=!canRun;if(el('cs_btn_nova'))el('cs_btn_nova').disabled=!canRun;}
     function setProg(msg,pct){el('cs_prog_lbl')&&(el('cs_prog_lbl').textContent=msg);el('cs_prog_bar')&&(el('cs_prog_bar').style.width=pct+'%');}
 
+    var MAX_PDF_PGS_ID = 3; // PDF de documento pessoal: maximo 3 paginas (RG frente/verso/CNH)
+
     async function handleFilesId(files){
         for(var i=0;i<files.length;i++){
             var f=files[i];
-            if(_docsId.length>=MAX_DOCS_ID){window.showCustomModal&&window.showCustomModal({message:'Maximo '+MAX_DOCS_ID+' imagens de documento pessoal.'});break;}
-            if(f.type.startsWith('image/')){var b64=await resizeToBase64(f);if(b64)_docsId.push({base64:b64,dataUrl:URL.createObjectURL(f)});}
-            else if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){
+            if(_docsId.length>=MAX_DOCS_ID){window.showCustomModal&&window.showCustomModal({message:'Maximo '+MAX_DOCS_ID+' fotos de documento pessoal.'});break;}
+            if(f.type.startsWith('image/')){
+                var b64=await resizeToBase64(f);
+                if(b64)_docsId.push({base64:b64,dataUrl:URL.createObjectURL(f)});
+            } else if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){
+                // Verifica quantas paginas tem ANTES de processar
+                var numPags = 0;
+                try {
+                    if(!window.pdfjsLib) await new Promise(function(ok,fail){var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';s.onload=ok;s.onerror=fail;document.head.appendChild(s);});
+                    if(window.pdfjsLib&&!window.pdfjsLib.GlobalWorkerOptions.workerSrc)window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    var ab=await f.arrayBuffer();
+                    var pdfDoc=await window.pdfjsLib.getDocument({data:ab}).promise;
+                    numPags=pdfDoc.numPages;
+                } catch(e){}
+                if(numPags>MAX_PDF_PGS_ID){
+                    window.showCustomModal&&window.showCustomModal({message:'Este PDF tem '+numPags+' paginas. Documentos pessoais (RG/CNH) tem no maximo '+MAX_PDF_PGS_ID+' paginas. Coloque extratos e holerites na secao COMPROVANTE DE RENDA.'});
+                    continue;
+                }
+                // PDF ok: usa so a primeira pagina como imagem
                 var imgs=await pdfToImages(f);
                 if(imgs.length>0&&_docsId.length<MAX_DOCS_ID)_docsId.push({base64:imgs[0].base64,dataUrl:imgs[0].dataUrl});
             }
