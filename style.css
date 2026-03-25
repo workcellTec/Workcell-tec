@@ -4184,6 +4184,14 @@ body::after {
 .ctw-card.c-green .ctw-card-sub   { color: #6ee7b7; }
 .ctw-card.c-green:hover { background: rgba(16,185,129,.14); border-color: rgba(16,185,129,.38); transform: translateY(-3px); }
 
+.ctw-card.c-rose {
+    background: rgba(225,29,72,.09); border-color: rgba(225,29,72,.22);
+}
+.ctw-card.c-rose .ctw-card-icon { background: rgba(225,29,72,.16); color: #fb7185; }
+.ctw-card.c-rose .ctw-card-title { color: #fca5a5; }
+.ctw-card.c-rose .ctw-card-sub   { color: #fca5a5; }
+.ctw-card.c-rose:hover { background: rgba(225,29,72,.16); border-color: rgba(225,29,72,.42); transform: translateY(-3px); }
+
 .ctw-card.c-disabled {
     background: rgba(255,255,255,.03);
     border-color: rgba(255,255,255,.07);
@@ -4455,6 +4463,7 @@ body.ctw-v2-active #contractContainer {
 .ctw-sheet-item-icon.bg-info    { background: rgba(14,165,233,.15); color: #38bdf8; }
 .ctw-sheet-item-icon.bg-primary { background: rgba(var(--primary-color-rgb),.15); color: var(--primary-color); }
 .ctw-sheet-item-icon.bg-stars   { background: rgba(255,193,7,.13); color: #fbbf24; }
+.ctw-sheet-item-icon.bg-purple  { background: rgba(139,92,246,.15); color: #a78bfa; }
 
 
 /* ============================================================
